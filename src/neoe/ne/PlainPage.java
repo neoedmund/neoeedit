@@ -1213,15 +1213,15 @@ public class PlainPage {
 	}
 
 	public void keyPressed(KeyEvent env) {
-		if (Ime.enabled&&Ime.instance!=null){
+		if (Ime.enabled && Ime.instance != null) {
 			Param param = new Param();
 			Ime.instance.keyPressed(env, param);
-			if (param.yield!=null) {
+			if (param.yield != null) {
 				pageData.history.beginAtom();
 				ptEdit.insertString(param.yield);
 				pageData.history.endAtom();
 			}
-			if (param.consumed){				
+			if (param.consumed) {
 				return;
 			}
 		}
@@ -1231,7 +1231,7 @@ public class PlainPage {
 			mshift = env.isShiftDown();
 			int ocx = cx;
 			int ocy = cy;
-			
+
 			Commands cmd = U.mappingToCommand(env);
 			if (cmd == null) {
 				int kc = env.getKeyCode();
@@ -1268,34 +1268,37 @@ public class PlainPage {
 	}
 
 	public void keyTyped(KeyEvent env) {
-		pageData.history.beginAtom();
-		char kc = env.getKeyChar();
-		if (kc == KeyEvent.VK_TAB && env.isShiftDown()) {
-			Rectangle r = ptSelection.getSelectRect();
-			if (r.y < r.height) {
-				ptEdit.moveRectLeft(r.y, r.height);
-			} else {
-				ptEdit.moveLineLeft(cy);
-			}
-		} else if (kc == KeyEvent.VK_TAB && !env.isShiftDown()
-				&& selectstarty != selectstopy && !rectSelectMode) {
-			Rectangle r = ptSelection.getSelectRect();
-			ptEdit.moveRectRight(r.y, r.height);
-		} else if (env.isControlDown() || env.isAltDown()) {
+		if (env.isControlDown() || env.isAltDown()) {
 			// ignore
 		} else {
-			if (Ime.enabled&&Ime.instance!=null){
-				Param param = new Param();
-				Ime.instance.keyPressed(env, param);
-				if (param.yield!=null) ptEdit.insertString(param.yield);
-				if (!param.consumed){
-					ptEdit.insert(kc);	
+			pageData.history.beginAtom();
+			char kc = env.getKeyChar();
+			if (kc == KeyEvent.VK_TAB && env.isShiftDown()) {
+				Rectangle r = ptSelection.getSelectRect();
+				if (r.y < r.height) {
+					ptEdit.moveRectLeft(r.y, r.height);
+				} else {
+					ptEdit.moveLineLeft(cy);
 				}
-			}else{
-				ptEdit.insert(kc);
+			} else if (kc == KeyEvent.VK_TAB && !env.isShiftDown()
+					&& selectstarty != selectstopy && !rectSelectMode) {
+				Rectangle r = ptSelection.getSelectRect();
+				ptEdit.moveRectRight(r.y, r.height);
+			} else {
+				if (Ime.enabled && Ime.instance != null) {
+					Param param = new Param();
+					Ime.instance.keyPressed(env, param);
+					if (param.yield != null)
+						ptEdit.insertString(param.yield);
+					if (!param.consumed) {
+						ptEdit.insert(kc);
+					}
+				} else {
+					ptEdit.insert(kc);
+				}
 			}
+			pageData.history.endAtom();
 		}
-		pageData.history.endAtom();
 	}
 
 	public void mouseClicked(MouseEvent evt) {
@@ -1584,9 +1587,10 @@ public class PlainPage {
 			U.switchPageInOrder(this);
 			break;
 		case toggleIME:
-			if (Ime.instance==null) ui.message("IME plugin not present.");
-			else{				
-				Ime.enabled=!Ime.enabled;
+			if (Ime.instance == null)
+				ui.message("IME plugin not present.");
+			else {
+				Ime.enabled = !Ime.enabled;
 				Ime.instance.setEnabled(Ime.enabled);
 			}
 			break;
