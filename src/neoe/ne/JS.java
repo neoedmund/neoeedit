@@ -33,7 +33,7 @@ public class JS {
 		List<StringBuffer> res = new ArrayList<StringBuffer>();
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("js");
-		engine.eval("function wrappedRun(a,b,c){var ret=run(a,b,c);if (ret.constructor == Array){"
+		engine.eval("function wrappedRun(a,b,c){var ret=run(a,b,c);if (ret==undefined) {return ret;} if (ret.constructor == Array){"
 				+ "  var jArr = java.lang.reflect.Array.newInstance(java.lang.String, ret.length);"
 				+ "  for (var i = 0; i < ret.length; i++) jArr[i] = ret[i];"
 				+ "  return jArr;"
