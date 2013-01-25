@@ -838,100 +838,8 @@ public class U {
 
 	static Map<String, Commands> keys;
 
-	final static String[] KWS = { "ArithmeticError", "AssertionError",
-			"AttributeError", "BufferType", "BuiltinFunctionType",
-			"BuiltinMethodType", "ClassType", "CodeType", "ComplexType",
-			"DeprecationWarning", "DictProxyType", "DictType",
-			"DictionaryType", "EOFError", "EllipsisType", "EnvironmentError",
-			"Err", "Exception", "False", "FileType", "FloatType",
-			"FloatingPointError", "FrameType", "FunctionType", "GeneratorType",
-			"IOError", "ImportError", "IndentationError", "IndexError",
-			"InstanceType", "IntType", "KeyError", "KeyboardInterrupt",
-			"LambdaType", "ListType", "LongType", "LookupError", "MemoryError",
-			"MethodType", "ModuleType", "NameError", "None", "NoneType",
-			"NotImplemented", "NotImplementedError", "OSError", "ObjectType",
-			"OverflowError", "OverflowWarning", "ReferenceError",
-			"RuntimeError", "RuntimeWarning", "SliceType", "StandardError",
-			"StopIteration", "StringType", "StringTypes", "SyntaxError",
-			"SyntaxWarning", "SystemError", "SystemExit", "TabError",
-			"TracebackType", "True", "TupleType", "TypeError", "TypeType",
-			"UnboundLocalError", "UnboundMethodType", "UnicodeError",
-			"UnicodeType", "UserWarning", "ValueError", "Warning",
-			"WindowsError", "XRangeType", "ZeroDivisionError", "__abs__",
-			"__add__", "__all__", "__author__", "__bases__", "__builtins__",
-			"__call__", "__class__", "__cmp__", "__coerce__", "__contains__",
-			"__debug__", "__del__", "__delattr__", "__delitem__",
-			"__delslice__", "__dict__", "__div__", "__divmod__", "__doc__",
-			"__docformat__", "__eq__", "__file__", "__float__", "__floordiv__",
-			"__future__", "__ge__", "__getattr__", "__getattribute__",
-			"__getitem__", "__getslice__", "__gt__", "__hash__", "__hex__",
-			"__iadd__", "__import__", "__imul__", "__init__", "__int__",
-			"__invert__", "__iter__", "__le__", "__len__", "__long__",
-			"__lshift__", "__lt__", "__members__", "__metaclass__", "__mod__",
-			"__mro__", "__mul__", "__name__", "__ne__", "__neg__", "__new__",
-			"__nonzero__", "__oct__", "__or__", "__path__", "__pos__",
-			"__pow__", "__radd__", "__rdiv__", "__rdivmod__", "__reduce__",
-			"__repr__", "__rfloordiv__", "__rlshift__", "__rmod__", "__rmul__",
-			"__ror__", "__rpow__", "__rrshift__", "__rsub__", "__rtruediv__",
-			"__rxor__", "__self__", "__setattr__", "__setitem__",
-			"__setslice__", "__slots__", "__str__", "__sub__", "__truediv__",
-			"__version__", "__xor__", "abs", "abstract", "all", "and", "any",
-			"apply", "array", "as", "asc", "ascb", "ascw", "asm", "assert",
-			"atn", "auto", "bool", "boolean", "break", "buffer", "byref",
-			"byte", "byval", "call", "callable", "case", "catch", "cbool",
-			"cbyte", "ccur", "cdate", "cdbl", "char", "chr", "chrb", "chrw",
-			"cint", "class", "classmethod", "clng", "cmp", "coerce", "compile",
-			"complex", "const", "continue", "cos", "createobject", "csng",
-			"cstr", "date", "dateadd", "datediff", "datepart", "dateserial",
-			"datevalue", "day", "def", "default", "del", "delattr", "dict",
-			"dim", "dir", "divmod", "do", "double", "each", "elif", "else",
-			"elseif", "empty", "end", "enum", "enumerate", "erase", "error",
-			"eval", "except", "exec", "execfile", "execute", "exit", "exp",
-			"explicit", "extends", "extern", "false", "file", "filter",
-			"final", "finally", "fix", "float", "for", "formatcurrency",
-			"formatdatetime", "formatnumber", "formatpercent", "from",
-			"frozenset", "function", "get", "getattr", "getobject", "getref",
-			"global", "globals", "goto", "hasattr", "hash", "hex", "hour",
-			"id", "if", "imp", "implements", "import", "in", "inline", "input",
-			"inputbox", "instanceof", "instr", "instrb", "instrrev", "int",
-			"interface", "intern", "is", "isarray", "isdate", "isempty",
-			"isinstance", "isnull", "isnumeric", "isobject", "issubclass",
-			"iter", "join", "lambda", "lbound", "lcase", "left", "leftb",
-			"len", "lenb", "let", "list", "loadpicture", "locals", "log",
-			"long", "loop", "ltrim", "map", "max", "mid", "midb", "min",
-			"minute", "mod", "month", "monthname", "msgbox", "native", "new",
-			"next", "not", "nothing", "now", "null", "object", "oct", "on",
-			"open", "option", "or", "ord", "package", "pass", "pow",
-			"preserve", "print", "private", "property", "protected", "public",
-			"raise", "randomize", "range", "raw_input", "redim", "reduce",
-			"register", "reload", "rem", "replace", "repr", "resume", "return",
-			"reversed", "rgb", "right", "rightb", "rnd", "round", "rtrim",
-			"scriptengine", "scriptenginebuildversion",
-			"scriptenginemajorversion", "scriptengineminorversion", "second",
-			"select", "self", "set", "setattr", "sgn", "short", "signed",
-			"sin", "sizeof", "slice", "sorted", "space", "split", "sqr",
-			"static", "staticmethod", "step", "str", "strcomp", "strictfp",
-			"string", "strreverse", "struct", "sub", "sum", "super", "switch",
-			"synchronized", "tan", "then", "this", "throw", "throws", "time",
-			"timeserial", "timevalue", "to", "transient", "trim", "true",
-			"try", "tuple", "type", "typedef", "typename", "ubound", "ucase",
-			"unichr", "unicode", "union", "unsigned", "until", "vars",
-			"vartype", "vbAbort", "vbAbortRetryIgnore", "vbApplicationModal",
-			"vbCancel", "vbCritical", "vbDefaultButton1", "vbDefaultButton2",
-			"vbDefaultButton3", "vbDefaultButton4", "vbExclamation", "vbFalse",
-			"vbGeneralDate", "vbIgnore", "vbInformation", "vbLongDate",
-			"vbLongTime", "vbNo", "vbOK", "vbOKCancel", "vbOKOnly",
-			"vbObjectError", "vbQuestion", "vbRetry", "vbRetryCancel",
-			"vbShortDate", "vbShortTime", "vbSystemModal", "vbTrue",
-			"vbUseDefault", "vbYes", "vbYesNo", "vbYesNoCancel", "vbarray",
-			"vbblack", "vbblue", "vbboolean", "vbbyte", "vbcr", "vbcrlf",
-			"vbcurrency", "vbcyan", "vbdataobject", "vbdate", "vbdecimal",
-			"vbdouble", "vbempty", "vberror", "vbformfeed", "vbgreen",
-			"vbinteger", "vblf", "vblong", "vbmagenta", "vbnewline", "vbnull",
-			"vbnullchar", "vbnullstring", "vbobject", "vbred", "vbsingle",
-			"vbstring", "vbtab", "vbvariant", "vbverticaltab", "vbwhite",
-			"vbyellow", "void", "volatile", "weekday", "weekdayname", "wend",
-			"while", "with", "xor", "xrange", "year", "yield", "zip" };
+	public final static String[] KWS = "ArithmeticError AssertionError AttributeError BufferType BuiltinFunctionType BuiltinMethodType ClassType CodeType ComplexType DeprecationWarning DictProxyType DictType DictionaryType EOFError EllipsisType EnvironmentError Err Exception False FileType FloatType FloatingPointError FrameType FunctionType GeneratorType IOError ImportError IndentationError IndexError InstanceType IntType KeyError KeyboardInterrupt LambdaType ListType LongType LookupError MemoryError MethodType ModuleType NameError None NoneType NotImplemented NotImplementedError OSError ObjectType OverflowError OverflowWarning ReferenceError RuntimeError RuntimeWarning SliceType StandardError StopIteration StringType StringTypes SyntaxError SyntaxWarning SystemError SystemExit TabError TracebackType True TupleType TypeError TypeType UnboundLocalError UnboundMethodType UnicodeError UnicodeType UserWarning ValueError Warning WindowsError XRangeType ZeroDivisionError __abs__ __add__ __all__ __author__ __bases__ __builtins__ __call__ __class__ __cmp__ __coerce__ __contains__ __debug__ __del__ __delattr__ __delitem__ __delslice__ __dict__ __div__ __divmod__ __doc__ __docformat__ __eq__ __file__ __float__ __floordiv__ __future__ __ge__ __getattr__ __getattribute__ __getitem__ __getslice__ __gt__ __hash__ __hex__ __iadd__ __import__ __imul__ __init__ __int__ __invert__ __iter__ __le__ __len__ __long__ __lshift__ __lt__ __members__ __metaclass__ __mod__ __mro__ __mul__ __name__ __ne__ __neg__ __new__ __nonzero__ __oct__ __or__ __path__ __pos__ __pow__ __radd__ __rdiv__ __rdivmod__ __reduce__ __repr__ __rfloordiv__ __rlshift__ __rmod__ __rmul__ __ror__ __rpow__ __rrshift__ __rsub__ __rtruediv__ __rxor__ __self__ __setattr__ __setitem__ __setslice__ __slots__ __str__ __sub__ __truediv__ __version__ __xor__ abs abstract active all and any apply array as asc ascb ascw asm assert atn atomic_uint attribute auto bool boolean break buffer bvec2 bvec3 bvec4 byref byte byval call callable case cast catch cbool cbyte ccur cdate cdbl centroid char chr chrb chrw cint class classmethod clng cmp coerce coherent common compile complex const continue cos createobject csng cstr date dateadd datediff datepart dateserial datevalue day def default del delattr dict dim dir discard divmod dmat2 dmat2x2 dmat2x3 dmat2x4 dmat3 dmat3x2 dmat3x3 dmat3x4 dmat4 dmat4x2 dmat4x3 dmat4x4 do double dvec2 dvec3 dvec4 each elif else elseif empty end enum enumerate erase error eval except exec execfile execute exit exp explicit extends extern external false file filter final finally fix fixed flat float for formatcurrency formatdatetime formatnumber formatpercent from frozenset function fvec2 fvec3 fvec4 get getattr getobject getref global globals goto half hasattr hash hex highp hour hvec2 hvec3 hvec4 id if iimage1D iimage1DArray iimage2D iimage2DArray iimage2DMS iimage2DMSArray iimage2DRect iimage3D iimageBuffer iimageCube iimageCubeArray image1D image1DArray image2D image2DArray image2DMS image2DMSArray image2DRect image3D imageBuffer imageCube imageCubeArray imp implements import in inline inout input inputbox instanceof instr instrb instrrev int interface intern invariant is isampler1D isampler1DArray isampler2D isampler2DArray isampler2DMS isampler2DMSArray isampler2DRect isampler3D isamplerBuffer isamplerCube isamplerCubeArray isarray isdate isempty isinstance isnull isnumeric isobject issubclass iter ivec2 ivec3 ivec4 join lambda layout lbound lcase left leftb len lenb let list loadpicture locals log long loop lowp ltrim map mat2 mat2x2 mat2x3 mat2x4 mat3 mat3x2 mat3x3 mat3x4 mat4 mat4x2 mat4x3 mat4x4 max mediump mid midb min minute mod month monthname msgbox namespace native new next noinline noperspective not nothing now null object oct on open option or ord out output package packed partition pass patch pow precision preserve print private property protected public raise randomize range raw_input readonly redim reduce register reload rem replace repr resource restrict resume return reversed rgb right rightb rnd round row_major rtrim sample sampler1D sampler1DArray sampler1DArrayShadow sampler1DShadow sampler2D sampler2DArray sampler2DArrayShadow sampler2DMS sampler2DMSArray sampler2DRect sampler2DRectShadow sampler2DShadow sampler3D sampler3DRect samplerBuffer samplerCube samplerCubeArray samplerCubeArrayShadow samplerCubeShadow scriptengine scriptenginebuildversion scriptenginemajorversion scriptengineminorversion second select self set setattr sgn shared short signed sin sizeof slice smooth sorted space split sqr static staticmethod step str strcomp strictfp string strreverse struct sub subroutine sum super superp switch synchronized tan template then this throw throws time timeserial timevalue to transient trim true try tuple type typedef typename ubound ucase uimage1D uimage1DArray uimage2D uimage2DArray uimage2DMS uimage2DMSArray uimage2DRect uimage3D uimageBuffer uimageCube uimageCubeArray uint unichr unicode uniform union unsigned until usampler1D usampler1DArray usampler2D usampler2DArray usampler2DMS usampler2DMSArray usampler2DRect usampler3D usamplerBuffer usamplerCube usamplerCubeArray using uvec2 uvec3 uvec4 vars vartype varying vbAbort vbAbortRetryIgnore vbApplicationModal vbCancel vbCritical vbDefaultButton1 vbDefaultButton2 vbDefaultButton3 vbDefaultButton4 vbExclamation vbFalse vbGeneralDate vbIgnore vbInformation vbLongDate vbLongTime vbNo vbOK vbOKCancel vbOKOnly vbObjectError vbQuestion vbRetry vbRetryCancel vbShortDate vbShortTime vbSystemModal vbTrue vbUseDefault vbYes vbYesNo vbYesNoCancel vbarray vbblack vbblue vbboolean vbbyte vbcr vbcrlf vbcurrency vbcyan vbdataobject vbdate vbdecimal vbdouble vbempty vberror vbformfeed vbgreen vbinteger vblf vblong vbmagenta vbnewline vbnull vbnullchar vbnullstring vbobject vbred vbsingle vbstring vbtab vbvariant vbverticaltab vbwhite vbyellow vec2 vec3 vec4 void volatile weekday weekdayname wend while with writeonly xor xrange year yield zip"
+			.split(" ");
 
 	static Random random = new Random();
 
@@ -1751,10 +1659,10 @@ public class U {
 		if (env.isControlDown()) {
 			name = "C" + name;
 		}
-//		if (env.isShiftDown()) {
-//			name = "S" + name;
-//		}		
-		Commands cmd = keys.get(name);		
+		// if (env.isShiftDown()) {
+		// name = "S" + name;
+		// }
+		Commands cmd = keys.get(name);
 		return cmd;
 	}
 
@@ -2497,9 +2405,11 @@ public class U {
 			showPageListPage(uiComp);
 		}
 	}
+
 	static String titleOfPages(EditPanel ep) {
 		return _TITLE_OF_PAGES + "@" + ep.hashCode();
 	}
+
 	static String trimLeft(String s) {
 		int i = 0;
 		while (i < s.length() && (s.charAt(i) == ' ' || s.charAt(i) == '\t'))
