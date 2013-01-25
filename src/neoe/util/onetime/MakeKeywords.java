@@ -19,7 +19,7 @@ public class MakeKeywords {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		new MakeKeywords().addTextFile("E:/neoe/kw_shader");
+		new MakeKeywords().addTextFile("E:/neoe/kw_shader2");
 
 	}
 
@@ -45,7 +45,9 @@ public class MakeKeywords {
 
 	private void addKw(Collection<String> sl, String[] ss) {
 		for(String s:ss){
-			sl.add(s.trim());
+			String x=s.trim();
+			if (x.isEmpty())continue;
+			sl.add(x);
 		}
 	}
 

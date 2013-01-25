@@ -4,4 +4,6 @@ neoeedit
 neoeedit - a smart and light editor
 
 
-this git is sync with googlecode's svn
+https://github.com/neoedmund/neoeedit
+ is a mirror of
+http://code.google.com/p/neoeedit/
