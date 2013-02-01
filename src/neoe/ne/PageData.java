@@ -12,6 +12,10 @@ public class PageData {
 
 	static Map<String, PageData> dataPool = new HashMap<String, PageData>();
 
+	public static PageData newEmpty(String title) {
+		return newEmpty(title, "empty");
+	}
+
 	public static PageData newEmpty(String title, String initStr) {
 		PageData pd = dataPool.get(title);
 		if (pd != null)
@@ -22,10 +26,6 @@ public class PageData {
 		pd.lines.add(new StringBuffer(initStr));
 		dataPool.put(title, pd);
 		return pd;
-	}
-
-	public static PageData newEmpty(String title) {
-		return newEmpty(title, "empty");
 	}
 
 	public static PageData newFromFile(String fn) {
@@ -54,11 +54,11 @@ public class PageData {
 	List<StringBuffer> lines;
 	String lineSep = "\n";
 
+	public int ref;
 	U.ReadonlyLines roLines = new U.ReadonlyLines(this);
 	private String title;// private!
-	String workPath;
 
-	public int ref;
+	String workPath;
 
 	private PageData() {
 		history = new History(this);

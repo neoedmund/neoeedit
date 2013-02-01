@@ -20,22 +20,23 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 public class EditPanel extends JPanel implements MouseMotionListener,
 		MouseListener, MouseWheelListener, KeyListener {
 
 	private static final long serialVersionUID = -1667283144475200365L;
 
+	public Font _font;
+
 	private boolean debugFPS = false;
 
 	JFrame frame;
 
 	PlainPage lastPage;
-
 	private PlainPage page;
-	List<PlainPage> pageSet = new ArrayList<PlainPage>();
 
-	public Font _font;
+	List<PlainPage> pageSet = new ArrayList<PlainPage>();
 
 	public EditPanel() throws Exception {
 		setFocusable(true);
@@ -62,15 +63,6 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		} else {
 			frame.setTitle(page.pageData.getTitle() + " - (" + pageSet.size()
 					+ ") - " + PlainPage.WINDOW_NAME + suNotice());
-		}
-	}
-
-	private String suNotice() {
-		String user = System.getProperty("user.name");
-		if ("root".equals(user)) {
-			return " [su]";
-		} else {
-			return "";
 		}
 	}
 
@@ -127,8 +119,8 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 	}
 
 	@Override
-	public void mouseMoved(MouseEvent arg0) {
-
+	public void mouseMoved(MouseEvent evt) {
+		page.mouseMoved(evt);
 	}
 
 	@Override
@@ -156,10 +148,11 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		frame = new JFrame(PlainPage.WINDOW_NAME);
 		frame.setIconImage(ImageIO.read(EditPanel.class
 				.getResourceAsStream("/Alien.png")));
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		U.setFrameSize(frame, 800, 600);
 		frame.getContentPane().add(this);
 		frame.addWindowListener(new WindowAdapter() {
+			@Override
 			public void windowClosing(WindowEvent e) {
 				for (PlainPage pp : pageSet) {
 					if (pp.pageData.getFn() != null) {
@@ -178,6 +171,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		frame.addWindowListener(new WindowAdapter() {
 			private long lastWarning;
 
+			@Override
 			public void windowActivated(WindowEvent e) {
 				for (PlainPage pp : pageSet) {
 					if (U.changedOutside(pp)) {
@@ -215,6 +209,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		repaint();
 	}
 
+	@Override
 	public void paint(Graphics g) {
 		long t1 = 0;
 		if (debugFPS) {
@@ -235,6 +230,15 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 	public void setPage(PlainPage pp) {
 		page = pp;
 		changeTitle();
+	}
+
+	private String suNotice() {
+		String user = System.getProperty("user.name");
+		if ("root".equals(user)) {
+			return " [su]";
+		} else {
+			return "";
+		}
 	}
 
 }

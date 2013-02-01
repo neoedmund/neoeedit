@@ -5,6 +5,7 @@ import javax.swing.JApplet;
 public class Applet extends JApplet {
 	private static final long serialVersionUID = -2224712202119400491L;
 
+	@Override
 	public void init() {
 		super.init();
 		try {

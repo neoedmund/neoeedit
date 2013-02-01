@@ -13,29 +13,7 @@ import java.util.Set;
 import neoe.util.PyData;
 
 public class Main {
-	public static void main(String[] args) throws Exception {
-		init();
-		EditPanel editor = new EditPanel();
-		if (args.length > 0) {
-			File f = new File(args[0]);
-			if (U.isImageFile(f)) {
-				new PicView(editor).show(f);
-			} else {
-				PlainPage emptyPage = editor.getPage();
-				new PlainPage(editor,
-						PageData.newFromFile(f.getCanonicalPath()));
-				emptyPage.close();
-				editor.openWindow();
-			}
-		} else {
-			editor.getPage().ptSelection.selectAll();
-			// U.showSelfDispMessage(editor.getPage(),"hello ...",4000);
-			editor.openWindow();
-		}
-
-	}
-
-	private static void init() throws Exception {
+	public static void init() throws Exception {
 		initKeys();
 	}
 
@@ -44,6 +22,7 @@ public class Main {
 		BufferedReader in = new BufferedReader(U.getInstalledReader("data.py"));
 		Object o = new PyData().parseAll(in);
 		List o1 = (List) ((Map) o).get("keys");
+		U.originKeys = o1;
 		U.keys = new HashMap<String, Commands>();
 		Set<String> keys = new HashSet<String>();
 		for (Object o2 : o1) {
@@ -57,11 +36,11 @@ public class Main {
 			String k = key;
 			String name = "";
 			int p1;
-//			p1= k.indexOf("SHIFT-");
-//			if (p1 >= 0) {
-//				k = k.substring(0, p1) + k.substring(p1 + 6);
-//				name = name + "S";
-//			}
+			// p1= k.indexOf("SHIFT-");
+			// if (p1 >= 0) {
+			// k = k.substring(0, p1) + k.substring(p1 + 6);
+			// name = name + "S";
+			// }
 			p1 = k.indexOf("CTRL-");
 			if (p1 >= 0) {
 				k = k.substring(0, p1) + k.substring(p1 + 5);
@@ -88,5 +67,27 @@ public class Main {
 				System.err.println("Error: unknow key:" + key);
 			}
 		}
+	}
+
+	public static void main(String[] args) throws Exception {
+		init();
+		EditPanel editor = new EditPanel();
+		if (args.length > 0) {
+			File f = new File(args[0]);
+			if (U.isImageFile(f)) {
+				new PicView(editor).show(f);
+			} else {
+				PlainPage emptyPage = editor.getPage();
+				new PlainPage(editor,
+						PageData.newFromFile(f.getCanonicalPath()));
+				emptyPage.close();
+				editor.openWindow();
+			}
+		} else {
+			editor.getPage().ptSelection.selectAll();
+			// U.showSelfDispMessage(editor.getPage(),"hello ...",4000);
+			editor.openWindow();
+		}
+
 	}
 }

@@ -23,6 +23,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import neoe.ne.Ime.Param;
+import neoe.ne.CommandPanel.CommandPanelPaint;
 import neoe.ne.U.RoSb;
 
 public class PlainPage {
@@ -381,6 +382,7 @@ public class PlainPage {
 			}
 			if (ss.length >= 5 && ui.comment == null) {
 				new Thread() {
+					@Override
 					public void run() {
 						U.guessComment(PlainPage.this);
 					}
@@ -545,10 +547,9 @@ public class PlainPage {
 		}
 
 		static final int TABWIDTH = 40;
-
 		BufferedImage aboutImg;
-
 		boolean aboutOn;
+
 		int aboutY;
 		boolean closed = false;
 		Color colorBg, colorComment, colorComment2, colorCurrentLineBg,
@@ -571,6 +572,7 @@ public class PlainPage {
 		Color colorNormal = Color.BLACK;
 		String[] comment = null;
 		Comment commentor = new Comment();
+		CommandPanelPaint cp = new CommandPanelPaint();
 		Dimension dim;
 		Font font = new Font("Monospaced", Font.PLAIN, 12);
 		Font FONT_BIG = new Font("Monospaced", Font.PLAIN, 24);
@@ -820,11 +822,19 @@ public class PlainPage {
 		}
 
 		void xpaint(Graphics g, Dimension size) {
+
 			try {
 				this.dim = size;
+
+				if (ui.cp.showCommandPanel) {
+					cp.xpaint((Graphics2D) g, size);
+					return;
+				}
+
 				if (!isCommentChecked) {// find comment pattern
 					isCommentChecked = true;
 					new Thread() {
+						@Override
 						public void run() {
 							U.guessComment(PlainPage.this);
 						}
@@ -1182,6 +1192,32 @@ public class PlainPage {
 		data.ref++;
 	}
 
+	private void checkControlLater(final int lag) {
+		new Thread() {
+			@Override
+			public void run() {
+				ui.cp.hasCheckThread = true;
+				try {
+					Thread.sleep(lag);
+					// System.out.println("checkControlLater");
+					long now = System.currentTimeMillis();
+					if (ui.cp.controlDownMs > 0
+							&& now - ui.cp.controlDownMs >= lag) {
+						ui.cp.showCommandPanel = true;
+						uiComp.repaint();
+					}
+
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} finally {
+					ui.cp.hasCheckThread = false;
+				}
+
+			}
+		}.start();
+
+	}
+
 	public void close() {
 		int index = uiComp.pageSet.indexOf(this);
 		uiComp.pageSet.remove(this);
@@ -1226,6 +1262,19 @@ public class PlainPage {
 			}
 		}
 
+		if (env.getKeyCode() == KeyEvent.VK_CONTROL) {
+			if (ui.cp.controlDownMs <= 0 && !ui.cp.hasCheckThread) {
+				ui.cp.controlDownMs = System.currentTimeMillis();
+				// System.out.println("control pressed");
+				checkControlLater(1100);// 1 sec
+			}
+		} else {
+			if (ui.cp.controlDownMs > 0) {
+				ui.cp.controlDownMs = 0;
+				ui.cp.showCommandPanel = false;
+			}
+		}
+
 		pageData.history.beginAtom();
 		try {
 			mshift = env.isShiftDown();
@@ -1265,6 +1314,14 @@ public class PlainPage {
 	}
 
 	public void keyReleased(KeyEvent env) {
+		if (env.getKeyCode() == KeyEvent.VK_CONTROL) {
+			// System.out.println("control released");
+			if (ui.cp.controlDownMs > 0) {
+				ui.cp.controlDownMs = 0;
+				ui.cp.showCommandPanel = false;
+				uiComp.repaint();
+			}
+		}
 	}
 
 	public void keyTyped(KeyEvent env) {
@@ -1302,6 +1359,22 @@ public class PlainPage {
 	}
 
 	public void mouseClicked(MouseEvent evt) {
+		if (ui.cp.showCommandPanel) {
+			ui.cp.mouseClicked(evt);
+			if (ui.cp.clickedName != null) {
+				try {
+					processCommand(Commands.valueOf(ui.cp.clickedName));
+					uiComp.repaint();
+					mx = 0;
+					my = 0;
+					ui.cp.showCommandPanel = false;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				ui.cp.clickedName = null;
+			}
+			return;
+		}
 		int my = evt.getY();
 		if (my > 0 && my < toolbarHeight) {
 			if (pageData.getFn() != null) {
@@ -1335,6 +1408,13 @@ public class PlainPage {
 		uiComp.repaint();
 	}
 
+	public void mouseMoved(MouseEvent evt) {
+		if (ui.cp.showCommandPanel) {
+			ui.cp.mouseMoved(evt);
+		}
+
+	}
+
 	public void mousePressed(MouseEvent env) {
 		mx = env.getX();
 		my = env.getY();
@@ -1357,7 +1437,7 @@ public class PlainPage {
 
 	}
 
-	private void processCommand(Commands cmd) throws Exception {
+	void processCommand(Commands cmd) throws Exception {
 		switch (cmd) {
 		case showHelp:
 			U.showHelp(ui, uiComp);
@@ -1482,6 +1562,7 @@ public class PlainPage {
 			ptSelection.cutSelected();
 			break;
 		case selectAll:
+			System.out.println("selectall");
 			ptSelection.selectAll();
 			break;
 		case deleteLine:

@@ -23,6 +23,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 public class PicView {
 
@@ -170,8 +171,8 @@ public class PicView {
 			} else {
 				int dx = e.getX() - mx;
 				int dy = e.getY() - my;
-				vx = (int) (vx1 - dx);
-				vy = (int) (vy1 - dy);
+				vx = vx1 - dx;
+				vy = vy1 - dy;
 				repaint();
 			}
 		}
@@ -313,7 +314,7 @@ public class PicView {
 
 	public void show(File fn) throws IOException {
 		JFrame f = new JFrame("PicView " + fn.getName());
-		f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		Panel p;
 		f.add(p = new Panel(f, fn));
 		U.setFrameSize(f, p.pw, p.ph);

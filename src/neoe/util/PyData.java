@@ -15,7 +15,46 @@ import java.util.Map;
  * \n in '' string escape: yes, use "\"
  */
 public class PyData {
+	static Map cache = new HashMap();
+
 	static char EOF = (char) -1;
+
+	public static void main(String[] args) throws Exception {
+		BufferedReader in = new BufferedReader(new StringReader(
+				"{CATEGORIES:{1:1},'D\\'GM\nATTRIBS':{1:1,2:4},GROUPS:{2:2},TYPES:{2:2,3:'ad\n"
+						+ "as10'}}"));
+		Object o = new PyData().parseAll(in);
+		System.out.println("V=" + o);
+	}
+
+	public static Object parseAll(String s) throws Exception {
+		Object o = cache.get(s);
+		if (o == null) {
+			o = new PyData().parseAll(new StringReader(s));
+			cache.put(s, o);
+		}
+		return o;
+	}
+
+	StringBuffer buf = new StringBuffer();
+
+	int lno = 1, pos;
+
+	String at() {
+		return " at line:" + lno + " pos:" + pos;
+	}
+
+	void confirm(char i, char c) throws Exception {
+		if (i != c) {
+			throw new Exception("Expected to read " + c + " but " + i
+					+ " found" + at());
+		}
+	}
+
+	void confirm(Reader in, char c) throws Exception {
+		char i = readA(in);
+		confirm(i, c);
+	}
 
 	Object parse(Reader in) throws Exception {
 		char i = readA(in);
@@ -48,6 +87,104 @@ public class PyData {
 		return readDecimal(in, i);
 	}
 
+	public Object parseAll(Reader in) throws Exception {
+		Object o = parse(in);
+		char i = readA(in);
+		if (i == EOF) {
+			in.close();
+			return o;
+		}
+		in.close();
+		System.err.println("drop char after " + i);
+		return o;
+	}
+
+	void pushBack(char c) {
+		buf.append(c);
+	}
+
+	char read(Reader in) throws Exception {
+		char c = (char) in.read();
+		if (c == '\n') {
+			lno++;
+			pos = 0;
+		} else {
+			pos++;
+		}
+		return c;
+	}
+
+	char readA(Reader in) throws Exception {
+		char i = xread(in);
+		while (i == '\n' || i == '\r' || i == ' ' || i == '\t') {
+			i = read(in);
+		}
+		return i;
+	}
+
+	Object readDecimal(Reader in, char first) throws Exception {
+		StringBuffer sb = new StringBuffer();
+		sb.append(first);
+		while (true) {
+			char i = read(in);
+			if (i == EOF || i == ' ' || i == '\n' || i == '\r' || i == '\t'
+					|| i == ',' || i == '}' || i == ')' || i == ']' || i == ':') {
+				pushBack(i);
+				break;
+			}
+			sb.append(i);
+		}
+		try {
+			return new BigDecimal(sb.toString());
+		} catch (NumberFormatException ex) {
+			return sb.toString();
+		}
+	}
+
+	void readList(Reader in, List l, char end) throws Exception {
+		while (true) {
+			char i = readA(in);
+			if (i == EOF) {
+				throw new Exception("Expected to read " + end
+						+ " but EOF found" + at());
+			}
+			if (i == end) {
+				return;
+			}
+			pushBack(i);
+			Object e = parse(in);
+			l.add(e);
+			i = readA(in);
+			if (i == end) {
+				return;
+			}
+			confirm(i, ',');
+		}
+	}
+
+	void readMap(Reader in, Map m, char end) throws Exception {
+		while (true) {
+			char i = readA(in);
+			if (i == EOF) {
+				throw new Exception("Expected to read " + end
+						+ " but EOF found" + at());
+			}
+			if (i == end) {
+				return;
+			}
+			pushBack(i);
+			Object key = parse(in);
+			confirm(in, ':');
+			Object value = parse(in);
+			m.put(key, value);
+			i = readA(in);
+			if (i == end) {
+				return;
+			}
+			confirm(i, ',');
+		}
+	}
+
 	String readString(Reader in, char end) throws Exception {
 		StringBuffer sb = new StringBuffer();
 		char i = readA(in);
@@ -77,107 +214,6 @@ public class PyData {
 
 	}
 
-	Object readDecimal(Reader in, char first) throws Exception {
-		StringBuffer sb = new StringBuffer();
-		sb.append(first);
-		while (true) {
-			char i = (char) read(in);
-			if (i == EOF || i == ' ' || i == '\n' || i == '\r' || i == '\t'
-					|| i == ',' || i == '}' || i == ')' || i == ']' || i == ':') {
-				pushBack(i);
-				break;
-			}
-			sb.append(i);
-		}
-		try {
-			return new BigDecimal(sb.toString());
-		} catch (NumberFormatException ex) {
-			return sb.toString();
-		}
-	}
-
-	void readMap(Reader in, Map m, char end) throws Exception {
-		while (true) {
-			char i = readA(in);
-			if (i == EOF) {
-				throw new Exception("Expected to read " + end
-						+ " but EOF found" + at());
-			}
-			if (i == end) {
-				return;
-			}
-			pushBack(i);
-			Object key = parse(in);
-			confirm(in, ':');
-			Object value = parse(in);
-			m.put(key, value);
-			i = readA(in);
-			if (i == end) {
-				return;
-			}
-			confirm(i, ',');
-		}
-	}
-
-	void readList(Reader in, List l, char end) throws Exception {
-		while (true) {
-			char i = readA(in);
-			if (i == EOF) {
-				throw new Exception("Expected to read " + end
-						+ " but EOF found" + at());
-			}
-			if (i == end) {
-				return;
-			}
-			pushBack(i);
-			Object e = parse(in);
-			l.add(e);
-			i = readA(in);
-			if (i == end) {
-				return;
-			}
-			confirm(i, ',');
-		}
-	}
-
-	public Object parseAll(Reader in) throws Exception {
-		Object o = parse(in);
-		char i = readA(in);
-		if (i == EOF) {
-			in.close();
-			return o;
-		}
-		in.close();
-		System.err.println("drop char after " + i);
-		return o;
-	}
-
-	void confirm(char i, char c) throws Exception {
-		if (i != c) {
-			throw new Exception("Expected to read " + c + " but " + i
-					+ " found" + at());
-		}
-	}
-
-	void confirm(Reader in, char c) throws Exception {
-		char i = readA(in);
-		confirm(i, c);
-	}
-
-	void pushBack(char c) {
-		buf.append(c);
-	}
-
-	StringBuffer buf = new StringBuffer();
-
-	char readA(Reader in) throws Exception {
-		char i = xread(in);
-		while (i == '\n' || i == '\r' || i == ' ' || i == '\t') {
-			i = (char) read(in);
-		}
-		return i;
-	}
-
 	char xread(Reader in) throws Exception {
 		int len = buf.length();
 		if (len > 0) {
@@ -185,44 +221,7 @@ public class PyData {
 			buf.setLength(len - 1);
 			return i;
 		}
-		return (char) read(in);
+		return read(in);
 	}
-
-	char read(Reader in) throws Exception {
-		char c = (char) in.read();
-		if (c == '\n') {
-			lno++;
-			pos = 0;
-		} else {
-			pos++;
-		}
-		return c;
-	}
-
-	int lno = 1, pos;
-
-	String at() {
-		return " at line:" + lno + " pos:" + pos;
-	}
-
-	public static void main(String[] args) throws Exception {
-		BufferedReader in = new BufferedReader(
-				new StringReader(
-						"{CATEGORIES:{1:1},'D\\'GM\nATTRIBS':{1:1,2:4},GROUPS:{2:2},TYPES:{2:2,3:'ad\n" +
-						"as10'}}"));
-		Object o = new PyData().parseAll(in);
-		System.out.println("V=" + o);
-	}
-
-	public static Object parseAll(String s) throws Exception {
-		Object o = cache.get(s);
-		if (o == null) {
-			o = new PyData().parseAll(new StringReader(s));
-			cache.put(s, o);
-		}
-		return o;
-	}
-
-	static Map cache = new HashMap();
 
 }

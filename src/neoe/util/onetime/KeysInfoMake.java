@@ -13,7 +13,7 @@ public class KeysInfoMake {
 
 	/**
 	 * @param args
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
 		new KeysInfoMake().run();
@@ -22,16 +22,16 @@ public class KeysInfoMake {
 
 	private void run() throws Exception {
 		BufferedReader in = new BufferedReader(
-				new StringReader(
-						FileUtil.readString(new FileInputStream("src/data.py"), "utf8")));
+				new StringReader(FileUtil.readString(new FileInputStream(
+						"src/data.py"), "utf8")));
 		Object o = new PyData().parseAll(in);
-		//System.out.println("V=" + o);
-		List o1 = (List) ((Map)o).get("keys");
-		for (Object o2: o1){
-			List row=(List) o2;
-			System.out.println("break;case "+row.get(0)+":");
+		// System.out.println("V=" + o);
+		List o1 = (List) ((Map) o).get("keys");
+		for (Object o2 : o1) {
+			List row = (List) o2;
+			System.out.println("break;case " + row.get(0) + ":");
 		}
-		
+
 	}
 
 }
