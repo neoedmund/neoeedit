@@ -1,6 +1,7 @@
 package neoe.ne;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,13 +29,14 @@ public class PageData {
 		return pd;
 	}
 
-	public static PageData newFromFile(String fn) {
+	public static PageData newFromFile(String fn) throws IOException {
 		PageData pd = dataPool.get(fn);
 		if (pd != null)
 			return pd;
 		pd = new PageData();
 		pd.fn = fn;
 		U.readFile(pd, fn);
+		U.saveFileHistory(fn, 1);
 		dataPool.put(fn, pd);
 		return pd;
 	}

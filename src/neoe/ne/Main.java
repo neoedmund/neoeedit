@@ -19,7 +19,7 @@ public class Main {
 
 	@SuppressWarnings("rawtypes")
 	private static void initKeys() throws Exception {
-		BufferedReader in = new BufferedReader(U.getInstalledReader("data.py"));
+		BufferedReader in = new BufferedReader(U.getInstalledReader("data.py.ver2"));
 		Object o = new PyData().parseAll(in);
 		List o1 = (List) ((Map) o).get("keys");
 		U.originKeys = o1;
@@ -88,6 +88,5 @@ public class Main {
 			// U.showSelfDispMessage(editor.getPage(),"hello ...",4000);
 			editor.openWindow();
 		}
-
 	}
 }

@@ -2050,6 +2050,7 @@ public class U {
 				return;
 			}
 			page.pageData.setFn(fn);
+			U.saveFileHistory(fn, page.cy+1);
 			editor.changeTitle();
 			page.ui.message("file renamed");
 			savePageToFile(page);
@@ -2085,6 +2086,7 @@ public class U {
 				}
 				page.pageData.setFn(fn);
 				page.uiComp.changeTitle();
+				U.saveFileHistory(fn, page.cy+1);
 			} else {
 				return false;
 			}

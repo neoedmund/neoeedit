@@ -3,6 +3,8 @@ package neoe.ne;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -151,7 +153,11 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		U.setFrameSize(frame, 800, 600);
 		frame.getContentPane().add(this);
+		frame.setTransferHandler(new U.TH(this));
+		frame.setVisible(true);
 		frame.addWindowListener(new WindowAdapter() {
+			private long lastWarning;
+
 			@Override
 			public void windowClosing(WindowEvent e) {
 				for (PlainPage pp : pageSet) {
@@ -163,14 +169,11 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 						}
 					}
 				}
+				System.out.println("exit");
 			}
-		});
-
-		frame.setTransferHandler(new U.TH(this));
-		frame.setVisible(true);
-		frame.addWindowListener(new WindowAdapter() {
-			private long lastWarning;
-
+			public void windowClosed(WindowEvent e) {
+				System.out.println("closed");				
+			}
 			@Override
 			public void windowActivated(WindowEvent e) {
 				for (PlainPage pp : pageSet) {

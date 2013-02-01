@@ -186,6 +186,7 @@ public class CommandPanel {
 
 		private void init() {
 			inited = true;
+			comps.clear();
 			font1 = new Font("Courier", Font.PLAIN, 18);
 			font2 = new Font("comic sans ms", Font.BOLD, 20);
 			Map<String, Object> groupMap = new HashMap<String, Object>();

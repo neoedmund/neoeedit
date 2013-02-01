@@ -1694,8 +1694,12 @@ public class PlainPage {
 		sb.append((char) env.getKeyCode());
 		ui.message("Unknow Command:" + sb);
 	}
-
+	Dimension lastSize=new Dimension();
 	public void xpaint(Graphics g, Dimension size) {
+		if (!lastSize.equals(size)){		//resized
+			lastSize=size;	
+			ui.cp.inited=false;
+		}
 		ui.xpaint(g, size);
 	}
 
