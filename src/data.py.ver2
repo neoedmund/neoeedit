@@ -44,7 +44,7 @@
 	[indentRight, alt-RIGHT, edit2],
 	[rectangleMode, alt-BACK_SLASH, edit2],
 	[makeNoise, alt-N, etc, "nothing useful actually"],
-	[switchLineSeperator, alt-S, edit2, "for different plantform/OS"],
+	[switchLineSeperator, alt-S, edit2, "for different platform/OS"],
 	[wrapLines, alt-W, edit2, "useful for reading text"],
 	[Javascript, alt-J, script],
 	[moveLeftBig, alt-PAGE_UP, cursor],

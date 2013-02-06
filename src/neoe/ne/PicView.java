@@ -77,7 +77,7 @@ public class PicView {
 						frame.dispose();
 					}
 				} else {
-					if (kc == KeyEvent.VK_F1) {
+					if (kc == KeyEvent.VK_F1 || kc == KeyEvent.VK_TAB) {
 						small = !small;
 						repaint();
 					} else if (kc == KeyEvent.VK_LEFT) {
@@ -93,7 +93,7 @@ public class PicView {
 						vx = 0;
 						vy = 0;
 						repaint();
-					}
+					} 
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
