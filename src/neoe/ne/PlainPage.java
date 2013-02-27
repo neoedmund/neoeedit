@@ -1675,6 +1675,9 @@ public class PlainPage {
 				Ime.instance.setEnabled(Ime.enabled);
 			}
 			break;
+		case ShellCommand:
+			Shell.run(PlainPage.this, cy);
+			break;
 		default:
 
 		}
