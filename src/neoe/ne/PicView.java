@@ -27,8 +27,7 @@ import javax.swing.WindowConstants;
 
 public class PicView {
 
-	public class Panel extends JPanel implements MouseMotionListener,
-			MouseListener, MouseWheelListener, KeyListener {
+	public class Panel extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener {
 
 		private static final long serialVersionUID = -74255011004476996L;
 		private File f;
@@ -93,7 +92,7 @@ public class PicView {
 						vx = 0;
 						vy = 0;
 						repaint();
-					} 
+					}
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
@@ -245,8 +244,7 @@ public class PicView {
 			int sw = w / 4;
 			int sh = sw * ph / pw;
 
-			g.drawImage(img, 0, 0, w, h, (int) (vx * rate), (int) (vy * rate),
-					(int) ((w + vx) * rate), (int) ((h + vy) * rate), null);
+			g.drawImage(img, 0, 0, w, h, (int) (vx * rate), (int) (vy * rate), (int) ((w + vx) * rate), (int) ((h + vy) * rate), null);
 			if (small) {
 				g.drawImage(img, w - sw, h - sh, w, h, 0, 0, pw, ph, null);
 				g.setColor(Color.WHITE);
@@ -262,17 +260,14 @@ public class PicView {
 		public void rotate(int direction) {
 			int angle = direction * 90;
 			AffineTransform at = new AffineTransform();
-			at.rotate(angle * Math.PI / 180.0, img.getWidth() / 2.0,
-					img.getHeight() / 2.0);
-			BufferedImageOp op = new AffineTransformOp(at,
-					AffineTransformOp.TYPE_BILINEAR);
+			at.rotate(angle * Math.PI / 180.0, img.getWidth() / 2.0, img.getHeight() / 2.0);
+			BufferedImageOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
 			img = op.filter(img, null);
 			repaint();
 		}
 
 		private void setSize(BufferedImage img) {
-			setPreferredSize(new Dimension(pw = img.getWidth(),
-					ph = img.getHeight()));
+			setPreferredSize(new Dimension(pw = img.getWidth() + 20, ph = img.getHeight() + 50));
 		}
 
 		public void viewFile(int i) {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <jardesc>
-    <jar path="F:/down/neoeedit.jar"/>
+    <jar path="neoeedit/binary/neoeedit.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/neoeedit/jarit.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>

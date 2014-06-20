@@ -19,8 +19,8 @@ public class CommandPanel {
 	public static class CommandPanelPaint {
 		static Font fontTopLine1 = new Font("Courier", Font.PLAIN, 11);
 		static Font fontTopLine2 = new Font("Courier", Font.ITALIC, 11);
-		private static void drawTip2(Graphics2D g, int mx, int my, String tip,
-				Dimension dim) {
+
+		private static void drawTip2(Graphics2D g, int mx, int my, String tip, Dimension dim) {
 			Color bg = Color.YELLOW;
 			Color fg = Color.BLACK;
 			String[] ss = tip.split("\\n", 2);
@@ -46,18 +46,13 @@ public class CommandPanel {
 			g.drawRect(r.x, r.y, r.width, r.height);
 			g.setColor(fg);
 			g.setFont(fontTopLine1);
-			g.drawString(ss[0], r.x + 4, r.y + 4
-					- g.getFontMetrics().getDescent()
-					+ g.getFontMetrics().getHeight());
+			g.drawString(ss[0], r.x + 4, r.y + 4 - g.getFontMetrics().getDescent() + g.getFontMetrics().getHeight());
 			if (ss.length > 1) {
 				g.setFont(fontTopLine2);
-				g.drawString(ss[1], r.x + 4,
-						r.y + 4 + 4
-								+ g.getFontMetrics(fontTopLine1).getHeight()
-								- g.getFontMetrics().getDescent()
-								+ g.getFontMetrics().getHeight());
+				g.drawString(ss[1], r.x + 4, r.y + 4 + 4 + g.getFontMetrics(fontTopLine1).getHeight() - g.getFontMetrics().getDescent() + g.getFontMetrics().getHeight());
 			}
 		}
+
 		private Color bkColor = new Color(0xcccccc);
 		String clickedName;
 		private List<Object> comps = new ArrayList<Object>();
@@ -98,6 +93,7 @@ public class CommandPanel {
 			addFlow(btn);
 			return btn;
 		}
+
 		private void addFlow(XButton btn) {
 			Rectangle r = btn.rect;
 			maxHeight = Math.max(maxHeight, r.height);
@@ -111,6 +107,7 @@ public class CommandPanel {
 			}
 			comps.add(btn);
 		}
+
 		private void addGroup(String name, Font font) {
 			XButton btn = new XButton();
 			btn.setText(name, font, 4, 6, x, y, g);
@@ -118,6 +115,7 @@ public class CommandPanel {
 			btn.color = Color.BLUE;
 			addFlow(btn);
 		}
+
 		private void addGroupDetail(List list) {
 			Collections.sort(list, new Comparator() {
 				@Override
@@ -133,6 +131,7 @@ public class CommandPanel {
 			}
 
 		}
+
 		private void drawComps(Graphics2D g) {
 			String tip = null;
 			for (Object o : comps) {
@@ -160,12 +159,13 @@ public class CommandPanel {
 			}
 
 		}
+
 		private void fireClicked(Object inObj) {
-			if (inObj != null
-					&& (inObj instanceof XButton && !((XButton) inObj).disabled)) {
+			if (inObj != null && (inObj instanceof XButton && !((XButton) inObj).disabled)) {
 				clickedName = ((XButton) inObj).text;
 			}
 		}
+
 		private Object getInObj(int mx, int my) {
 			for (Object o : comps) {
 				if (o instanceof XButton) {
@@ -218,8 +218,7 @@ public class CommandPanel {
 			int mx = evt.getX();
 			int my = evt.getY();
 			Object inObj = getInObj(mx, my);
-			if (inObj != null
-					&& (inObj instanceof XButton && !((XButton) inObj).disabled)) {
+			if (inObj != null && (inObj instanceof XButton && !((XButton) inObj).disabled)) {
 				fireClicked(inObj);
 			}
 		}
@@ -228,8 +227,7 @@ public class CommandPanel {
 			mx = evt.getX();
 			my = evt.getY();
 			Object inObj = getInObj(mx, my);
-			if (inObj != null
-					&& (inObj instanceof XButton && !((XButton) inObj).disabled)) {
+			if (inObj != null && (inObj instanceof XButton && !((XButton) inObj).disabled)) {
 				if (inObj == lastInObj) {
 					// need show tip
 				} else {
@@ -271,40 +269,31 @@ public class CommandPanel {
 		public String text;
 		public String tip;
 
-		public void setText(String name, Font font2, int spacing2,
-				int padding2, int x, int y, Graphics2D g) {
+		public void setText(String name, Font font2, int spacing2, int padding2, int x, int y, Graphics2D g) {
 			spacing = spacing2;
 			padding = padding2;
 			text = name;
 			font = font2;
 			Rectangle r = new Rectangle();
 			FontMetrics fm = g.getFontMetrics(font2);
-			r.setBounds(x, y, fm.stringWidth(name) + (spacing + padding) * 2,
-					fm.getHeight() + (spacing + padding) * 2);
+			r.setBounds(x, y, fm.stringWidth(name) + (spacing + padding) * 2, fm.getHeight() + (spacing + padding) * 2);
 			rect = r;
 		}
 
 		public void xpaint(Graphics2D g) {
 
 			g.setColor(Color.WHITE);
-			g.drawRoundRect(rect.x + spacing, rect.y + spacing, rect.width - 2
-					* +spacing, rect.height - 2 * +spacing, padding, padding);
+			g.drawRoundRect(rect.x + spacing, rect.y + spacing, rect.width - 2 * +spacing, rect.height - 2 * +spacing, padding, padding);
 			if (selected) {
 				g.setColor(selectedBk);
-				g.fillRoundRect(1 + rect.x + spacing, 1 + rect.y + spacing,
-						rect.width - 2 * +spacing, rect.height - 2 * +spacing,
-						padding, padding);
+				g.fillRoundRect(1 + rect.x + spacing, 1 + rect.y + spacing, rect.width - 2 * +spacing, rect.height - 2 * +spacing, padding, padding);
 			} else {
 				g.setColor(Color.BLACK);
-				g.drawRoundRect(1 + rect.x + spacing, 1 + rect.y + spacing,
-						rect.width - 2 * +spacing, rect.height - 2 * +spacing,
-						padding, padding);
+				g.drawRoundRect(1 + rect.x + spacing, 1 + rect.y + spacing, rect.width - 2 * +spacing, rect.height - 2 * +spacing, padding, padding);
 			}
 			g.setColor(color);
 			g.setFont(font);
-			g.drawString(text, rect.x + padding + spacing, rect.y + padding
-					+ spacing + g.getFontMetrics().getHeight()
-					- g.getFontMetrics().getDescent());
+			g.drawString(text, rect.x + padding + spacing, rect.y + padding + spacing + g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent());
 
 		}
 
