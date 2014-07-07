@@ -348,6 +348,9 @@ public class PlainPage {
         }
 
         void insertString(String[] ss) {
+            if (ptSelection.isSelected()) {
+                ptEdit.deleteRect(ptSelection.getSelectRect());
+            }
             if (rectSelectMode) {
                 Rectangle rect = ptSelection.getSelectRect();
                 int pi = 0;
@@ -381,7 +384,8 @@ public class PlainPage {
                     cy += ss.length - 1;
                     cx = ss[ss.length - 1].length();
                     pageData.editRec.insertInLine(cy, cx, rem);
-                }
+                }             
+                ptSelection.cancelSelect();            
             }
             if (ss.length >= 5 && ui.comment == null) {
                 new Thread() {
@@ -1304,10 +1308,8 @@ public class PlainPage {
             Out param = new Out();
             ime.keyPressed(evt, param);
 
-            if (param.yield != null) {
-                pageData.history.beginAtom();
-                ptEdit.insertString(param.yield);
-                pageData.history.endAtom();
+            if (param.yield != null) {                
+                ptEdit.insertString(param.yield);                
             }
             preeditText = param.preedit;
             if (param.consumed) {
@@ -1642,9 +1644,6 @@ public class PlainPage {
                 ptSelection.copySelected();
                 break;
             case paste:
-                if (ptSelection.isSelected()) {
-                    ptEdit.deleteRect(ptSelection.getSelectRect());
-                }
                 ptEdit.insertString(U.getClipBoard());
                 break;
             case cut:
