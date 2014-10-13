@@ -79,9 +79,9 @@ public class PicView {
 					if (kc == KeyEvent.VK_F1 || kc == KeyEvent.VK_TAB) {
 						small = !small;
 						repaint();
-					} else if (kc == KeyEvent.VK_LEFT) {
+					} else if (kc == KeyEvent.VK_LEFT||kc == KeyEvent.VK_BACK_SPACE) {
 						viewFile(-1);
-					} else if (kc == KeyEvent.VK_RIGHT) {
+					} else if (kc == KeyEvent.VK_RIGHT||kc == KeyEvent.VK_SPACE) {
 						viewFile(1);
 					} else if (kc == KeyEvent.VK_UP) {
 						rotate(1);
@@ -126,7 +126,8 @@ public class PicView {
 
 		private List<File> listImgs() {
 			List<File> files = new ArrayList<File>();
-			File[] fs = f.getParentFile().listFiles();
+                        //bug of getParentFile?
+                        File[] fs = f.getAbsoluteFile().getParentFile().listFiles();
 			for (File f1 : fs) {
 				if (U.isImageFile(f1)) {
 					files.add(f1);
@@ -283,8 +284,9 @@ public class PicView {
 			else if (fi >= files.size())
 				fi = 0;
 			try {
-				frame.setTitle("PicView " + files.get(fi).getName());
-				setSize(img = ImageIO.read(files.get(fi)));
+                                img = ImageIO.read(files.get(fi));
+				frame.setTitle("PicView " + files.get(fi).getName()+" ["+img.getWidth()+"x"+img.getHeight()+"]");
+				setSize(img);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
