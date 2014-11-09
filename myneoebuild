@@ -1,0 +1,11 @@
+{
+baseDir:".",
+prjs:[
+ [neoeedit,., {main:"neoe.ne.Main"}]
+],
+destDir:"dist/",
+debug:true,
+source:7,
+target:7,
+}
+                                                             

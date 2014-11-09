@@ -100,7 +100,7 @@ public class U {
             }
             int fp = 0;
             Font f = fonts[fp];
-            int p1 = f.canDisplayUpTo(s.toString());
+            int p1 =  -1; // performance119: f.canDisplayUpTo(s.toString());   
             if (p1 < 0) {  //all              
                 g2.setFont(f);
                 g2.drawString(s.toString(), x + w, y);
