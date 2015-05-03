@@ -1,6 +1,9 @@
-package neoe.ne;
+package neoe.ne.intf;
 
 import javax.swing.JPanel;
+
+import neoe.ne.EditPanel;
+import neoe.ne.U;
 
 public class TopCoderEditorPlugin {
 	EditPanel editor;

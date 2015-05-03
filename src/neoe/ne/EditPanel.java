@@ -282,7 +282,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		return inputMethodRequestsHandler;
 	}
 
-	PlainPage getPage() {
+	public PlainPage getPage() {
 		return page;
 	}
 

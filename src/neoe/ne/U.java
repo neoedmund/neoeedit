@@ -1692,7 +1692,7 @@ public class U {
         return "" + row.get(i);
     }
 
-    static String getText(PlainPage page) {
+    public static String getText(PlainPage page) {
         StringBuffer sb = new StringBuffer();
         int len = page.pageData.roLines.getLinesize();
         for (int i = 0; i < len; i++) {

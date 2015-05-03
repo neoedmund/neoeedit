@@ -477,7 +477,7 @@ public class PlainPage {
         }
     }
 
-    class Paint {
+    public class Paint {
 
         class Comment {
 
@@ -603,7 +603,7 @@ public class PlainPage {
             }
         }
 
-        void applyColorMode(int i) throws IOException {
+        public void applyColorMode(int i) throws IOException {
             if (ColorModes == null || U.Config.configChanged()) {
                 ColorModes = U.Config.loadColorModes();
             }
@@ -1207,7 +1207,7 @@ public class PlainPage {
     boolean mshift;
     int mx, my;
 
-    PageData pageData;
+    public PageData pageData;
 
     private String preeditText;
     EasyEdit ptEdit = new EasyEdit();
@@ -1224,7 +1224,7 @@ public class PlainPage {
 
     int toolbarHeight = 25;
 
-    Paint ui = new Paint();
+    public Paint ui = new Paint();
     EditPanel uiComp;
 
     private PlainPage() {

@@ -1,6 +1,8 @@
-package neoe.ne;
+package neoe.ne.intf;
 
 import javax.swing.JApplet;
+
+import neoe.ne.EditPanel;
 
 public class Applet extends JApplet {
 	private static final long serialVersionUID = -2224712202119400491L;

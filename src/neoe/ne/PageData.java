@@ -95,7 +95,7 @@ public class PageData {
 		history.clear();
 	}
 
-	void setText(String s) {
+	public void setText(String s) {
 		String[] ss = U.splitLine(s);
 		List<StringBuffer> lines = new ArrayList<StringBuffer>();
 		for (int i = 0; i < ss.length; i++) {
