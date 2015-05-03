@@ -37,6 +37,7 @@
 	[resetScale, ctrl-0, scale, "tip:ctrl+mouse wheel to scale"],
 	[go, ctrl-1, Important, "goto file or page or set font, most useful command"],
 	[fileHistory, ctrl-H, etc],
+	[dirHistory, ctrl-alt-H, etc],
 	[print, ctrl-P, etc, "print page"],
 	[pageList, ctrl-TAB, page],
 	[quickSwitchPage, ctrl-Q, page],

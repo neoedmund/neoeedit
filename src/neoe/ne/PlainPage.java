@@ -1748,6 +1748,9 @@ public class PlainPage {
             case fileHistory:
                 U.openFileHistory(uiComp);
                 break;
+            case dirHistory:
+                U.openDirHistory(uiComp);
+                break;
             case print:
                 new U.Print(PlainPage.this).printPages();
                 break;

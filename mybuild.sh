@@ -1,1 +1,1 @@
-/data/neoe/oss/neoebuild/build.sh myneoebuild
+/home/neoe/oss/neoebuild/build.sh myneoebuild

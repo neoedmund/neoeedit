@@ -22,7 +22,8 @@ public class FileUtil {
 		out.close();
 	}
 
-	public static void copy(InputStream in, OutputStream outstream) throws IOException {
+	public static void copy(InputStream in, OutputStream outstream)
+			throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(outstream);
 		byte[] buf = new byte[1024 * 10];
 		int len;
@@ -33,7 +34,8 @@ public class FileUtil {
 		out.close();
 	}
 
-	public static void copy2(InputStream in, OutputStream outstream) throws IOException {
+	public static void copy2(InputStream in, OutputStream outstream)
+			throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(outstream);
 		byte[] buf = new byte[1024 * 10];
 		int len;
@@ -43,7 +45,10 @@ public class FileUtil {
 		out.flush();
 	}
 
-	public static BufferedReader getBufferedReader(String fn, String enc) throws IOException {
+	public static BufferedReader getBufferedReader(String fn, String enc)
+			throws IOException {
+		if (enc == null)
+			enc = "UTF-8";
 		InputStream in = getFileInputStream(fn);
 		return new BufferedReader(new InputStreamReader(in, enc));
 	}
@@ -52,12 +57,16 @@ public class FileUtil {
 		return FileUtil.class.getClassLoader().getResourceAsStream(fn);
 	}
 
-	public static BufferedReader getRawBufferedReader(String fn, String enc) throws UnsupportedEncodingException, FileNotFoundException {
+	public static BufferedReader getRawBufferedReader(String fn, String enc)
+			throws UnsupportedEncodingException, FileNotFoundException {
+		if (enc == null)
+			enc = "UTF-8";
 		InputStream in = new FileInputStream(fn);
 		return new BufferedReader(new InputStreamReader(in, enc));
 	}
 
-	public static void pass(InputStream in, OutputStream out) throws IOException {
+	public static void pass(InputStream in, OutputStream out)
+			throws IOException {
 		byte[] buf = new byte[1024 * 10];
 		int len;
 		while ((len = in.read(buf)) > 0) {
@@ -66,7 +75,8 @@ public class FileUtil {
 		out.flush();
 	}
 
-	public static void pass(InputStream in, OutputStream out, long total) throws IOException {
+	public static void pass(InputStream in, OutputStream out, long total)
+			throws IOException {
 		byte[] buf = new byte[1024 * 10];
 		int len;
 		long sum = 0;
@@ -81,7 +91,10 @@ public class FileUtil {
 		out.flush();
 	}
 
-	public static String readString(InputStream ins, String enc) throws IOException {
+	public static String readString(InputStream ins, String enc)
+			throws IOException {
+		if (enc == null)
+			enc = "UTF-8";
 		BufferedReader in = new BufferedReader(new InputStreamReader(ins, enc));
 		char[] buf = new char[1000];
 		int len;
@@ -95,7 +108,8 @@ public class FileUtil {
 
 	public static void save(byte[] bs, String fn) throws IOException {
 		new File(fn).getParentFile().mkdirs();
-		BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fn));
+		BufferedOutputStream out = new BufferedOutputStream(
+				new FileOutputStream(fn));
 		out.write(bs);
 		out.close();
 	}
