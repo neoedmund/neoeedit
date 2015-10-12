@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A help panel shows all commands.
+ * Hold down CTRL for seconds to activate it.
+ */
 public class CommandPanel {
 
 	public static class CommandPanelPaint {

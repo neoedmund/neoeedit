@@ -1,7 +1,6 @@
 package neoe.ne;
 
 import java.io.File;
-import java.io.IOException;
 
 public class Main {
 

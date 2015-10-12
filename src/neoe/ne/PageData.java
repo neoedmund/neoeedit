@@ -9,6 +9,7 @@ import java.util.Map;
 
 import neoe.ne.U.History;
 
+/** Text data stores here.*/
 public class PageData {
 
 	static Map<String, PageData> dataPool = new HashMap<String, PageData>();

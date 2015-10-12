@@ -27,7 +27,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,12 +65,13 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 import neoe.ne.PlainPage.Paint;
+import neoe.ne.obsolete.JS;
 import neoe.util.FileIterator;
 import neoe.util.FileUtil;
 import neoe.util.PyData;
 
 /**
- * util
+ * Trivial static methods.
  */
 public class U {
 

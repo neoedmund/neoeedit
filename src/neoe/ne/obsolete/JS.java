@@ -1,4 +1,4 @@
-package neoe.ne;
+package neoe.ne.obsolete;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -7,6 +7,9 @@ import java.util.List;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+
+import neoe.ne.Plugin;
+
 
 //import sun.org.mozilla.javascript.internal.NativeArray;
 /**

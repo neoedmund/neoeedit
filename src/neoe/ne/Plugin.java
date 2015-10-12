@@ -12,12 +12,11 @@ import neoe.util.FileIterator;
 
 /**
  *
- * @author neoedmund
  */
-class Plugin {
-    static ClassLoader cl;
+public class Plugin {
+	public    static ClassLoader cl;
 
-    static void load() throws Exception {
+	public static void load() throws Exception {
         if (cl!=null){
             System.out.println("plugin seems already loaded, pass");
             return;

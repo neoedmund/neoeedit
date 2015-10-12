@@ -100,19 +100,6 @@ public class PicView {
 
 		}
 
-		// private void openFile() throws Exception {
-		// JFileChooser chooser = new JFileChooser();
-		// if (f != null) {
-		// chooser.setSelectedFile(f);
-		// }
-		// int returnVal = chooser.showOpenDialog(frame);
-		// if (returnVal == JFileChooser.APPROVE_OPTION) {
-		// System.out.println("You chose to open this file: "
-		// + chooser.getSelectedFile().getAbsolutePath());
-		// File f = chooser.getSelectedFile();
-		// U.openFile(f);
-		// }
-		// }
 
 		@Override
 		public void keyReleased(KeyEvent e) {

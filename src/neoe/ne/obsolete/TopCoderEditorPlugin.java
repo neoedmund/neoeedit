@@ -1,4 +1,4 @@
-package neoe.ne.intf;
+package neoe.ne.obsolete;
 
 import javax.swing.JPanel;
 
