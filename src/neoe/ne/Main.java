@@ -3,6 +3,7 @@ package neoe.ne;
 import java.io.File;
 
 public class Main {
+	static boolean init = false;
 
 	public static void main(String[] args) throws Exception {
 		doinit();
@@ -27,11 +28,15 @@ public class Main {
 		EditPanel editor = new EditPanel();
 		PlainPage pp = new PlainPage(editor, PageData.newEmpty(title, ""));
 		pp.ptEdit.append(text);
-		editor.openWindow();		
+		editor.openWindow();
 		return editor;
 	}
 
 	private static void doinit() throws Exception {
+		if (init)
+			return;
+		else
+			init = true;
 		Plugin.load();
 		U.Config.setDefaultLookAndFeel();
 		U.Config.setDefaultBKColor();
