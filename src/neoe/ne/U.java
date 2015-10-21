@@ -1315,7 +1315,7 @@ public class U {
 			StringBuilder text = (StringBuilder) input;
 			return text.indexOf("" + needle);
 		}
-		System.out.println("input="+input);
+		System.out.println("input=" + input);
 		return input.toString().indexOf(needle);
 	}
 
@@ -2324,9 +2324,8 @@ public class U {
 
 	static List<CharSequence> readFileForEditor(String fn, String encoding) {
 		try {
-			return new ArrayList<CharSequence>(
-					U.split(FileUtil.readString(new FileInputStream(fn),
-							encoding), U.N));
+			return U.removeTailR(U.split(
+					FileUtil.readString(new FileInputStream(fn), encoding), U.N));
 		} catch (Throwable e) {
 			e.printStackTrace();
 			List<CharSequence> lines = new ArrayList<CharSequence>();
@@ -2366,7 +2365,7 @@ public class U {
 	static CharSequence removeTailR(CharSequence s) {
 		if (s.length() == 0)
 			return s;
-		while (s.charAt(s.length() - 1) == '\r') {
+		if (s.charAt(s.length() - 1) == '\r') {
 			s = s.subSequence(0, s.length() - 1);
 		}
 		return s;
@@ -2798,7 +2797,7 @@ public class U {
 		while (true) {
 			int p2 = all.indexOf(sep, p1);
 			if (p2 < 0) {
-				Str s2 = (Str) U.removeTailR(all.subSequence(p1, all.len));
+				Str s2 = (Str) all.subSequence(p1, all.len);
 				// if (s2.indexOf('\r') >= 0) {
 				// String[] ss2 = s2.split("\\r");
 				// for (String ss : ss2) {
@@ -2809,7 +2808,7 @@ public class U {
 				// }
 				break;
 			} else {
-				Str s2 = (Str) U.removeTailR(all.subSequence(p1, p2));
+				Str s2 = (Str) all.subSequence(p1, p2);
 				// if (s2.indexOf('\r') >= 0) {
 				// String[] ss2 = s2.split("\\r");
 				// for (String ss : ss2) {
@@ -2946,4 +2945,12 @@ public class U {
 	static Font[] fontList = Config.getFont(new Font[] {
 			new Font("Monospaced", Font.PLAIN, 12),
 			new Font("Simsun", Font.PLAIN, 12) });
+
+	public static List<CharSequence> removeTailR(List<Str> split) {
+		List<CharSequence> r = new ArrayList<CharSequence>();
+		for (Str s : split) {
+			r.add(U.removeTailR(s));
+		}
+		return r;
+	}
 }

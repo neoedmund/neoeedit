@@ -98,7 +98,7 @@ public class PageData {
 	}
 
 	public void setText(String s) {
-		List<CharSequence> ss = new ArrayList<CharSequence>(U.split(s, U.N));
+		List<CharSequence> ss = U.removeTailR(U.split(s, U.N));
 		if (ss.size() == 0) {
 			ss.add("empty");
 		}

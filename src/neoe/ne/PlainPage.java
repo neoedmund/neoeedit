@@ -350,10 +350,10 @@ public class PlainPage {
 		}
 
 		void insertString(String s) {
-			insertString(U.split(s, U.N));
+			insertString(U.removeTailR(U.split(s, U.N)));
 		}
 
-		void insertString(List<Str> ss) {
+		void insertString(List<CharSequence> ss) {
 			if (ptSelection.isSelected()) {
 				ptEdit.deleteRect(ptSelection.getSelectRect());
 			}
