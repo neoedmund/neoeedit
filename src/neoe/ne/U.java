@@ -211,14 +211,23 @@ public class U {
 		}
 
 		StringBuilder getLineSb(int y) {
-			Object o = lines().get(y);
+			CharSequence o = lines().get(y);
+
 			if (o instanceof StringBuilder) {
 				return (StringBuilder) o;
-			} else {
-				StringBuilder sb = new StringBuilder((CharSequence) o);
+			}
+
+			if (o instanceof Str) {
+				Str str = (Str) o;
+				StringBuilder sb = str.toStringBuilder();
 				lines().set(y, sb);
 				return sb;
 			}
+
+			StringBuilder sb = new StringBuilder((CharSequence) o);
+			lines().set(y, sb);
+			return sb;
+
 		}
 
 		void deleteInLine(int y, int x1, int x2) {
@@ -1236,6 +1245,10 @@ public class U {
 	}
 
 	public static int indexOf(CharSequence input, char needle) {
+		if (input instanceof Str) {
+			Str text = (Str) input;
+			return text.indexOf(needle);
+		}
 		if (input instanceof String) {
 			String text = (String) input;
 			return text.indexOf(needle);
@@ -1248,6 +1261,10 @@ public class U {
 	}
 
 	public static int indexOf(CharSequence input, String needle, int start) {
+		if (input instanceof Str) {
+			Str text = (Str) input;
+			return text.indexOf(needle,start);
+		}
 		if (input instanceof String) {
 			String text = (String) input;
 			return text.indexOf(needle, start);
