@@ -3,6 +3,7 @@ package neoe.ne.obsolete;
 import javax.swing.JPanel;
 
 import neoe.ne.EditPanel;
+import neoe.ne.PageData;
 import neoe.ne.U;
 
 public class TopCoderEditorPlugin {
@@ -20,7 +21,8 @@ public class TopCoderEditorPlugin {
 
 	public String getSource() {
 		if (editor != null) {
-			return U.getText(editor.getPage());
+			PageData pd = editor.getPage().pageData;
+			return U.exportString(pd.lines, pd.lineSep);
 		}
 		return null;
 	}

@@ -9,7 +9,7 @@ import java.util.Map;
 
 import neoe.ne.U.History;
 
-/** Text data stores here.*/
+/** Text data stores here. */
 public class PageData {
 
 	static Map<String, PageData> dataPool = new HashMap<String, PageData>();
@@ -24,8 +24,8 @@ public class PageData {
 			return pd;
 		pd = new PageData();
 		pd.title = title;
-		pd.lines = new ArrayList<StringBuffer>();
-		pd.lines.add(new StringBuffer(initStr));
+		pd.lines = new ArrayList<CharSequence>();
+		pd.lines.add(initStr);
 		dataPool.put(title, pd);
 		return pd;
 	}
@@ -54,8 +54,9 @@ public class PageData {
 	U.History history;
 	boolean isCommentChecked;
 
-	List<StringBuffer> lines;
-	String lineSep = "\n";
+	/* element: String or StringBuilder(after edit) */
+	public List<CharSequence> lines;
+	public String lineSep = "\n";
 
 	public int ref;
 	U.ReadonlyLines roLines = new U.ReadonlyLines(this);
@@ -91,20 +92,16 @@ public class PageData {
 		dataPool.put(fn2, this);
 	}
 
-	void setLines(List<StringBuffer> newLines) {
+	void setLines(List<CharSequence> newLines) {
 		lines = newLines;
 		history.clear();
 	}
 
 	public void setText(String s) {
-		String[] ss = U.splitLine(s);
-		List<StringBuffer> lines = new ArrayList<StringBuffer>();
-		for (int i = 0; i < ss.length; i++) {
-			lines.add(new StringBuffer(ss[i]));
+		List<String> ss = U.splitLine(s);
+		if (ss.size() == 0) {
+			ss.add("empty");
 		}
-		if (lines.size() == 0) {
-			lines.add(new StringBuffer("empty"));
-		}
-		setLines(lines);
+		setLines(new ArrayList<CharSequence>(ss));
 	}
 }

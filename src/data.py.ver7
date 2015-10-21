@@ -74,8 +74,6 @@ color:{
 font:{
 	font_example:["font filename", fontsize,"<empty>|BOLD|ITALIC"],
         list:[
-            ["/usr/local/lib/X11/fonts/dejavu/DejaVuSans.ttf", 14, ],
-            ["/usr/local/lib/X11/fonts/TTF/VL-Gothic-Regular.ttf", 14, ],
             ["/usr/local/lib/X11/fonts/wqy/wqy-microhei.ttc", 14, ],
         ]
 },
