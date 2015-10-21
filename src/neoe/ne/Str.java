@@ -32,11 +32,11 @@ public class Str implements CharSequence {
 
 	@Override
 	public CharSequence subSequence(int start, int end) {
-		int len = length();
-		if (start < 0 || start >= len)
-			throw new IndexOutOfBoundsException("start=" + start);
-		if (end < 0 || end >= len)
-			throw new IndexOutOfBoundsException("end=" + end);
+		if (start < 0 || start > len)
+			throw new IndexOutOfBoundsException("start=" + start + ",len="
+					+ len);
+		if (end < 0 || end > len)
+			throw new IndexOutOfBoundsException("end=" + end + ",len=" + len);
 		Str n = new Str(data, p1 + start, p1 + end);
 		return n;
 	}
@@ -70,6 +70,14 @@ public class Str implements CharSequence {
 
 	public int indexOf(String needle, int start) {
 		return toString().indexOf(needle, start);
+	}
+
+	public int indexOf(char needle, int start) {
+		for (int i = start; i < len; i++) {
+			if (data[p1 + i] == needle)
+				return i;
+		}
+		return -1;
 	}
 
 }
