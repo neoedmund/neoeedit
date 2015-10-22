@@ -1,1 +1,1 @@
-java -Xmx1000M -jar ~/Downloads/neoeedit.jar $1 &
+java -Xmx1000M -jar dist/neoeedit.jar $1 &

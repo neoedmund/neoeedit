@@ -1,1 +1,1 @@
-start javaw  -Xmx1000M  -jar c:\down\neoeedit.jar %1
+javaw  -Xmx1000M  -jar dist\neoeedit.jar %1
