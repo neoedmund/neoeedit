@@ -112,7 +112,7 @@ public class FileUtil {
 			line = in.readLine();
 			if (line == null)
 				break;
-			ret.add(new String(line));
+			ret.add(line);
 		}
 		in.close();
 		return ret;
