@@ -1023,7 +1023,7 @@ public class U {
 				x2 = cs.length();
 			return getline(y).subSequence(x1, x2);
 		}
-
+	
 		CharSequence getline(int i) {
 			return (CharSequence) data.lines.get(i);
 		}
@@ -1047,56 +1047,14 @@ public class U {
 					sb.add(getInLine(y1, x1, x2));
 				} else if (y1 < y2) {
 					sb.add(getInLine(y1, x1, Integer.MAX_VALUE));
-					for (int i = y1 + 1; i < y2; i++) {
-						sb.add(getline(i));
-					}
+					// for (int i = y1 + 1; i < y2; i++) {
+					// sb.add(getline(i));
+					// }
+					sb.addAll(data.lines.subList(y1 + 1, y2));
 					sb.add(getInLine(y2, 0, x2));
 				}
 			}
 			return sb;
-		}
-
-	}
-
-	/**
-	 * read-only StringBuilder.
-	 */
-	static class RoSb {
-
-		final private StringBuilder sb;
-
-		public RoSb(StringBuilder sb) {
-			this.sb = sb;
-		}
-
-		public char charAt(int i) {
-			return sb.charAt(i);
-		}
-
-		public int length() {
-			return sb.length();
-		}
-
-		public String substring(int i) {
-			return sb.substring(i);
-		}
-
-		public String substring(int a, int b) {
-			return sb.substring(a, b);
-		}
-
-		@Override
-		public String toString() {
-			return sb.toString();
-		}
-
-		public String toString(boolean ignoreCase) {
-			String s = sb.toString();
-			if (ignoreCase) {
-				return s.toLowerCase();
-			} else {
-				return s;
-			}
 		}
 
 	}
