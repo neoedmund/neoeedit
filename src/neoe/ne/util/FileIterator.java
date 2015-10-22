@@ -1,4 +1,4 @@
-package neoe.util;
+package neoe.ne.util;
 
 import java.io.File;
 import java.util.ArrayList;

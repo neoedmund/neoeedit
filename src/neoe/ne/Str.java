@@ -1,12 +1,23 @@
 package neoe.ne;
 
 /**
- * ReadOnly, efficency for substring
+ * ReadOnly, efficency for substring. Not work well with string, stringbuilder,
+ * encoding , file IO in java API yet.
  */
 public class Str implements CharSequence {
 
 	char[] data;
 	int p1, p2, len;
+
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return toString().equals(obj);
+	}
 
 	public Str(char[] data, int p1, int p2) {
 		this.data = data;
@@ -16,6 +27,10 @@ public class Str implements CharSequence {
 		if (v < 0)
 			v = 0;
 		this.len = v;
+	}
+
+	public Str(String s) {
+		this(s.toCharArray(), 0, s.length());
 	}
 
 	@Override
@@ -33,8 +48,7 @@ public class Str implements CharSequence {
 	@Override
 	public CharSequence subSequence(int start, int end) {
 		if (start < 0 || start > len)
-			throw new IndexOutOfBoundsException("start=" + start + ",len="
-					+ len);
+			throw new IndexOutOfBoundsException("start=" + start + ",len=" + len);
 		if (end < 0 || end > len)
 			throw new IndexOutOfBoundsException("end=" + end + ",len=" + len);
 		Str n = new Str(data, p1 + start, p1 + end);

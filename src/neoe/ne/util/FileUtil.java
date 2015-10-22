@@ -1,4 +1,4 @@
-package neoe.util;
+package neoe.ne.util;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -11,6 +11,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+import neoe.ne.Str;
 
 public class FileUtil {
 
@@ -22,8 +26,7 @@ public class FileUtil {
 		out.close();
 	}
 
-	public static void copy(InputStream in, OutputStream outstream)
-			throws IOException {
+	public static void copy(InputStream in, OutputStream outstream) throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(outstream);
 		byte[] buf = new byte[1024 * 10];
 		int len;
@@ -34,8 +37,7 @@ public class FileUtil {
 		out.close();
 	}
 
-	public static void copy2(InputStream in, OutputStream outstream)
-			throws IOException {
+	public static void copy2(InputStream in, OutputStream outstream) throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(outstream);
 		byte[] buf = new byte[1024 * 10];
 		int len;
@@ -45,8 +47,7 @@ public class FileUtil {
 		out.flush();
 	}
 
-	public static BufferedReader getBufferedReader(String fn, String enc)
-			throws IOException {
+	public static BufferedReader getBufferedReader(String fn, String enc) throws IOException {
 		if (enc == null)
 			enc = "UTF-8";
 		InputStream in = getFileInputStream(fn);
@@ -65,8 +66,7 @@ public class FileUtil {
 		return new BufferedReader(new InputStreamReader(in, enc));
 	}
 
-	public static void pass(InputStream in, OutputStream out)
-			throws IOException {
+	public static void pass(InputStream in, OutputStream out) throws IOException {
 		byte[] buf = new byte[1024 * 10];
 		int len;
 		while ((len = in.read(buf)) > 0) {
@@ -75,8 +75,7 @@ public class FileUtil {
 		out.flush();
 	}
 
-	public static void pass(InputStream in, OutputStream out, long total)
-			throws IOException {
+	public static void pass(InputStream in, OutputStream out, long total) throws IOException {
 		byte[] buf = new byte[1024 * 10];
 		int len;
 		long sum = 0;
@@ -91,8 +90,7 @@ public class FileUtil {
 		out.flush();
 	}
 
-	public static String readString(InputStream ins, String enc)
-			throws IOException {
+	public static String readStringSmall(InputStream ins, String enc) throws IOException {
 		if (enc == null)
 			enc = "UTF-8";
 		BufferedReader in = new BufferedReader(new InputStreamReader(ins, enc));
@@ -106,10 +104,26 @@ public class FileUtil {
 		return sb.toString();
 	}
 
+	public static List<Str> readStringBig(File f, String enc) throws IOException {
+		if (enc == null)
+			enc = "UTF-8";
+		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), enc));
+		String line;
+		List<Str> ret = new ArrayList<Str>();
+		while (true) {
+			line = in.readLine();
+			if (line == null)
+				break;
+			ret.add(new Str(line));
+		}
+		in.close();
+		return ret;
+
+	}
+
 	public static void save(byte[] bs, String fn) throws IOException {
 		new File(fn).getParentFile().mkdirs();
-		BufferedOutputStream out = new BufferedOutputStream(
-				new FileOutputStream(fn));
+		BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fn));
 		out.write(bs);
 		out.close();
 	}

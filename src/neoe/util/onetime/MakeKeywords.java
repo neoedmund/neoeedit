@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import neoe.ne.U;
-import neoe.util.FileUtil;
+import neoe.ne.util.FileUtil;
 
 public class MakeKeywords {
 
@@ -32,7 +32,7 @@ public class MakeKeywords {
 	}
 
 	private void addTextFile(String fn) throws Exception {
-		String text = FileUtil.readString(new FileInputStream(fn), "utf8");
+		String text = FileUtil.readStringSmall(new FileInputStream(fn), "utf8");
 		String[] ss = text.split(" |\n");
 		Set<String> kws1 = new HashSet<String>();
 		addKw(kws1, ss);

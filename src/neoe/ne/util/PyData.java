@@ -1,5 +1,5 @@
 // ver1.1 can parse string with double quote like 'neo''s home'
-package neoe.util;
+package neoe.ne.util;
 
 import java.io.BufferedReader;
 import java.io.Reader;
