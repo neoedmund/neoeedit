@@ -14,8 +14,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import neoe.ne.Str;
-
 public class FileUtil {
 
 	public static void copy(File from, File to) throws IOException {
@@ -104,17 +102,17 @@ public class FileUtil {
 		return sb.toString();
 	}
 
-	public static List<Str> readStringBig(File f, String enc) throws IOException {
+	public static List<String> readStringBig(File f, String enc) throws IOException {
 		if (enc == null)
 			enc = "UTF-8";
 		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), enc));
 		String line;
-		List<Str> ret = new ArrayList<Str>();
+		List<String> ret = new ArrayList<String>();
 		while (true) {
 			line = in.readLine();
 			if (line == null)
 				break;
-			ret.add(new Str(line));
+			ret.add(new String(line));
 		}
 		in.close();
 		return ret;

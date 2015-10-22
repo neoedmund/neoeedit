@@ -348,7 +348,7 @@ public class PlainPage {
 		}
 
 		void insertString(String s) {
-			insertString(U.removeTailR(U.split(s.toCharArray(), U.N)));
+			insertString(U.removeTailR(U.split(s, U.N)));
 		}
 
 		void insertString(List<CharSequence> ss) {
@@ -716,7 +716,7 @@ public class PlainPage {
 		int drawText(Graphics2D g2, Font[] fonts, CharSequence s, int x, int y, boolean isComment) {
 			int w = 0;
 			if (isComment) {
-				List<Str> ws = U.split(s.toString().toCharArray(), '\t');
+				List<String> ws = U.split(s.toString(), '\t');
 				int i = 0;
 				for (CharSequence s1 : ws) {
 					if (i++ != 0) {
@@ -1322,7 +1322,7 @@ public class PlainPage {
 				}
 			}
 			uiComp.repaint();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			ui.message("err:" + e);
 			e.printStackTrace();
 		}
@@ -1408,7 +1408,7 @@ public class PlainPage {
 					if (U.saveFile(this)) {
 						ui.message("saved");
 					}
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					ui.message("err:" + e);
 					e.printStackTrace();
 				}

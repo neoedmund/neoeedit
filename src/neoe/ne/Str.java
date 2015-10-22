@@ -4,6 +4,7 @@ package neoe.ne;
  * ReadOnly, efficency for substring. Not work well with string, stringbuilder,
  * encoding , file IO in java API yet.
  */
+@Deprecated
 public class Str implements CharSequence {
 
 	char[] data;

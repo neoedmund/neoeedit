@@ -235,9 +235,9 @@ public class U {
 				return (StringBuilder) o;
 			}
 
-			if (o instanceof Str) {
-				Str str = (Str) o;
-				StringBuilder sb = str.toStringBuilder();
+			if (o instanceof String) {
+				String str = (String) o;
+				StringBuilder sb = new StringBuilder(str);
 				lines().set(y, sb);
 				return sb;
 			}
@@ -1025,10 +1025,6 @@ public class U {
 		}
 
 		CharSequence getline(int i) {
-			if (i < 0 || i >= data.lines.size()) {
-				System.out.println("bug:?RoSb.getline(" + i + "),size=" + data.lines.size());
-				return "";
-			}
 			return (CharSequence) data.lines.get(i);
 		}
 
@@ -1272,14 +1268,14 @@ public class U {
 	}
 
 	public static int indexOf(CharSequence input, char needle) {
-		if (input instanceof Str) {
-			Str text = (Str) input;
-			return text.indexOf(needle);
-		}
 		if (input instanceof String) {
 			String text = (String) input;
 			return text.indexOf(needle);
 		}
+		// if (input instanceof String) {
+		// String text = (String) input;
+		// return text.indexOf(needle);
+		// }
 		if (input instanceof StringBuilder) {
 			StringBuilder text = (StringBuilder) input;
 			return text.indexOf("" + needle);
@@ -1289,14 +1285,14 @@ public class U {
 	}
 
 	public static int indexOf(CharSequence input, String needle, int start) {
-		if (input instanceof Str) {
-			Str text = (Str) input;
-			return text.indexOf(needle, start);
-		}
 		if (input instanceof String) {
 			String text = (String) input;
 			return text.indexOf(needle, start);
 		}
+		// if (input instanceof String) {
+		// String text = (String) input;
+		// return text.indexOf(needle, start);
+		// }
 		if (input instanceof StringBuilder) {
 			StringBuilder text = (StringBuilder) input;
 			return text.indexOf(needle, start);
@@ -2228,8 +2224,8 @@ public class U {
 		return v;
 	}
 
-	public static int randomID() {
-		return (int) (System.currentTimeMillis() % 1000000);
+	public static String randomID() {
+		return Integer.toString((int) (System.currentTimeMillis() % 0xfffffff), 36);
 	}
 
 	static void readFile(PageData data, String fn) {
@@ -2238,6 +2234,8 @@ public class U {
 			data.encoding = U.guessEncodingForEditor(fn);
 		}
 		data.lineSep = U.guessLineSepForEditor(fn);
+		data.lines = null;
+		data.history.clear();
 		data.setLines(U.readFileForEditor(fn, data.encoding));
 		File f = new File(fn);
 		data.fileLastModified = f.lastModified();
@@ -2487,20 +2485,26 @@ public class U {
 	}
 
 	static boolean savePageToFile(PlainPage page) throws Exception {
-		System.out.println("save " + page.pageData.getFn());
-		if (page.pageData.encoding == null) {
-			page.pageData.encoding = UTF8;
+		try {
+			System.out.println("save " + page.pageData.getFn());
+			if (page.pageData.encoding == null) {
+				page.pageData.encoding = UTF8;
+			}
+			BufferedWriter out = new BufferedWriter(
+					new OutputStreamWriter(new FileOutputStream(page.pageData.getFn()), page.pageData.encoding));
+			for (int i = 0; i < page.pageData.lines.size(); i++) {
+				out.write(page.pageData.lines.get(i).toString());
+				out.write(page.pageData.lineSep);
+			}
+			out.close();
+			page.pageData.fileLastModified = new File(page.pageData.getFn()).lastModified();
+			page.changedOutside = false;
+			return true;
+		} catch (Throwable ex) {
+			U.showSelfDispMessage(page, "error when save file:" + ex, 1000 * 8);
+			ex.printStackTrace();
+			return false;
 		}
-		BufferedWriter out = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(page.pageData.getFn()), page.pageData.encoding));
-		for (int i = 0; i < page.pageData.roLines.getLinesize(); i++) {
-			out.write(page.pageData.roLines.getline(i).toString());
-			out.write(page.pageData.lineSep);
-		}
-		out.close();
-		page.pageData.fileLastModified = new File(page.pageData.getFn()).lastModified();
-		page.changedOutside = false;
-		return true;
 	}
 
 	static void scale(int amount, Paint ui) {
@@ -2682,14 +2686,13 @@ public class U {
 		return sl;
 	}
 
-	static List<Str> split(char[] data, char sep) {
-		Str all = new Str(data, 0, data.length);
-		List<Str> s1 = new ArrayList<Str>();
+	static List<String> split(String all, char sep) {
+		List<String> s1 = new ArrayList<String>();
 		int p1 = 0;
 		while (true) {
 			int p2 = all.indexOf(sep, p1);
 			if (p2 < 0) {
-				Str s2 = (Str) all.subSequence(p1, all.len);
+				String s2 = (String) all.subSequence(p1, all.length());
 				// if (s2.indexOf('\r') >= 0) {
 				// String[] ss2 = s2.split("\\r");
 				// for (String ss : ss2) {
@@ -2700,7 +2703,7 @@ public class U {
 				// }
 				break;
 			} else {
-				Str s2 = (Str) all.subSequence(p1, p2);
+				String s2 = (String) all.subSequence(p1, p2);
 				// if (s2.indexOf('\r') >= 0) {
 				// String[] ss2 = s2.split("\\r");
 				// for (String ss : ss2) {
@@ -2837,9 +2840,9 @@ public class U {
 	static Font[] fontList = Config
 			.getFont(new Font[] { new Font("Monospaced", Font.PLAIN, 12), new Font("Simsun", Font.PLAIN, 12) });
 
-	public static List<CharSequence> removeTailR(List<Str> split) {
+	public static List<CharSequence> removeTailR(List<String> split) {
 		List<CharSequence> r = new ArrayList<CharSequence>();
-		for (Str s : split) {
+		for (String s : split) {
 			r.add(U.removeTailR(s));
 		}
 		return r;
