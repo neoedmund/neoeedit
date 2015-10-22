@@ -221,6 +221,8 @@ public class U {
 			int len = end - start;
 			if (len <= 0)
 				return;
+			if (lines().isEmpty())
+				return;
 			List<CharSequence> deleted = lines().subList(start, end);
 			if (record) {
 				history().addOne(new HistoryCell(BasicAction.DeleteLines, start, end, 0, 0, new ArrayList(deleted)));
@@ -1023,8 +1025,10 @@ public class U {
 				x2 = cs.length();
 			return getline(y).subSequence(x1, x2);
 		}
-	
+
 		CharSequence getline(int i) {
+			if (i < 0 || i >= data.lines.size())
+				return "";
 			return (CharSequence) data.lines.get(i);
 		}
 

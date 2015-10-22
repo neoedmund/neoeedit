@@ -221,7 +221,7 @@ public class PlainPage {
 			pageData.editRec.deleteLines(start, end);
 		}
 
-		void deleteLine(int cy) {// FIXME
+		void deleteLine(int cy) {
 			deleteLineRange(cy, cy + 1);
 			// cx = 0;
 			// int len = pageData.roLines.getline(cy).length();
