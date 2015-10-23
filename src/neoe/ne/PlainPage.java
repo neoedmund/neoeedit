@@ -587,7 +587,7 @@ public class PlainPage {
 
 		int TABWIDTH = 40;
 		private int nextXToolBar;
-		private boolean fpsOn = true;
+		private boolean fpsOn = false;
 		private int charCntInLine;
 		private int textAreaWidth;
 
