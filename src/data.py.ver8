@@ -58,7 +58,8 @@
 	[execute, alt-E, etc, "execute on command line"],
 	[hex, alt-H, etc, "show hex code for characters"],
 	[listFonts, alt-F, ui, "after listed, use 'go' key to set font"],
-        [toggleIME, ctrl-SPACE, etc, "toggle input method"],
+	[toggleIME, ctrl-SPACE, etc, "toggle input method"],
+	[toggleFps, ctrl-alt-F, etc, "toggle FPS"],
 ],
 color:{
     defaultBackgroundColor:0xffffff,
@@ -84,5 +85,5 @@ ime:[
 
 tabWidthInPixel:40,
 lookAndFeel:"",
-frameSize:[1024,768],
+frameSize:[800,600],
 }

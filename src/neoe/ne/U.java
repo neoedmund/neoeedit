@@ -1335,6 +1335,7 @@ public class U {
 			return 0;
 		}
 		String s = s0.toString();
+
 		if (U.strWidth(g2, fonts, s, TABWIDTH) <= width) {
 			return s.length();
 		}
@@ -2808,5 +2809,9 @@ public class U {
 			r.add(U.removeTailR(s));
 		}
 		return r;
+	}
+
+	public static int between(int i, int min, int max) {		
+		return Math.min(max, Math.max(min, i));
 	}
 }

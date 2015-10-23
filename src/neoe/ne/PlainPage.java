@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import neoe.ne.CommandPanel.CommandPanelPaint;
 import neoe.ne.Ime.Out;
@@ -585,6 +586,10 @@ public class PlainPage {
 		float scalev = 1;
 
 		int TABWIDTH = 40;
+		private int nextXToolBar;
+		private boolean fpsOn = true;
+		private int charCntInLine;
+		private int textAreaWidth;
 
 		Paint() {
 			try {
@@ -643,7 +648,7 @@ public class PlainPage {
 				if (sx > s.length()) {
 					return;
 				}
-				s = U.subs(s, sx, s.length());
+				s = U.subs(s, sx, sx + Math.min(charCntInLine, s.length() - sx));
 				x1 -= sx;
 				x2 -= sx;
 				if (x1 < 0) {
@@ -666,6 +671,15 @@ public class PlainPage {
 					int w2 = U.strWidth(g2, U.fontList, s.subSequence(0, x2).toString(), TABWIDTH);
 					g2.fillRect(w1, scry * (lineHeight + lineGap), (w2 - w1), lineHeight + lineGap);
 				}
+			}
+		}
+
+		void drawSelectLine(Graphics2D g2, int y1, int y2) {
+			int scry = U.between(y1 - sy, 0, showLineCnt);
+			int scry2 = U.between(y2 - sy, 0, showLineCnt);
+			if (y1 < y2) {
+				g2.fillRect(0, scry * (lineHeight + lineGap), textAreaWidth, (lineHeight + lineGap) * (scry2 - scry));
+
 			}
 		}
 
@@ -782,7 +796,7 @@ public class PlainPage {
 			g2.setColor(colorGutMark1);
 			U.drawString(g2, U.fontList, s1, 2, lineHeight + 2);
 			g2.setColor(colorGutMark2);
-			U.drawString(g2, U.fontList, s1, 1, lineHeight + 1);
+			nextXToolBar = 2 + U.drawString(g2, U.fontList, s1, 1, lineHeight + 1);
 			if (msg != null) {
 				if (System.currentTimeMillis() - msgtime > MSG_VANISH_TIME) {
 					msg = null;
@@ -794,6 +808,11 @@ public class PlainPage {
 					U.drawString(g2, U.fontList, msg, dim.width - w, lineHeight);
 				}
 			}
+		}
+
+		void drawNextToolbarText(Graphics2D g2, String s) {
+			g2.setColor(colorGutMark2);
+			nextXToolBar += 10 + U.drawString(g2, U.fontList, s, 10 + nextXToolBar, lineHeight);
 		}
 
 		private int getCommentPos(CharSequence s) {
@@ -824,10 +843,19 @@ public class PlainPage {
 		}
 
 		void xpaint(Graphics g, Dimension size) {
+
+			long fpsT1 = System.currentTimeMillis();
 			Graphics2D g2 = (Graphics2D) g;
+
 			g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+			this.dim = size;
+			Graphics2D g3 = null;
+			if (fpsOn) {
+				g3 = (Graphics2D) g2.create();
+			}
+			boolean needRepaint = false;
+
 			try {
-				this.dim = size;
 
 				if (ui.cp.showCommandPanel) {
 					cp.xpaint((Graphics2D) g, size);
@@ -846,8 +874,8 @@ public class PlainPage {
 
 				// g2.setFont(font);
 				showLineCnt = Math.round((size.height - toolbarHeight) / ((lineHeight + lineGap) * scalev));
-
-				int charCntInLine = (int) ((size.width - gutterWidth) / (lineHeight) * 2 / scalev);
+				charCntInLine = (int) ((size.width - gutterWidth) / (lineHeight) * 2 / scalev);
+				textAreaWidth = size.width - gutterWidth;
 
 				{ // change cy if needed
 					if (cy >= pageData.roLines.getLinesize()) {
@@ -891,9 +919,11 @@ public class PlainPage {
 						}
 						CharSequence sb = pageData.roLines.getline(cy);
 						sx = Math.min(sx, sb.length());
-						cx = sx + U.computeShowIndex(sb.subSequence(sx, sb.length()), mx, g2, U.fontList, TABWIDTH);
+						cx = sx + U.computeShowIndex(sb.subSequence(sx, sx + Math.min(sb.length() - sx, charCntInLine)),
+								mx, g2, U.fontList, TABWIDTH);
 						my = 0;
-						ptSelection.mouseSelection(sb);
+						needRepaint = ptSelection.mouseSelection(sb);
+
 						uiComp.ptCh.record(pageData.getTitle(), cx, cy);
 					}
 				}
@@ -905,6 +935,7 @@ public class PlainPage {
 
 				// draw toolbar
 				drawToolbar(g2);
+
 				// draw gutter
 				g2.translate(0, toolbarHeight);
 				g2.setColor(colorGutLine);
@@ -956,9 +987,7 @@ public class PlainPage {
 						drawSelect(g2, y1, x1, Integer.MAX_VALUE);
 						int start = Math.max(sy, y1 + 1);
 						int end = Math.min(sy + showLineCnt + 1, y2);
-						for (int i = start; i < end; i++) {
-							drawSelect(g2, i, 0, Integer.MAX_VALUE);
-						}
+						drawSelectLine(g2, start, end);
 						drawSelect(g2, y2, 0, x2);
 					}
 				}
@@ -1010,10 +1039,34 @@ public class PlainPage {
 
 			} catch (Throwable th) {
 				th.printStackTrace();
-				ui.message("Bug:" + th);
+				ui.message("Bug when xpaint():" + th);
+			} finally {
+				if (fpsOn) {
+					long t2 = System.currentTimeMillis();
+					int v = (int) (t2 - fpsT1);
+					if (v == 0)
+						drawNextToolbarText(g3, "↻∞");
+					else {
+						float fps = 1000f / v;
+						if (fps >= 1) {
+							drawNextToolbarText(g3, "↻" + (int) fps);
+						} else {
+							drawNextToolbarText(g3, String.format("↻%.3f", fps));
+						}
+					}
+					g3.dispose();
+				}
+			}
+			if (needRepaint) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						uiComp.repaint();
+					}
+				});
+				return;
 			}
 		}
-
 	}
 
 	class Selection {
@@ -1101,7 +1154,12 @@ public class PlainPage {
 			}
 		}
 
-		void mouseSelection(CharSequence sb) {
+		/**
+		 * 
+		 * @param sb
+		 * @return mouseSelectedOnLimit, need move screen and repaint
+		 */
+		boolean mouseSelection(CharSequence sb) {
 			if (mcount == 2) {
 				int x1 = cx;
 				int x2 = cx;
@@ -1128,10 +1186,19 @@ public class PlainPage {
 				if (mshift) {
 					selectstopx = cx;
 					selectstopy = cy;
+					if (cy == sy && cy > 0) {
+						sy--;
+						return true;
+					} else if (cy >= sy + showLineCnt - 1
+							&& sy + 1 + showLineCnt / 2 < pageData.roLines.getLinesize() - 1) {
+						sy++;
+						return true;
+					}
 				} else {
 					cancelSelect();
 				}
 			}
+			return false;
 		}
 
 		void selectAll() {
@@ -1543,6 +1610,9 @@ public class PlainPage {
 			if (ui.noise) {
 				U.startNoiseThread(ui, uiComp);
 			}
+			break;
+		case toggleFps:
+			ui.fpsOn = !ui.fpsOn;
 			break;
 		case switchLineSeperator:
 			if (pageData.lineSep.equals("\n")) {
