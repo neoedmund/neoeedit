@@ -1205,6 +1205,8 @@ public class PlainPage {
 			selectstartx = 0;
 			selectstarty = 0;
 			selectstopy = pageData.roLines.getLinesize() - 1;
+			if (selectstopy < 0)
+				selectstopy = 0;
 			selectstopx = pageData.roLines.getline(selectstopy).length();
 		}
 
@@ -1679,7 +1681,6 @@ public class PlainPage {
 			ptSelection.cutSelected();
 			break;
 		case selectAll:
-			System.out.println("selectall");
 			ptSelection.selectAll();
 			break;
 		case deleteLine:

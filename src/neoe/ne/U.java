@@ -231,6 +231,11 @@ public class U {
 		}
 
 		StringBuilder getLineSb(int y) {
+			if (y == 0 && lines().size() == 0) {
+				insertEmptyLine(y);
+			}
+			if (y < 0 || y >= lines().size())
+				return null;
 			CharSequence o = lines().get(y);
 
 			if (o instanceof StringBuilder) {
@@ -1964,7 +1969,8 @@ public class U {
 
 	static boolean isImageFile(File f) {
 		String fn = f.getName().toLowerCase();
-		return (fn.endsWith(".gif") || fn.endsWith(".jpg") || fn.endsWith(".png") || fn.endsWith(".bmp"));
+		return (fn.endsWith(".gif") || fn.endsWith(".jpg") || fn.endsWith(".png") || fn.endsWith(".bmp")
+				|| fn.endsWith(".jpeg"));
 	}
 
 	static boolean isSkipChar(char ch, char ch1) {
@@ -2528,7 +2534,7 @@ public class U {
 					gi.setFont(new Font("Arial", Font.BOLD, 40));
 					gi.drawString("NeoeEdit", 6, h - 20);
 					gi.setColor(Color.YELLOW);
-					gi.setFont(new Font("Arial", Font.PLAIN, 16));					
+					gi.setFont(new Font("Arial", Font.PLAIN, 16));
 					gi.drawString("holding CTRL key for seconds to see commands", 6, h - 6);
 					gi.dispose();
 					ui.aboutY = -h;
@@ -2809,7 +2815,7 @@ public class U {
 		return r;
 	}
 
-	public static int between(int i, int min, int max) {		
+	public static int between(int i, int min, int max) {
 		return Math.min(max, Math.max(min, i));
 	}
 }

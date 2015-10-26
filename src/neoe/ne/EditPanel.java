@@ -292,6 +292,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 			page.keyPressed(env);
 		} catch (Throwable e) {
 			page.ui.message("err:" + e);
+			e.printStackTrace();
 		}
 	}
 
@@ -301,6 +302,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 			page.keyReleased(env);
 		} catch (Throwable e) {
 			page.ui.message("err:" + e);
+			e.printStackTrace();
 		}
 	}
 
@@ -310,6 +312,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 			page.keyTyped(env);
 		} catch (Throwable e) {
 			page.ui.message("err:" + e);
+			e.printStackTrace();
 		}
 	}
 
@@ -319,6 +322,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 			page.mouseClicked(evt);
 		} catch (Throwable e) {
 			page.ui.message("err:" + e);
+			e.printStackTrace();
 		}
 
 	}
@@ -329,6 +333,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 			page.mouseDragged(env);
 		} catch (Throwable e) {
 			page.ui.message("err:" + e);
+			e.printStackTrace();
 		}
 	}
 
@@ -348,6 +353,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 			page.mouseMoved(evt);
 		} catch (Throwable e) {
 			page.ui.message("err:" + e);
+			e.printStackTrace();
 		}
 	}
 
@@ -357,6 +363,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 			page.mousePressed(evt);
 		} catch (Throwable e) {
 			page.ui.message("err:" + e);
+			e.printStackTrace();
 		}
 	}
 
@@ -371,6 +378,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 			page.mouseWheelMoved(env);
 		} catch (Throwable e) {
 			page.ui.message("err:" + e);
+			e.printStackTrace();
 		}
 	}
 
