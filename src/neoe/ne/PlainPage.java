@@ -262,6 +262,10 @@ public class PlainPage {
 		}
 
 		void insert(char ch) {
+			// Fix cy here! ?
+			if (cy < 0)
+				cy = 0;
+			
 			if (ch == KeyEvent.VK_ENTER) {
 				if (ptSelection.isSelected()) {
 					deleteRect(ptSelection.getSelectRect());
@@ -353,6 +357,10 @@ public class PlainPage {
 		}
 
 		void insertString(List<CharSequence> ss) {
+			// Fix cy here! ?
+			if (cy < 0)
+				cy = 0;
+
 			if (ptSelection.isSelected()) {
 				ptEdit.deleteRect(ptSelection.getSelectRect());
 			}

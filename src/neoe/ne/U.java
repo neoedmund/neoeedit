@@ -234,7 +234,7 @@ public class U {
 		}
 
 		StringBuilder getLineSb(int y) {
-			if (y == 0 && lines().size() == 0) {
+			if (lines().size() == 0) {
 				insertEmptyLine(y);
 			}
 			if (y < 0 || y >= lines().size())
@@ -260,6 +260,8 @@ public class U {
 
 		void deleteInLine(int y, int x1, int x2) {
 			StringBuilder sb = getLineSb(y);
+			if (sb == null)
+				return;
 			if (x1 >= sb.length()) {
 				return;
 			}
