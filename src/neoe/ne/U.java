@@ -211,6 +211,9 @@ public class U {
 		// }
 		// }
 		void insertEmptyLine(int y) {
+			if (y > lines().size()) {
+				y = lines().size();
+			}
 			lines().add(y, new StringBuilder());
 			if (record) {
 				history().addOne(new HistoryCell(BasicAction.InsertEmptyLine, -1, -1, y, -1, null));
