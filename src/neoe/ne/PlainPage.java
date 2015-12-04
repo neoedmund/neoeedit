@@ -1226,7 +1226,6 @@ public class PlainPage {
 		}
 	}
 
-	static final String WINDOW_NAME = "neoeedit " + Version.REV;
 	boolean changedOutside = false;
 
 	Cursor cursor = new Cursor();

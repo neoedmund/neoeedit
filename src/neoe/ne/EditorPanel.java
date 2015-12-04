@@ -107,6 +107,8 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 
 	EditorPanelConfig config;
 
+	static final String WINDOW_NAME = "neoeedit " + Version.REV;
+
 	//CursorHistory ptCh = new CursorHistory();
 
 	public EditorPanel(EditorPanelConfig config) throws Exception {
@@ -167,10 +169,10 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		if (fn != null) {
 			frame.setTitle(new File(fn).getName() + " "
 					+ new File(fn).getParent() + " - (" + pageSet.size()
-					+ ") - " + PlainPage.WINDOW_NAME + suNotice());
+					+ ") - " + EditorPanel.WINDOW_NAME + suNotice());
 		} else {
 			frame.setTitle(page.pageData.getTitle() + " - (" + pageSet.size()
-					+ ") - " + PlainPage.WINDOW_NAME + suNotice());
+					+ ") - " + EditorPanel.WINDOW_NAME + suNotice());
 		}
 	}
 
@@ -280,7 +282,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		openedWindows++;
 		if (frame != null)
 			return;
-		frame = new JFrame(PlainPage.WINDOW_NAME);
+		frame = new JFrame(EditorPanel.WINDOW_NAME);
 		frame.setIconImage(ImageIO.read(EditorPanel.class
 				.getResourceAsStream("/e.png")));
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);

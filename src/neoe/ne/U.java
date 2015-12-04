@@ -1189,7 +1189,7 @@ public class U {
 
 	static {
 		try {
-			System.out.println("welcome to " + PlainPage.WINDOW_NAME);
+			System.out.println("welcome to " + EditorPanel.WINDOW_NAME);
 			loadTabImage();
 		} catch (Exception e) {
 			e.printStackTrace();
