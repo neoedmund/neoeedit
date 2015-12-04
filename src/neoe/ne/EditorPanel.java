@@ -110,8 +110,20 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 	static final String WINDOW_NAME = "neoeedit " + Version.REV;
 
 	//CursorHistory ptCh = new CursorHistory();
-
+	static boolean init = false;
+	private static void doinit() throws Exception {
+		if (init)
+			return;
+		else
+			init = true;
+		Plugin.load();
+		U.Config.setDefaultLookAndFeel();
+		U.Config.setDefaultBKColor();
+		U.Config.initKeys();
+		Ime.loadImes();
+	}
 	public EditorPanel(EditorPanelConfig config) throws Exception {
+		doinit();
 		this.config=config;
 		enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.INPUT_METHOD_EVENT_MASK);
 		setBackground(U.Config.getDefaultBgColor());
@@ -160,6 +172,10 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		PlainPage pp = new PlainPage(this, PageData.newEmpty("UNTITLED #"
 				+ U.randomID()));
 		pp.ptSelection.selectAll();
+	}
+
+	public EditorPanel() throws Exception {
+		this(EditorPanelConfig.DEFAULT);
 	}
 
 	void changeTitle() {
@@ -216,6 +232,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 	public void mouseClicked(MouseEvent evt) {
 		try {
 			page.mouseClicked(evt);
+			grabFocus();
 		} catch (Throwable e) {
 			page.ui.message("err:" + e);
 			e.printStackTrace();

@@ -3,10 +3,9 @@ package neoe.ne;
 import java.io.File;
 
 public class Main {
-	static boolean init = false;
+
 
 	public static void main(String[] args) throws Exception {
-		doinit();
 		EditorPanel editor = new EditorPanel(EditorPanelConfig.DEFAULT);
 		if (args.length > 0) {
 			File f = new File(args[0]);
@@ -24,7 +23,6 @@ public class Main {
 	}
 
 	public static EditorPanel open(String title, String text) throws Exception {
-		doinit();
 		EditorPanel editor = new EditorPanel(EditorPanelConfig.DEFAULT);
 		PlainPage pp = new PlainPage(editor, PageData.newEmpty(title, ""));
 		pp.ptEdit.append(text);
@@ -32,17 +30,6 @@ public class Main {
 		return editor;
 	}
 
-	private static void doinit() throws Exception {
-		if (init)
-			return;
-		else
-			init = true;
-		Plugin.load();
-		U.Config.setDefaultLookAndFeel();
-		U.Config.setDefaultBKColor();
-		U.Config.initKeys();
-		Ime.loadImes();
-	}
 
 	/**
 	 * something like said in https://forums.oracle.com/thread/1542114
