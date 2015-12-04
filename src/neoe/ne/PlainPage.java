@@ -204,9 +204,7 @@ public class PlainPage {
 		void setSafePos(int x, int y, boolean record) {
 			cy = Math.max(0, Math.min(pageData.roLines.getLinesize() - 1, y));
 			cx = Math.max(0, Math.min(pageData.roLines.getline(cy).length(), x));
-			if (record) {
-				uiComp.ptCh.record(pageData.getTitle(), cx, cy);
-			}
+
 		}
 	}
 
@@ -265,7 +263,7 @@ public class PlainPage {
 			// Fix cy here! ?
 			if (cy < 0)
 				cy = 0;
-			
+
 			if (ch == KeyEvent.VK_ENTER) {
 				if (ptSelection.isSelected()) {
 					deleteRect(ptSelection.getSelectRect());
@@ -836,7 +834,7 @@ public class PlainPage {
 			return -1;
 		}
 
-		void message(final String s) {
+		public void message(final String s) {
 			msg = s;
 			msgtime = System.currentTimeMillis();
 			uiComp.repaint();
@@ -932,7 +930,6 @@ public class PlainPage {
 						my = 0;
 						needRepaint = ptSelection.mouseSelection(sb);
 
-						uiComp.ptCh.record(pageData.getTitle(), cx, cy);
 					}
 				}
 				g2.setColor(colorBg);
@@ -1233,8 +1230,8 @@ public class PlainPage {
 	boolean changedOutside = false;
 
 	Cursor cursor = new Cursor();
-	int cx;
-	int cy;
+	public int cx;
+	public int cy;
 	boolean ignoreCase = true;
 	boolean isCommentChecked = false;
 	Dimension lastSize = new Dimension();
@@ -1450,7 +1447,7 @@ public class PlainPage {
 				} else {
 					ptEdit.insert(kc);
 				}
-				uiComp.ptCh.recordInput(PlainPage.this);
+
 			}
 			pageData.history.endAtom();
 		}
@@ -1651,12 +1648,7 @@ public class PlainPage {
 			ui.setNextColorMode();
 			ui.applyColorMode(ui.colorMode);
 			break;
-		case moveBack:
-			uiComp.ptCh.back(pageData.getTitle(), cx, cy);
-			break;
-		case moveForward:
-			uiComp.ptCh.forward();
-			break;
+
 		case moveBetweenPair:
 			cursor.moveToPair();
 			break;

@@ -2143,9 +2143,7 @@ public class U {
 			page.cy = Math.max(0, Math.min(line, page.pageData.lines.size() - 1));
 			page.sy = Math.max(0, page.cy - 3);
 			page.uiComp.repaint();
-			if (recCh) {
-				ep.ptCh.record(page.pageData.getTitle(), page.cx, page.cy);
-			}
+			 
 		}
 		return true;
 	}
@@ -2156,7 +2154,7 @@ public class U {
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();
-		page.uiComp.ptCh.recordCurrent(page);
+		 
 	}
 
 	static void openDirHistory(EditPanel ep) throws Exception {
@@ -2165,7 +2163,7 @@ public class U {
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();
-		page.uiComp.ptCh.recordCurrent(page);
+		 
 	}
 
 	static void paintNoise(Graphics2D g2, Dimension dim) {

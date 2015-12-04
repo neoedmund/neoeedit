@@ -27,7 +27,7 @@ import javax.swing.WindowConstants;
 
 public class PicView {
 
-	public class Panel extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener {
+	public class PicViewPanel extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener {
 
 		private static final long serialVersionUID = -74255011004476996L;
 		private File f;
@@ -48,7 +48,7 @@ public class PicView {
 		private int vy;
 		private int vy1;
 
-		public Panel(JFrame f, File fn) throws IOException {
+		public PicViewPanel(JFrame f, File fn) throws IOException {
 			this.frame = f;
 			long t1 = System.currentTimeMillis();
 			this.f = fn;
@@ -79,9 +79,9 @@ public class PicView {
 					if (kc == KeyEvent.VK_F1 || kc == KeyEvent.VK_TAB) {
 						small = !small;
 						repaint();
-					} else if (kc == KeyEvent.VK_LEFT||kc == KeyEvent.VK_BACK_SPACE) {
+					} else if (kc == KeyEvent.VK_LEFT || kc == KeyEvent.VK_BACK_SPACE) {
 						viewFile(-1);
-					} else if (kc == KeyEvent.VK_RIGHT||kc == KeyEvent.VK_SPACE) {
+					} else if (kc == KeyEvent.VK_RIGHT || kc == KeyEvent.VK_SPACE) {
 						viewFile(1);
 					} else if (kc == KeyEvent.VK_UP) {
 						rotate(1);
@@ -100,7 +100,6 @@ public class PicView {
 
 		}
 
-
 		@Override
 		public void keyReleased(KeyEvent e) {
 
@@ -113,8 +112,8 @@ public class PicView {
 
 		private List<File> listImgs() {
 			List<File> files = new ArrayList<File>();
-                        //bug of getParentFile?
-                        File[] fs = f.getAbsoluteFile().getParentFile().listFiles();
+			// bug of getParentFile?
+			File[] fs = f.getAbsoluteFile().getParentFile().listFiles();
 			for (File f1 : fs) {
 				if (U.isImageFile(f1)) {
 					files.add(f1);
@@ -232,15 +231,16 @@ public class PicView {
 			int sw = w / 4;
 			int sh = sw * ph / pw;
 
-			g.drawImage(img, 0, 0, w, h, (int) (vx * rate), (int) (vy * rate), (int) ((w + vx) * rate), (int) ((h + vy) * rate), null);
+			g.drawImage(img, 0, 0, w, h, (int) (vx * rate), (int) (vy * rate), (int) ((w + vx) * rate),
+					(int) ((h + vy) * rate), null);
 			if (small) {
 				g.drawImage(img, w - sw, h - sh, w, h, 0, 0, pw, ph, null);
 				g.setColor(Color.WHITE);
 				g.drawRect(w - sw, h - sh, sw, sh);
 				g.setColor(Color.RED);
-				g.drawRect((int) (w - sw + vx * rate * sw / pw),//
-						(int) (h - sh + vy * rate * sh / ph),//
-						(int) (sw * w * rate / pw),//
+				g.drawRect((int) (w - sw + vx * rate * sw / pw), //
+						(int) (h - sh + vy * rate * sh / ph), //
+						(int) (sw * w * rate / pw), //
 						(int) (sh * h * rate / ph));
 			}
 		}
@@ -271,13 +271,18 @@ public class PicView {
 			else if (fi >= files.size())
 				fi = 0;
 			try {
-                                img = ImageIO.read(files.get(fi));
-				frame.setTitle("PicView " + files.get(fi).getName()+" ["+img.getWidth()+"x"+img.getHeight()+"]");
+				img = ImageIO.read(files.get(fi));
+				setTitleWithSize(files.get(fi).getName());
+
 				setSize(img);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			repaint();
+		}
+
+		private void setTitleWithSize(String name) {
+			frame.setTitle(String.format("PicView %s [%dx%d]", name, img.getWidth(), img.getHeight()));
 		}
 
 	}
@@ -297,13 +302,15 @@ public class PicView {
 	}
 
 	public void show(File fn) throws IOException {
-		JFrame f = new JFrame("PicView " + fn.getName());
+		JFrame f = new JFrame();
 		f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		Panel p;
-		f.add(p = new Panel(f, fn));
+		PicViewPanel p = new PicViewPanel(f, fn);
+		f.add(p);
 		U.setFrameSize(f, p.pw, p.ph);
+		p.setTitleWithSize(fn.getName());
 		f.setTransferHandler(new U.TH(ep));
 		f.setVisible(true);
 		U.saveFileHistory(fn.getAbsolutePath(), 0);
+
 	}
 }

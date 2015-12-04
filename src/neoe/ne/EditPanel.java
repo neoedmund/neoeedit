@@ -22,122 +22,24 @@ import java.awt.im.InputMethodRequests;
 import java.io.File;
 import java.io.IOException;
 import java.text.AttributedCharacterIterator;
-import java.text.CharacterIterator;
 import java.text.AttributedCharacterIterator.Attribute;
+import java.text.CharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+import neoe.ne.obsolete.CursorHistory;
+
 public class EditPanel extends JPanel implements MouseMotionListener,
 		MouseListener, MouseWheelListener, KeyListener {
 
-	class CursorHistory {
-		Vector<CursorHistoryItem> items = new Vector<CursorHistoryItem>();
-		int p;
-
-		void back(String curTitle, int curX, int curY) throws Exception {
-			if (p >= 0 && items.size() > 0) {
-				if (p >= items.size())
-					p = items.size() - 1;// bug auto fix
-				CursorHistoryItem item = items.get(p--);
-				if (item.pageName.equals(curTitle) && item.y == curY
-						&& item.x == curX) {
-					back(curTitle, curX, curY);
-					return;
-				}
-				if (move(item))
-					page.ui.message("moved back");
-				else
-					page.ui.message("position not exists, try again");
-			} else {
-				page.ui.message("no more history");
-			}
-		}
-
-		void forward() throws Exception {
-			if (!items.isEmpty() && p < items.size() - 1) {
-				p++;
-				CursorHistoryItem item = items.get(p);
-				if (move(item))
-					page.ui.message("moved forward");
-				else
-					page.ui.message("position not exists, try again");
-			} else {
-				page.ui.message("no more history");
-			}
-		}
-
-		private CursorHistoryItem getCurrentItem(PlainPage page) {
-			return new CursorHistoryItem(page.pageData.getTitle(), page.cx,
-					page.cy);
-		}
-
-		private CursorHistoryItem getLastItem() {
-			if (items.size() > 0 && p > 0 && p <= items.size())
-				return items.get(p - 1);
-			return null;
-		}
-
-		private boolean isSameLine(CursorHistoryItem last,
-				CursorHistoryItem item) {
-			return (last != null && last.pageName.equals(item.pageName) && last.y == item.y);
-		}
-
-		private boolean move(CursorHistoryItem item) throws Exception {
-			return U.gotoFileLinePos(EditPanel.this, item.pageName, item.y + 1,
-					item.x, false);
-		}
-
-		void record(CursorHistoryItem item) {
-			CursorHistoryItem last = getLastItem();
-			if (isSameLine(last, item))
-				return;// same line, skip
-			if (p < 0)
-				p = 0;// bug auto fix
-			if (p < items.size())
-				items.setSize(p);
-			items.add(item);
-			p++;
-		}
-
-		void record(String pageName, int x, int y) {
-			record(new CursorHistoryItem(pageName, x, y));
-		}
-
-		public void recordCurrent(PlainPage page) {
-			record(getCurrentItem(page));
-		}
-
-		public void recordInput(PlainPage page) {
-			CursorHistoryItem last = getLastItem();
-			CursorHistoryItem item = getCurrentItem(page);
-			if (isSameLine(last, item)) {
-				return;
-			}
-			record(item);
-		}
-
-	}
-
-	static class CursorHistoryItem {
-		String pageName;
-		int x, y;
-
-		public CursorHistoryItem(String pageName, int x, int y) {
-			this.pageName = pageName;
-			this.x = x;
-			this.y = y;
-		}
-	}
-
 	/** It's only need to be not-null and not actually called? */
-	public class MyInputMethodRequestsHandler implements InputMethodRequests {
+	class MyInputMethodRequestsHandler implements InputMethodRequests {
 		Rectangle rect = new Rectangle(200, 200, 0, 10);
 
 		@Override
@@ -208,7 +110,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 
 	List<PlainPage> pageSet = new ArrayList<PlainPage>();
 
-	CursorHistory ptCh = new CursorHistory();
+	//CursorHistory ptCh = new CursorHistory();
 
 	public EditPanel() throws Exception {
 		enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.INPUT_METHOD_EVENT_MASK);
@@ -478,9 +380,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		lastPage=page;
 		page = pp;
 		changeTitle();
-		if (recCh) {
-			ptCh.record(pp.pageData.getTitle(), pp.cx, pp.cy);
-		}
+		 
 	}
 
 	private String suNotice() {
