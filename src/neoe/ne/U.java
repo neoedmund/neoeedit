@@ -841,7 +841,7 @@ public class U {
 		String title;
 		int totalPage;
 		Paint ui;
-		EditPanel uiComp;
+		EditorPanel uiComp;
 
 		Print(PlainPage pp) {
 			this.ui = pp.ui;
@@ -1103,9 +1103,9 @@ public class U {
 
 		private static final long serialVersionUID = 5046626748299023865L;
 
-		private EditPanel ep;
+		private EditorPanel ep;
 
-		TH(EditPanel ep) {
+		TH(EditorPanel ep) {
 			this.ep = ep;
 		}
 
@@ -1139,7 +1139,7 @@ public class U {
 				e.printStackTrace();
 				return false;
 			}
-			ep.frame.repaint();
+			ep.repaint();
 			return true;
 		}
 	}
@@ -1314,7 +1314,7 @@ public class U {
 	}
 
 	static void closePage(PlainPage page) throws Exception {
-		EditPanel editor = page.uiComp;
+		EditorPanel editor = page.uiComp;
 		int opt = JOptionPane.NO_OPTION;
 		if (page.pageData.history.size() != 0) {
 			opt = JOptionPane.showConfirmDialog(editor, "Are you sure to SAVE and close?", "Changes made",
@@ -1521,7 +1521,7 @@ public class U {
 		}
 	}
 
-	static boolean findAndShowPageListPage(EditPanel ep, String title, boolean recCh) {
+	static boolean findAndShowPageListPage(EditorPanel ep, String title, boolean recCh) {
 		boolean show = true;
 		PlainPage pp = findPage(ep, title);
 		if (pp == null) {
@@ -1534,7 +1534,7 @@ public class U {
 		}
 	}
 
-	static boolean findAndShowPageListPage(EditPanel ep, String title, int lineNo, int x, boolean recCh) {
+	static boolean findAndShowPageListPage(EditorPanel ep, String title, int lineNo, int x, boolean recCh) {
 		boolean b = findAndShowPageListPage(ep, title, false);
 		if (b) {
 			ep.getPage().cursor.setSafePos(x, lineNo - 1, recCh);
@@ -1647,7 +1647,7 @@ public class U {
 		return a;
 	}
 
-	static PlainPage findPage(EditPanel ep, String title) {
+	static PlainPage findPage(EditorPanel ep, String title) {
 		for (PlainPage pp : ep.pageSet) {
 			if (pp.pageData.getTitle().equals(title)) {
 				return pp;
@@ -1735,7 +1735,7 @@ public class U {
 	/**
 	 * see findPage()
 	 */
-	static PlainPage getPage(EditPanel ep, String title) throws Exception {
+	static PlainPage getPage(EditorPanel ep, String title) throws Exception {
 		PlainPage pp = findPage(ep, title);
 		if (pp != null) {
 			return pp;
@@ -1748,7 +1748,7 @@ public class U {
 		return page;
 	}
 
-	public static List<CharSequence> getPageListStrings(EditPanel ep) throws IOException {
+	public static List<CharSequence> getPageListStrings(EditorPanel ep) throws IOException {
 		List<CharSequence> ss = new ArrayList<CharSequence>();
 		sort(ep.pageSet);
 		for (PlainPage pp : ep.pageSet) {
@@ -1770,7 +1770,7 @@ public class U {
 		return "" + row.get(i);
 	}
 
-	static boolean gotoFileLine(String sb, EditPanel ep, boolean isInPageListPage) throws Exception {
+	static boolean gotoFileLine(String sb, EditorPanel ep, boolean isInPageListPage) throws Exception {
 		int p1, p2;
 		if ((p1 = sb.indexOf("|")) >= 0) {
 			String fn = sb.substring(0, p1);
@@ -1789,7 +1789,7 @@ public class U {
 		return false;
 	}
 
-	public static boolean gotoFileLine2(EditPanel ep, String sb, String title) throws Exception {
+	public static boolean gotoFileLine2(EditorPanel ep, String sb, String title) throws Exception {
 		int p2;
 		if ((p2 = sb.indexOf(":")) >= 0) {
 			int line = -1;
@@ -1806,7 +1806,7 @@ public class U {
 		return false;
 	}
 
-	public static boolean gotoFileLinePos(EditPanel ep, String fn, int line, int x, boolean recCh) throws Exception {
+	public static boolean gotoFileLinePos(EditorPanel ep, String fn, int line, int x, boolean recCh) throws Exception {
 		if (!U.findAndShowPageListPage(ep, fn, line, x, recCh)) {
 			return openFile(fn, line, ep, recCh);
 		} else {
@@ -2085,7 +2085,7 @@ public class U {
 		return max;
 	}
 
-	static PlainPage openFile(File f, EditPanel ep) throws Exception {
+	static PlainPage openFile(File f, EditorPanel ep) throws Exception {
 		if (isImageFile(f)) {
 			new PicView(ep).show(f);
 			return null;
@@ -2114,7 +2114,7 @@ public class U {
 			PlainPage pp = new PlainPage(page.uiComp, pd);
 			U.listDir(pp, 0);
 		} else {
-			EditPanel ep = page.uiComp;
+			EditorPanel ep = page.uiComp;
 			if (!U.findAndShowPageListPage(ep, title, false)) {
 				new PlainPage(page.uiComp, pd);
 			}
@@ -2122,7 +2122,7 @@ public class U {
 
 	}
 
-	static boolean openFile(String title, int line, EditPanel ep, boolean recCh) throws Exception {
+	static boolean openFile(String title, int line, EditorPanel ep, boolean recCh) throws Exception {
 		File f = new File(title);
 		if (isImageFile(f)) {
 			new PicView().show(f);
@@ -2148,7 +2148,7 @@ public class U {
 		return true;
 	}
 
-	static void openFileHistory(EditPanel ep) throws Exception {
+	static void openFileHistory(EditorPanel ep) throws Exception {
 		File fhn = getFileHistoryName();
 		PlainPage page = new PlainPage(ep, PageData.newFromFile(fhn.getCanonicalPath()));
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
@@ -2157,7 +2157,7 @@ public class U {
 		 
 	}
 
-	static void openDirHistory(EditPanel ep) throws Exception {
+	static void openDirHistory(EditorPanel ep) throws Exception {
 		File f = getDirHistoryName();
 		PlainPage page = new PlainPage(ep, PageData.newFromFile(f.getCanonicalPath()));
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
@@ -2369,7 +2369,7 @@ public class U {
 	}
 
 	static void saveAs(PlainPage page) throws Exception {
-		EditPanel editor = page.uiComp;
+		EditorPanel editor = page.uiComp;
 		JFileChooser chooser = new JFileChooser(page.pageData.getFn());
 		int returnVal = chooser.showSaveDialog(editor);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -2519,7 +2519,7 @@ public class U {
 		f.setSize(Math.min(p.x, Math.min(dim.width, w)), Math.min(p.y, Math.min(dim.height, h)));
 	}
 
-	static void showHelp(final Paint ui, final EditPanel uiComp) {
+	static void showHelp(final Paint ui, final EditorPanel uiComp) {
 		if (ui.aboutImg != null) {
 			return;
 		}
@@ -2576,7 +2576,7 @@ public class U {
 		p2.pageData.setLines(sbs);
 	}
 
-	public static void showPageListPage(EditPanel ep) throws Exception {
+	public static void showPageListPage(EditorPanel ep) throws Exception {
 		if (findAndShowPageListPage(ep, titleOfPages(ep), true)) {
 			ep.getPage().pageData.setLines(getPageListStrings(ep));// refresh
 			ep.repaint();
@@ -2688,7 +2688,7 @@ public class U {
 		return s1;
 	}
 
-	static void startNoiseThread(final Paint ui, final EditPanel uiComp) {
+	static void startNoiseThread(final Paint ui, final EditorPanel uiComp) {
 		Thread t = new Thread() {
 			@Override
 			public void run() {
@@ -2760,7 +2760,7 @@ public class U {
 	}
 
 	public static void switchToPageListPage(PlainPage pp) throws Exception {
-		EditPanel uiComp = pp.uiComp;
+		EditorPanel uiComp = pp.uiComp;
 		// if (pp.pageData.getTitle().equals(U.titleOfPages(uiComp)) &&
 		// uiComp.lastPage != null) {
 		// if (uiComp.pageSet.contains(uiComp.lastPage)) {
@@ -2774,7 +2774,7 @@ public class U {
 		// }
 	}
 
-	static String titleOfPages(EditPanel ep) {
+	static String titleOfPages(EditorPanel ep) {
 		return _TITLE_OF_PAGES + "@" + ep.hashCode();
 	}
 
@@ -2787,7 +2787,7 @@ public class U {
 	}
 
 	public static void switchToLastPage(PlainPage pp) {
-		EditPanel uiComp = pp.uiComp;
+		EditorPanel uiComp = pp.uiComp;
 		PlainPage lastPage = uiComp.lastPage;
 		if (lastPage != null) {
 			uiComp.setPage(lastPage, true);

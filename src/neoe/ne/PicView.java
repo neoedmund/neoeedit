@@ -292,12 +292,12 @@ public class PicView {
 
 	}
 
-	private EditPanel ep;
+	private EditorPanel ep;
 
 	public PicView() {
 	}
 
-	public PicView(EditPanel ep) {
+	public PicView(EditorPanel ep) {
 		this.ep = ep;
 	}
 

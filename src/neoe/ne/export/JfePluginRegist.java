@@ -1,6 +1,8 @@
-package neoe.ne;
+package neoe.ne.export;
 
 import java.io.File;
+
+import neoe.ne.Main;
 
 public class JfePluginRegist {
 

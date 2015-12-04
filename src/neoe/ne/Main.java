@@ -7,7 +7,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		doinit();
-		EditPanel editor = new EditPanel();
+		EditorPanel editor = new EditorPanel(EditorPanelConfig.DEFAULT);
 		if (args.length > 0) {
 			File f = new File(args[0]);
 			if (U.isImageFile(f)) {
@@ -23,9 +23,9 @@ public class Main {
 		SwingJniJvmPatch();
 	}
 
-	public static EditPanel open(String title, String text) throws Exception {
+	public static EditorPanel open(String title, String text) throws Exception {
 		doinit();
-		EditPanel editor = new EditPanel();
+		EditorPanel editor = new EditorPanel(EditorPanelConfig.DEFAULT);
 		PlainPage pp = new PlainPage(editor, PageData.newEmpty(title, ""));
 		pp.ptEdit.append(text);
 		editor.openWindow();
@@ -54,7 +54,7 @@ public class Main {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			if (EditPanel.openedWindows <= 0) {
+			if (EditorPanel.openedWindows <= 0) {
 				System.out.println("SwingJniJvmPatch exit");
 				break;
 			}

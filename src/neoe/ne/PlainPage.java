@@ -1261,12 +1261,12 @@ public class PlainPage {
 	int toolbarHeight = 25;
 
 	public Paint ui = new Paint();
-	EditPanel uiComp;
+	EditorPanel uiComp;
 
 	private PlainPage() {
 	}
 
-	public PlainPage(EditPanel editor, PageData data) throws Exception {
+	public PlainPage(EditorPanel editor, PageData data) throws Exception {
 		this();
 		this.uiComp = editor;
 		this.pageData = data;
@@ -1322,6 +1322,7 @@ public class PlainPage {
 			uiComp.setPage(uiComp.pageSet.get(index), false);
 		} else {
 			// nothing to show
+			if (uiComp.frame!=null)
 			uiComp.frame.dispose();
 		}
 	}
@@ -1700,7 +1701,7 @@ public class PlainPage {
 			pp.ptSelection.selectAll();
 			break;
 		case newWindow:
-			EditPanel ep = new EditPanel();
+			EditorPanel ep = new EditorPanel(EditorPanelConfig.DEFAULT);
 			ep.openWindow();
 			// set default working path
 			ep.getPage().pageData.workPath = pageData.workPath;

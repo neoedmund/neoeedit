@@ -2,14 +2,14 @@ package neoe.ne.obsolete;
 
 import java.util.Vector;
 
-import neoe.ne.EditPanel;
+import neoe.ne.EditorPanel;
 import neoe.ne.PlainPage;
 import neoe.ne.U;
 
 public class CursorHistory {
 	CursorHistoryData data = new CursorHistoryData(new Vector<CursorHistoryItem>());
 	PlainPage page;
-	EditPanel ep;
+	EditorPanel ep;
 
 	void back(String curTitle, int curX, int curY) throws Exception {
 		if (data.p >= 0 && data.items.size() > 0) {

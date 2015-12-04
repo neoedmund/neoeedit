@@ -2,7 +2,6 @@ package neoe.ne;
 
 import java.awt.AWTEvent;
 import java.awt.Cursor;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -33,9 +32,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-import neoe.ne.obsolete.CursorHistory;
 
-public class EditPanel extends JPanel implements MouseMotionListener,
+public class EditorPanel extends JPanel implements MouseMotionListener,
 		MouseListener, MouseWheelListener, KeyListener {
 
 	/** It's only need to be not-null and not actually called? */
@@ -97,12 +95,9 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 
 	private static final long serialVersionUID = -1667283144475200365L;
 
-	public Font _font;
-	private boolean debugFPS = false;
 
 	JFrame frame;
 
-	private InputMethodRequests inputMethodRequestsHandler;
 
 	PlainPage lastPage;
 
@@ -110,9 +105,12 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 
 	List<PlainPage> pageSet = new ArrayList<PlainPage>();
 
+	EditorPanelConfig config;
+
 	//CursorHistory ptCh = new CursorHistory();
 
-	public EditPanel() throws Exception {
+	public EditorPanel(EditorPanelConfig config) throws Exception {
+		this.config=config;
 		enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.INPUT_METHOD_EVENT_MASK);
 		setBackground(U.Config.getDefaultBgColor());
 		setFocusable(true);
@@ -176,13 +174,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		}
 	}
 
-	public InputMethodRequests getInputMethodRequests() {
-		// System.out.println("getInputMethodRequests()");
-		if (inputMethodRequestsHandler == null) {
-			inputMethodRequestsHandler = new MyInputMethodRequestsHandler();
-		}
-		return inputMethodRequestsHandler;
-	}
+ 
 
 	public PlainPage getPage() {
 		return page;
@@ -289,7 +281,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		if (frame != null)
 			return;
 		frame = new JFrame(PlainPage.WINDOW_NAME);
-		frame.setIconImage(ImageIO.read(EditPanel.class
+		frame.setIconImage(ImageIO.read(EditorPanel.class
 				.getResourceAsStream("/e.png")));
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		Point p = U.Config.readFrameSize();
@@ -360,10 +352,6 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 
 	@Override
 	public void paint(Graphics g) {
-		long t1 = 0;
-		if (debugFPS) {
-			t1 = System.currentTimeMillis();
-		}
 		try {
 			if (page != null) {
 				page.xpaint(g, this.getSize());
@@ -371,9 +359,7 @@ public class EditPanel extends JPanel implements MouseMotionListener,
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		if (debugFPS) {
-			System.out.println("p " + (System.currentTimeMillis() - t1));
-		}
+	
 	}
 
 	public void setPage(PlainPage pp, boolean recCh) {

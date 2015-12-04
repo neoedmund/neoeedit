@@ -2,16 +2,17 @@ package neoe.ne.obsolete;
 
 import javax.swing.JPanel;
 
-import neoe.ne.EditPanel;
+import neoe.ne.EditorPanel;
+import neoe.ne.EditorPanelConfig;
 import neoe.ne.PageData;
 import neoe.ne.U;
 
 public class TopCoderEditorPlugin {
-	EditPanel editor;
+	EditorPanel editor;
 
 	public JPanel getEditorPanel() {
 		try {
-			editor = new EditPanel();
+			editor = new EditorPanel(EditorPanelConfig.DEFAULT);
 			editor.getPage().ui.applyColorMode(1);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -1,4 +1,6 @@
-package neoe.ne;
+package neoe.ne.export;
+
+import neoe.ne.Main;
 
 public class ViewMailPluginRegist {
 
