@@ -101,7 +101,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 
 	PlainPage lastPage;
 
-	private PlainPage page;
+	public PlainPage page;
 
 	List<PlainPage> pageSet = new ArrayList<PlainPage>();
 
@@ -395,6 +395,11 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		} else {
 			return "";
 		}
+	}
+	
+	public String getCurrentText() {
+		PageData pd = getPage().pageData;
+		return U.exportString(pd.lines, pd.lineSep);
 	}
 
 }
