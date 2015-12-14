@@ -2143,7 +2143,7 @@ public class U {
 			page.cy = Math.max(0, Math.min(line, page.pageData.lines.size() - 1));
 			page.sy = Math.max(0, page.cy - 3);
 			page.uiComp.repaint();
-			 
+
 		}
 		return true;
 	}
@@ -2154,7 +2154,7 @@ public class U {
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();
-		 
+
 	}
 
 	static void openDirHistory(EditorPanel ep) throws Exception {
@@ -2163,7 +2163,7 @@ public class U {
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();
-		 
+
 	}
 
 	static void paintNoise(Graphics2D g2, Dimension dim) {
@@ -2196,8 +2196,11 @@ public class U {
 		return v;
 	}
 
+	static int idIndex;
+
 	public static String randomID() {
-		return Integer.toString((int) (System.currentTimeMillis() % 0xfffffff), 36);
+		return Integer.toString((int) (System.currentTimeMillis() % 0xfffffff), 36) + "_"
+				+ Integer.toString(idIndex++, 36);
 	}
 
 	static void readFile(PageData data, String fn) {

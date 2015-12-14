@@ -660,11 +660,12 @@ public class PlainPage {
 				if (x1 < 0) {
 					x1 = 0;
 				}
-				if (x2 < 0) {
-					x2 = 0;
+				int x2a = x2;
+				if (x2a < 0) {
+					x2a = 0;
 				}
-				if (x2 > s.length()) {
-					x2 = s.length();
+				if (x2a > s.length()) {
+					x2a = s.length();
 				}
 				if (x1 > s.length()) {
 					x1 = s.length();
@@ -674,7 +675,8 @@ public class PlainPage {
 					g2.fillRect(w1, scry * (lineHeight + lineGap), 3, lineHeight + lineGap);
 				} else {
 					int w1 = U.strWidth(g2, U.fontList, s.subSequence(0, x1).toString(), TABWIDTH);
-					int w2 = U.strWidth(g2, U.fontList, s.subSequence(0, x2).toString(), TABWIDTH);
+					int w2 = x2 > x2a ? textAreaWidth
+							: U.strWidth(g2, U.fontList, s.subSequence(0, x2a).toString(), TABWIDTH);
 					g2.fillRect(w1, scry * (lineHeight + lineGap), (w2 - w1), lineHeight + lineGap);
 				}
 			}
@@ -1321,8 +1323,8 @@ public class PlainPage {
 			uiComp.setPage(uiComp.pageSet.get(index), false);
 		} else {
 			// nothing to show
-			if (uiComp.frame!=null)
-			uiComp.frame.dispose();
+			if (uiComp.frame != null)
+				uiComp.frame.dispose();
 		}
 	}
 
