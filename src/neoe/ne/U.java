@@ -2119,6 +2119,7 @@ public class U {
 			pd.setText(dir);
 			PlainPage pp = new PlainPage(page.uiComp, pd);
 			U.listDir(pp, 0);
+			pp.pageData.workPath = page.pageData.workPath;
 		} else {
 			EditorPanel ep = page.uiComp;
 			if (!U.findAndShowPageListPage(ep, title, false)) {
@@ -2377,7 +2378,11 @@ public class U {
 		final JFrame f = new JFrame("Script for " + ppTarget.pageData.getTitle());
 		JPanel panel = new JPanel(new BorderLayout());
 		final EditorPanel ep1 = new EditorPanel();
+		File scriptDir = new File(U.getMyDir(), "scripts");
+		scriptDir.mkdirs();
+		ep1.page.pageData.workPath = scriptDir.getAbsolutePath();
 		ep1.frame = f;
+		U.openFile(ep1.page);
 		// EditorPanel.openedWindows++;
 		panel.add(ep1, BorderLayout.CENTER);
 		JButton jb1;
