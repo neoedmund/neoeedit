@@ -1,0 +1,189 @@
+package neoe.ne;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+
+import neoe.ne.util.FileUtil;
+import neoe.ne.util.FindJDK;
+import neoe.ne.util.Finder;
+
+public class ScriptUtil {
+
+	public List<CharSequence> runSingleScript(String script, List<CharSequence> input) throws Exception {
+		// 3.1.
+		String neoeedit_jar = findMyJar();
+		String javaPath = new FindJDK().find(0, true);
+		String javac = javaPath + (FindJDK.isWindows ? "/bin/javac.exe" : "/bin/javac");
+
+		// 1.
+		String className = findClassName(script);
+		if (className.isEmpty()) {
+			error("Sorry, I cannot find the public class name in the script");
+		}
+		// 1.1
+		String packageName = findPackageName(script);
+		if (className.isEmpty()) {
+			// error("Sorry, I cannot find the package name in the script");
+		}
+		// 2. save script to file
+		File dir = Files.createTempDirectory("neoeedit").toFile();
+		File src = new File(dir, className + ".java");
+		FileUtil.save(script.getBytes("utf8"), src.getAbsolutePath());
+		// 3. compile
+		if (!javaPath.isEmpty()) {
+			log("found latest JDK:" + javaPath);
+		} else {
+			error("didnot found JDK");
+		}
+		Exec exec = new Exec();
+		exec.setCmd(javac);
+		File destdir = new File(dir, "bin");
+		destdir.mkdirs();
+		exec.addArg("-d", destdir.getAbsolutePath());
+		exec.addArg("-encoding", "utf8");
+		exec.addArg("-cp", neoeedit_jar);
+		exec.addArg(src.getAbsolutePath());
+		int retcode = exec.execute();
+		if (retcode != 0) {
+			throw new RuntimeException("Java Compile failed.");
+		} else {
+			log("compiled to " + destdir.getAbsolutePath());
+		}
+		// 4.
+		URL bin = destdir.toURI().toURL(); // "file://" +
+											// destdir.getCanonicalPath().replace("\\",
+											// "/");
+		// if (!bin.endsWith("/"))
+		// bin = bin + "/";
+		log("bin=" + bin);
+		ClassLoader ncl = new URLClassLoader(new URL[] { bin }, U.class.getClassLoader());
+		Class cls = ncl.loadClass(packageName.isEmpty() ? className : (packageName + "." + className));
+		Script sc = (Script) cls.newInstance();
+		List<CharSequence> ret = sc.run(input);
+		// delete when hot
+		deleteDir(destdir, ".class");
+		src.delete();
+		dir.delete();
+		if (!dir.exists()) {
+			log("temp dir deleted successfully:" + dir.getAbsolutePath());
+		}
+		return ret;
+
+	}
+
+	private void deleteDir(File dir, String ends) {
+		File[] sub = dir.listFiles();
+		for (File f : sub) {
+			if (f.isFile() && f.getName().endsWith(ends))
+				f.delete();
+			else if (f.isDirectory()) {
+				deleteDir(f, ends);
+				f.delete();
+			}
+		}
+		dir.delete();
+	}
+
+	private String findPackageName(String script) {
+		Finder f = new Finder(script);
+		f.find("package ");
+		String s = f.readUntil(";").trim();
+		return s;
+	}
+
+	private void error(String s) {
+		throw new RuntimeException(s);
+	}
+
+	private String findMyJar() {
+		URL location = U.class.getResource('/' + U.class.getName().replace('.', '/') + ".class");
+		if (location == null) {
+			error("Sorry I cannot find where the neoeedit.jar is located.");
+		}
+		String path = location.getPath();
+		if (path.startsWith("file:/"))
+			path = path.substring("file:/".length());
+		int p1 = path.indexOf('!');
+		if (p1 < 0) {
+			error("cannot understand the path:" + path + "\n are you running from a jar?");
+		}
+		path = path.substring(0, p1);
+		return path;
+	}
+
+	private void log(String s) {
+		System.out.println(s);
+
+	}
+
+	private String findClassName(String script) {
+		Finder f = new Finder(script);
+		f.find("public class ");
+		String s = f.readUntil(" ").trim();
+		return s;
+	}
+
+	class Exec {
+
+		List<String> sb;
+
+		public void setCmd(String executable) {
+			sb = new ArrayList<>();
+			sb.add(executable);
+		}
+
+		public void addArg(String s) {
+			sb.add(s);
+		}
+
+		public void addArg(String s1, String s2) {
+			sb.add(s1);
+			sb.add(s2);
+		}
+
+		public int execute() throws Exception {
+			Process p = new ProcessBuilder().command(sb).start();
+			StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), "stderr");
+			StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), "stdout");
+			outputGobbler.start();
+			errorGobbler.start();
+			return p.waitFor();
+		}
+
+		private class StreamGobbler extends Thread {
+			InputStream is;
+			String type;
+			private PrintWriter out;
+
+			private StreamGobbler(InputStream is, String type) {
+				this.is = is;
+				this.type = type;
+				out = new PrintWriter(System.out);
+			}
+
+			@Override
+			public void run() {
+				try {
+					InputStreamReader isr = new InputStreamReader(is);
+					BufferedReader br = new BufferedReader(isr);
+					String line = null;
+					while ((line = br.readLine()) != null)
+						out.println(type + "> " + line);
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+			}
+		}
+
+	}
+
+}

@@ -1,5 +1,6 @@
 package neoe.ne;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -14,6 +15,8 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.awt.print.Book;
@@ -31,7 +34,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -51,6 +56,7 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -2368,7 +2374,51 @@ public class U {
 	}
 
 	static void runScript(final PlainPage ppTarget) throws Exception {
-		// not implemented
+		final JFrame f = new JFrame("Script for " + ppTarget.pageData.getTitle());
+		JPanel panel = new JPanel(new BorderLayout());
+		final EditorPanel ep1 = new EditorPanel();
+		ep1.frame = f;
+		// EditorPanel.openedWindows++;
+		panel.add(ep1, BorderLayout.CENTER);
+		JButton jb1;
+		panel.add(jb1 = new JButton("Run!"), BorderLayout.SOUTH);
+		jb1.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					runScript(ppTarget, exportString(ep1.page.pageData.lines, "\n"));
+				} catch (Exception e1) {
+					System.out.println(e1);
+					StringWriter errors = new StringWriter();
+					e1.printStackTrace(new PrintWriter(errors));
+					ep1.page.ptEdit.append("/*\n" + errors.toString() + "\n*/\n");
+				}
+
+			}
+		});
+		f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		f.getContentPane().add(panel);
+		f.setSize(600, 400);
+		f.setLocationRelativeTo(ppTarget.uiComp);
+		f.setVisible(true);
+	}
+
+	static void runScript(final PlainPage ppTarget, String script) throws Exception {
+		ReadonlyLines lines = ppTarget.pageData.roLines;
+		List<CharSequence> export = new ArrayList<CharSequence>();
+		{
+			int size = lines.getLinesize();
+			for (int i = 0; i < size; i++) {
+				export.add(lines.getline(i));
+			}
+		}
+		ScriptUtil su = new ScriptUtil();
+		List<CharSequence> ret = su.runSingleScript(script, export);
+		EditorPanel ep = new EditorPanel(ppTarget.uiComp.config);
+		ep.openWindow();
+		ep.getPage().pageData.workPath = ppTarget.pageData.workPath;
+		ep.getPage().pageData.setLines(ret);
 	}
 
 	static void saveAs(PlainPage page) throws Exception {
@@ -2823,5 +2873,14 @@ public class U {
 
 	public static int between(int i, int min, int max) {
 		return Math.min(max, Math.max(min, i));
+	}
+
+	static Image appIcon;
+
+	public static Image getAppIcon() throws IOException {
+		if (appIcon != null)
+			return appIcon;
+		appIcon = ImageIO.read(EditorPanel.class.getResourceAsStream("/e.png"));
+		return appIcon;
 	}
 }

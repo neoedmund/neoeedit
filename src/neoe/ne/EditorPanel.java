@@ -300,8 +300,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		if (frame != null)
 			return;
 		frame = new JFrame(EditorPanel.WINDOW_NAME);
-		frame.setIconImage(ImageIO.read(EditorPanel.class
-				.getResourceAsStream("/e.png")));
+		frame.setIconImage(U.getAppIcon());
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		Point p = U.Config.readFrameSize();
 		U.setFrameSize(frame, p.x, p.y);
