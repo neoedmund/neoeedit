@@ -60,9 +60,10 @@ public class PlainPage {
 		}
 
 		void moveEnd() {
-			String line = pageData.roLines.getline(cy).toString();
-			String lx = line.trim();
-			int p1 = line.lastIndexOf(lx) + lx.length();
+			CharSequence line = pageData.roLines.getline(cy);
+			int p1 = line.length();
+			while (p1 > 0 && Character.isSpaceChar(line.charAt(p1 - 1)))
+				p1--;
 			if (cx < p1 || cx >= line.length()) {
 				cx = p1;
 			} else {
@@ -71,9 +72,11 @@ public class PlainPage {
 		}
 
 		void moveHome() {
-			String line = pageData.roLines.getline(cy).toString();
-			String lx = line.trim();
-			int p1 = line.indexOf(lx);
+			CharSequence line = pageData.roLines.getline(cy);
+			int p1 = 0;
+			int len = line.length();
+			while (p1 < len - 1 && Character.isSpaceChar(line.charAt(p1)))
+				p1++;
 			if (cx > p1 || cx == 0) {
 				cx = p1;
 			} else {
@@ -896,13 +899,14 @@ public class PlainPage {
 				} else {
 					cx = Math.min(pageData.roLines.getline(cy).length(), cx);
 				}
+				sx = Math.max(0, cx - charCntInLine / 2);
 				if (cx < sx) {
-					sx = Math.max(0, cx - charCntInLine / 2);
 				} else {
 					if (U.strWidth(g2, U.fontList, U.subs(pageData.roLines.getline(cy), sx, cx).toString(),
 							TABWIDTH) > size.width - lineHeight * 3) {
 						sx = Math.max(0, cx - charCntInLine / 2);
 						int xx = charCntInLine / 4;
+
 						while (xx > 0
 								&& U.strWidth(g2, U.fontList, U.subs(pageData.roLines.getline(cy), sx, cx).toString(),
 										TABWIDTH) > size.width - lineHeight * 3) {

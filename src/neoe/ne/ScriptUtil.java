@@ -20,7 +20,7 @@ public class ScriptUtil {
 
 	public List<CharSequence> runSingleScript(String script, List<CharSequence> input) throws Exception {
 		// 3.1.
-		String neoeedit_jar = findMyJar();
+		String neoeeditCP = findMyCP();
 		String javaPath = new FindJDK().find(0, true);
 		String javac = javaPath + (FindJDK.isWindows ? "/bin/javac.exe" : "/bin/javac");
 
@@ -50,7 +50,7 @@ public class ScriptUtil {
 		destdir.mkdirs();
 		exec.addArg("-d", destdir.getAbsolutePath());
 		exec.addArg("-encoding", "utf8");
-		exec.addArg("-cp", neoeedit_jar);
+		exec.addArg("-cp", neoeeditCP);
 		exec.addArg(src.getAbsolutePath());
 		int retcode = exec.execute();
 		if (retcode != 0) {
@@ -104,7 +104,7 @@ public class ScriptUtil {
 		throw new RuntimeException(s);
 	}
 
-	private String findMyJar() {
+	private String findMyCP() {
 		URL location = U.class.getResource('/' + U.class.getName().replace('.', '/') + ".class");
 		if (location == null) {
 			error("Sorry I cannot find where the neoeedit.jar is located.");
@@ -114,7 +114,12 @@ public class ScriptUtil {
 			path = path.substring("file:/".length());
 		int p1 = path.indexOf('!');
 		if (p1 < 0) {
-			error("cannot understand the path:" + path + "\n are you running from a jar?");
+			int p2 = path.lastIndexOf("/bin/");
+			if (p2 < 0)
+				error("cannot understand the path:" + path);
+			else {
+				p1 = p2 + "/bin/".length();
+			}
 		}
 		path = path.substring(0, p1);
 		return path;
