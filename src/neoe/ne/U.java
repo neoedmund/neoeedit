@@ -2002,7 +2002,7 @@ public class U {
 		return "" + v;
 	}
 
-	public static void launch(String s) throws Exception {
+	public static boolean launch(String s) throws Exception {
 		s = s.trim();
 		String slo = s.toLowerCase();
 		Desktop dt = Desktop.getDesktop();
@@ -2010,12 +2010,15 @@ public class U {
 			dt.mail(new URI(s));
 		} else if (slo.startsWith("http://") || slo.startsWith("https://")) {
 			dt.browse(new URI(s));
-		} else {
+		} else if (new File(s).exists()) {			
 			dt.open(new File(s));
+		} else {
+			return false;
 		}
+		return true;
 	}
 
-	static void listDir(PlainPage page, int atLine) throws Exception {
+	static boolean listDir(PlainPage page, int atLine) throws Exception {
 		String line = page.pageData.roLines.getline(atLine).toString();
 		String fn = line.trim();
 		int p1 = fn.indexOf('|');
@@ -2037,7 +2040,10 @@ public class U {
 				}
 			}
 			page.ptEdit.insertString("\n-----}");
+		} else {
+			return false;
 		}
+		return true;
 	}
 
 	public static void listFonts(PlainPage pp) throws Exception {

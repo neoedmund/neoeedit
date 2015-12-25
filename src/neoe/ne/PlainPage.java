@@ -1658,11 +1658,7 @@ public class PlainPage {
 		case moveBetweenPair:
 			cursor.moveToPair();
 			break;
-		case launch:
-			if (cy < pageData.lines.size()) {
-				U.launch(pageData.roLines.getline(cy).toString());
-			}
-			break;
+
 		case execute:
 			if (cy < pageData.lines.size()) {
 				U.exec(this, pageData.roLines.getline(cy).toString());
@@ -1772,12 +1768,19 @@ public class PlainPage {
 				} else {
 					if (searchResultOf == null || !U.gotoFileLine2(uiComp, line, searchResultOf)) {
 						if (!U.gotoFileLine(line, uiComp, pageData.getTitle().equals(U.titleOfPages(uiComp)))) {
-							U.listDir(PlainPage.this, cy);
+							if (!U.listDir(PlainPage.this, cy)) {
+								U.launch(line);
+							}
 						}
 					}
 				}
 			}
 			break;
+		case launch:
+			if (cy < pageData.lines.size()) {
+				String line = pageData.roLines.getline(cy).toString();
+				U.launch(line);
+			}
 		case fileHistory:
 			U.openFileHistory(uiComp);
 			break;
