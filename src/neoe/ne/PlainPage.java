@@ -1781,6 +1781,7 @@ public class PlainPage {
 				String line = pageData.roLines.getline(cy).toString();
 				U.launch(line);
 			}
+			break;
 		case fileHistory:
 			U.openFileHistory(uiComp);
 			break;
