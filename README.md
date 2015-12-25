@@ -1,31 +1,30 @@
-neoeedit
-========
+# neoeedit
+
 
 neoeedit - a smart and light GUI text editor
 
-<pre>
 
 https://github.com/neoedmund/neoeedit
 
 
+#### Neoeedit is a light, quick, smart, simple GUI text editor written in Java.  
 
-Neoeedit is a light, quick, smart, simple GUI text editor mainly written in Java. Size is only about 100KB(Jar File).
+The size is only about 100KB(Jar File).
 
 The target is to be used daily by everyone specially programmers.
+Although few people are using it, neoeedit is my favorite text editor, and I'll **get nervous** if it is not installed on a PC I'm working on.
 
 Current status: Stable.
 
-Newest Version of Java(JRE) need to be installed.
+Latest Java(JDK/JRE) need to be installed.
 
 Download (dist/neoeedit.jar)
 
 plugins (Pinyin/Japanese IME)
 
-You can use it in any of the methods:
 
 
-
-
+<pre>
 features:
 
     basic functions of text editor
@@ -99,7 +98,7 @@ features:
 
     alt-f:list fonts, then ctrl-1 on it to change font
 
-    alt-j: javascript macro
+    alt-j: script
 
     alt-c: switch between preset color modes, there are 3 now: White, Black, Blue.
 
