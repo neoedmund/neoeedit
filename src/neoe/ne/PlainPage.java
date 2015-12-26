@@ -943,9 +943,10 @@ public class PlainPage {
 				} else {
 					cx = Math.min(pageData.roLines.getline(cy).length(), cx);
 				}
-				sx = Math.max(0, cx - charCntInLine / 2);
 				if (cx < sx) {
+					sx = Math.max(0, cx - charCntInLine / 2);
 				} else {
+					sx = Math.max(0, Math.max(sx, cx - charCntInLine + 10));
 					if (U.strWidth(g2, U.fontList,
 							U.subs(pageData.roLines.getline(cy), sx, cx)
 									.toString(), TABWIDTH) > size.width
