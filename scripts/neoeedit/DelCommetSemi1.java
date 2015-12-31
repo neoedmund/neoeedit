@@ -5,6 +5,7 @@ import java.util.List;
 
 import neoe.ne.Script;
 
+/** Delete comment lines in config files */
 public class DelCommetSemi1 implements Script {
 
 	@Override

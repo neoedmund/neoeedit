@@ -5,6 +5,7 @@ import java.util.List;
 
 import neoe.ne.Script;
 
+/** Prototype of Concat lines to a single line */
 public class Concat1 implements Script {
 
 	@Override

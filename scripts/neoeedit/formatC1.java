@@ -5,6 +5,7 @@ import java.util.List;
 
 import neoe.ne.Script;
 
+/** Format, adjust indent on C-like source. */
 public class formatC1 implements Script {
 
 	@Override
