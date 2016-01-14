@@ -1640,8 +1640,11 @@ public class PlainPage {
 		case showHelp:
 			U.showHelp(ui, uiComp);
 			break;
-		case saveAs:
+		case saveAs:			
 			U.saveAs(this);
+			break;
+		case changePathSep:
+			U.changePathSep(pageData, cy);
 			break;
 		case findNext:
 			ptFind.findNext();

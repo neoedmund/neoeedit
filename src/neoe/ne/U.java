@@ -2902,4 +2902,25 @@ public class U {
 	public static boolean isSpaceChar(char ch) {
 		return Character.isSpaceChar(ch) || ch == '\t';
 	}
+
+	public static void changePathSep(PageData pageData, int cy) {
+		if (cy >= pageData.lines.size()) {
+			return;
+		}
+		String line = pageData.lines.get(cy).toString();
+		int p1 = line.indexOf('/');
+		String line2 = null;
+		if (p1 >= 0) {
+			line2 = line.replace('/', '\\');
+		} else {
+			int p2 = line.indexOf('\\');
+			if (p2 >= 0) {
+				line2 = line.replace('\\', '/');
+			}
+		}
+		if (line2 != null) {
+			pageData.editRec.deleteInLine(cy, 0, line.length());
+			pageData.editRec.insertInLine(cy, 0, line2);
+		}
+	}
 }
