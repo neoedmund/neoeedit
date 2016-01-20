@@ -12,13 +12,14 @@ https://github.com/neoedmund/neoeedit
 The size is only about 150KB(Jar File).
 
 The target is to be used daily by everyone specially programmers.
-Also my own "dogfood".
+
+Also neoe's own "dogfood".
 
 Current status: Stable. since year 2009.
 
 Latest Java(JDK/JRE) need to be installed.
 
-Download (dist/neoeedit.jar)
+Download latest (https://github.com/neoedmund/neoeedit/raw/master/dist/neoeedit.jar)
 
 plugins (Pinyin/Japanese IME)
 
@@ -27,12 +28,13 @@ plugins (Pinyin/Japanese IME)
 
 ### features :
 <pre>
-    small footprint (about 100KB binary size)
+    small footprint
     quick show (customized Swing component)
-    good unicode support(thanks the nature os Java)
-    run where Java run: Windows, Linux, ...(thanks the nature os Java)
+    good unicode support(thanks the nature of Java)
+    run where Java run: Windows, Linux, ...(thanks the nature of Java)
     IME-Aware, on-the-spot pre-edting.(not well support by java, but neoeedit has original IME plugin)
-
+    Scripts written in Java and run hot.
+    
     Fonts, colors and all the following shortcut keys can be configured by editing config file(user's-home-dir/.neoeedit/data.py.verX)
     
     default key-binding:
