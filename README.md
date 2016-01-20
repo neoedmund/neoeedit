@@ -37,7 +37,8 @@ plugins (Pinyin/Japanese IME)
     IME-Aware, on-the-spot pre-edting.(not well support by java, but neoeedit has original IME plugin)
     Scripts written in Java and run hot.
     
-    Fonts, colors and all the following shortcut keys can be configured by editing config file(user's-home-dir/.neoeedit/data.py.verX)
+    Fonts, colors and all the following shortcut keys can be configured 
+    by editing config file (user's-home-dir/.neoeedit/data.py.verX)
     
     default key-binding:
     
@@ -128,7 +129,7 @@ plugins (Pinyin/Japanese IME)
 </pre>
 
 
-![granted by neoe 'Work Like Magic' software](https://github.com/neoedmund/neoeedit/blob/master/img/worklikemagic.png)
+![granted by neoe 'Work Like Magic' software](https://github.com/neoedmund/neoeedit/raw/master/worklikemagic.png)
 
 (c) 2009-2100 neoe
 
