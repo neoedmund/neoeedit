@@ -553,16 +553,22 @@ public class U {
 		FindReplaceWindow findWindow;
 		final private PlainPage pp;
 		String text2find;
+		boolean back;
 
 		public FindAndReplace(PlainPage plainPage) {
 			this.pp = plainPage;
 		}
 
-		void doFind(String text, boolean ignoreCase, boolean selected2, boolean inDir, String dir) throws Exception {
+		void doFind(String text, boolean ignoreCase, boolean selected2, boolean inDir, String dir, boolean backward)
+				throws Exception {
 			if (!inDir) {
 				text2find = text;
 				pp.ignoreCase = ignoreCase;
-				findNext();
+				back = backward;
+				if (backward)
+					findPrev();
+				else
+					findNext();
 				pp.uiComp.repaint();
 			} else {
 				doFindInDir(pp, text, ignoreCase, selected2, inDir, dir);
@@ -597,6 +603,18 @@ public class U {
 			}
 			findWindow.show();
 			findWindow.jta1.grabFocus();
+		}
+
+		void findPrev() {
+			if (text2find != null && text2find.length() > 0) {
+				Point p = find_prev(pp, text2find, pp.cx - 1, pp.cy, pp.ignoreCase);
+				if (p == null) {
+					pp.ui.message("string not found");
+				} else {
+					pp.ptSelection.selectLength(p.x, p.y, text2find.length());
+				}
+			}
+
 		}
 	}
 
@@ -1232,7 +1250,7 @@ public class U {
 		try {
 			Field f = KeyEvent.class.getField("VK_" + k);
 			int kc = f.getInt(null);
-			name = name + (char) kc;
+			name = name + KeyEvent.getKeyText(kc);
 			// System.out.println(""+name+":"+c1);
 			if (keys.containsKey(name)) {
 				System.err.println("duplicated key:" + name);
@@ -1263,19 +1281,19 @@ public class U {
 	}
 
 	public static int indexOf(CharSequence input, String needle, int start) {
-		if (input instanceof String) {
-			String text = (String) input;
-			return text.indexOf(needle, start);
-		}
-		// if (input instanceof String) {
-		// String text = (String) input;
-		// return text.indexOf(needle, start);
-		// }
 		if (input instanceof StringBuilder) {
 			StringBuilder text = (StringBuilder) input;
 			return text.indexOf(needle, start);
 		}
 		return input.toString().indexOf(needle, start);
+	}
+
+	public static int indexOfLast(CharSequence input, String needle, int start) {
+		if (input instanceof StringBuilder) {
+			StringBuilder text = (StringBuilder) input;
+			return text.lastIndexOf(needle, start);
+		}
+		return input.toString().lastIndexOf(needle, start);
 	}
 
 	static void attach(final PlainPage page, final InputStream std) {
@@ -1519,11 +1537,70 @@ public class U {
 		return null;
 	}
 
+	static Point find_prev(PlainPage page, String s, int x, int y, boolean ignoreCase) {
+		if (y >= page.pageData.roLines.getLinesize()) {
+			return null;
+		}
+		if (ignoreCase) {
+			s = s.toLowerCase();
+		}
+		if (x < 0) {
+			y--;
+			if (y < 0) {
+				y = page.pageData.roLines.getLinesize() - 1;
+			}
+			if (y < 0)
+				return null;
+			if (y >= 0)
+				x = page.pageData.roLines.getline(y).length();
+		}
+
+		x = Math.min(x, page.pageData.roLines.getline(y).length());
+		// first half row
+		int p1 = U.indexOfLast(page.pageData.roLines.getline(y), ignoreCase, s, x);
+		if (p1 >= 0) {
+			return new Point(p1, y);
+		}
+		// middle rows
+		int fy = y;
+		for (int i = 0; i < page.pageData.roLines.getLinesize() - 1; i++) {
+			fy -= 1;
+			if (fy < 0) {
+				fy = page.pageData.roLines.getLinesize() - 1;
+			}
+			CharSequence line = page.pageData.roLines.getline(fy);
+			p1 = U.indexOfLast(line, ignoreCase, s, line.length());
+			if (p1 >= 0) {
+				return new Point(p1, fy);
+			}
+		}
+		{
+			// last half row
+			CharSequence sb = page.pageData.roLines.getline(y);
+			if (x >= sb.length())
+				return null;
+			CharSequence tail = sb.subSequence(x, sb.length());
+			p1 = U.indexOfLast(tail, ignoreCase, s, tail.length());
+			if (p1 >= 0) {
+				return new Point(p1 + x, fy);
+			}
+		}
+		return null;
+	}
+
 	private static int indexOf(CharSequence t, boolean ignoreCase, String s, int x) {
 		if (!ignoreCase) {
 			return U.indexOf(t, s, x);
 		} else {
 			return t.toString().toLowerCase().indexOf(s, x);
+		}
+	}
+
+	private static int indexOfLast(CharSequence t, boolean ignoreCase, String s, int x) {
+		if (!ignoreCase) {
+			return U.indexOfLast(t, s, x);
+		} else {
+			return t.toString().toLowerCase().lastIndexOf(s, x);
 		}
 	}
 
@@ -2067,7 +2144,7 @@ public class U {
 
 	public static Commands mappingToCommand(KeyEvent env) {
 		int kc = env.getKeyCode();
-		String name = "" + (char) kc;
+		String name = KeyEvent.getKeyText(kc);
 		if (env.isAltDown()) {
 			name = "A" + name;
 		}

@@ -35,6 +35,7 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 	JTextField jta2;
 	private JTextField jtadir;
 	private PlainPage page;
+	private JCheckBox jcbDirection;
 
 	public FindReplaceWindow(JFrame f, PlainPage page) {
 		this.page = page;
@@ -49,6 +50,7 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 		s.add(new JLabel("Replace:"));
 		s.add(jta2 = new JTextField());
 		s.newline();
+
 		s.add(jrb1 = new JRadioButton("IgnoreCase"));
 		jrb1.setSelected(true);
 		s.add(jrb2 = new JRadioButton("RegularExpression"));
@@ -60,6 +62,7 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 		s.add(new JLabel("Dir:"));
 		s.add(jtadir = new JTextField());
 		s.newline();
+		s.add(jcbDirection = new JCheckBox("backward", false));
 		s.add(jcb2 = new JCheckBox("include subdir", true));
 		s.add(jcb3 = new JCheckBox("skip binary", true));
 		s.newline();
@@ -130,13 +133,18 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 		try {
 			String command = ae.getActionCommand();
 			if (command.equals("find")) {
-				page.ptFind.doFind(jta1.getText(), jrb1.isSelected(), jrb2.isSelected(), jcb1.isSelected(), jtadir.getText());
+
+				page.ptFind.doFind(jta1.getText(), jrb1.isSelected(), jrb2.isSelected(), jcb1.isSelected(),
+						jtadir.getText(), jcbDirection.isSelected());
+
 			} else if (command.equals("findall")) {
 				U.doFindInPage(page, jta1.getText(), jrb1.isSelected());
 			} else if (command.equals("replace")) {
-				U.doReplace(page, jta1.getText(), jrb1.isSelected(), jrb2.isSelected(), jta2.getText(), false, false, null);
+				U.doReplace(page, jta1.getText(), jrb1.isSelected(), jrb2.isSelected(), jta2.getText(), false, false,
+						null);
 			} else if (command.equals("replaceall")) {
-				U.doReplaceAll(page, jta1.getText(), jrb1.isSelected(), jrb2.isSelected(), jta2.getText(), jcb1.isSelected(), jtadir.getText());
+				U.doReplaceAll(page, jta1.getText(), jrb1.isSelected(), jrb2.isSelected(), jta2.getText(),
+						jcb1.isSelected(), jtadir.getText());
 			} else {
 				return;
 			}

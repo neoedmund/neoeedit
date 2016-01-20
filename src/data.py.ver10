@@ -2,6 +2,7 @@
 	[showHelp, F1],
 	[saveAs, F2, file],
 	[findNext,F3, search],
+	[findPrev,F4, search],
 	[reloadWithEncoding,F5, file, "reload file"],
 	[moveLeft, LEFT, cursor],
 	[moveRight, RIGHT, cursor],
