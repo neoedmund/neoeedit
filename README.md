@@ -9,11 +9,13 @@ https://github.com/neoedmund/neoeedit
 
 #### Neoeedit is a light, quick, smart, simple GUI text editor written in Java.  
 
+BSD LICENSE
+
 The size is only about 150KB(Jar File).
 
 The target is to be used daily by everyone specially programmers.
 
-Also neoe's own "dogfood".
+Also neoe's own "dogfooding" project.
 
 Current status: Stable. since year 2009.
 
@@ -124,3 +126,9 @@ plugins (Pinyin/Japanese IME)
     (more...not listed or not added)
 
 </pre>
+
+
+[[https://github.com/neoedmund/neoeedit/blob/master/img/worklikemagic.png|alt=work_like_magic]]
+
+(c) 2009-2100 neoe
+
