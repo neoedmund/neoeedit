@@ -128,7 +128,7 @@ plugins (Pinyin/Japanese IME)
 </pre>
 
 
-[[https://github.com/neoedmund/neoeedit/blob/master/img/worklikemagic.png|alt=work_like_magic]]
+[https://github.com/neoedmund/neoeedit/blob/master/img/worklikemagic.png|alt=work_like_magic]
 
 (c) 2009-2100 neoe
 
