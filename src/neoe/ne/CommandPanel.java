@@ -60,13 +60,14 @@ public class CommandPanel {
 		private Color bkColor = new Color(0xcccccc);
 		String clickedName;
 		private List<Object> comps = new ArrayList<Object>();
-		long controlDownMs;
+//		long controlDownMs;
+//		boolean hasCheckThread;
 		private Dimension dim;
 		private Font font1, font2;
 
 		private Graphics2D g;
 
-		boolean hasCheckThread;
+
 
 		boolean inited = false;
 		private Object lastInObj;

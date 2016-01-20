@@ -1288,31 +1288,6 @@ public class PlainPage {
 		data.ref++;
 	}
 
-	private void checkControlLater(final int lag) {
-		new Thread() {
-			@Override
-			public void run() {
-				ui.cp.hasCheckThread = true;
-				try {
-					Thread.sleep(lag);
-					// System.out.println("checkControlLater");
-					long now = System.currentTimeMillis();
-					if (ui.cp.controlDownMs > 0 && now - ui.cp.controlDownMs >= lag) {
-						ui.cp.showCommandPanel = true;
-						uiComp.repaint();
-					}
-
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} finally {
-					ui.cp.hasCheckThread = false;
-				}
-
-			}
-		}.start();
-
-	}
-
 	public void close() {
 		int index = uiComp.pageSet.indexOf(this);
 		uiComp.pageSet.remove(this);
@@ -1361,17 +1336,9 @@ public class PlainPage {
 			}
 		}
 
-		if (evt.getKeyCode() == KeyEvent.VK_CONTROL) {
-			if (ui.cp.controlDownMs <= 0 && !ui.cp.hasCheckThread) {
-				ui.cp.controlDownMs = System.currentTimeMillis();
-				// System.out.println("control pressed");
-				checkControlLater(1100);// 1 sec
-			}
-		} else {
-			if (ui.cp.controlDownMs > 0) {
-				ui.cp.controlDownMs = 0;
+		if (evt.getKeyCode() == KeyEvent.VK_ESCAPE) {
+			if (ui.cp.showCommandPanel)
 				ui.cp.showCommandPanel = false;
-			}
 		}
 
 		pageData.history.beginAtom();
@@ -1383,7 +1350,7 @@ public class PlainPage {
 			Commands cmd = U.mappingToCommand(evt);
 			if (cmd == null) {
 				int kc = evt.getKeyCode();
-				if (evt.getKeyChar() == KeyEvent.CHAR_UNDEFINED
+				if ((evt.isActionKey() || evt.isControlDown() || evt.isAltDown())
 						&& (kc != KeyEvent.VK_SHIFT && kc != KeyEvent.VK_CONTROL && kc != KeyEvent.VK_ALT)) {
 					unknownCommand(evt);
 				}
@@ -1413,14 +1380,7 @@ public class PlainPage {
 	}
 
 	public void keyReleased(KeyEvent env) {
-		if (env.getKeyCode() == KeyEvent.VK_CONTROL) {
-			// System.out.println("control released");
-			if (ui.cp.controlDownMs > 0) {
-				ui.cp.controlDownMs = 0;
-				ui.cp.showCommandPanel = false;
-				uiComp.repaint();
-			}
-		}
+
 	}
 
 	public void keyTyped(KeyEvent env) {
@@ -1531,7 +1491,6 @@ public class PlainPage {
 	public void mouseWheelMoved(MouseWheelEvent env) {
 		int amount = env.getWheelRotation() * env.getScrollAmount();
 		if (env.isControlDown()) {// scale
-			ui.cp.controlDownMs = 0;
 			U.scale(amount, ui);
 			this.uiComp.repaint();
 		} else if (env.isAltDown()) {// horizon scroll
@@ -1582,6 +1541,9 @@ public class PlainPage {
 				ptFind.findPrev();
 			else
 				ptFind.findNext();
+			break;
+		case commandPanel:
+			ui.cp.showCommandPanel = true;
 			break;
 		case reloadWithEncoding:
 			if (pageData.getTitle().equals(U.titleOfPages(uiComp))) {

@@ -9,12 +9,12 @@ https://github.com/neoedmund/neoeedit
 
 #### Neoeedit is a light, quick, smart, simple GUI text editor written in Java.  
 
-The size is only about 100KB(Jar File).
+The size is only about 150KB(Jar File).
 
 The target is to be used daily by everyone specially programmers.
-Although few people are using it, neoeedit is my favorite text editor, and I'll **get nervous** if it is not installed on a PC I'm working on.
+Also my own "dogfood".
 
-Current status: Stable.
+Current status: Stable. since year 2009.
 
 Latest Java(JDK/JRE) need to be installed.
 
@@ -24,17 +24,18 @@ plugins (Pinyin/Japanese IME)
 
 
 
-<pre>
-features:
 
-    basic functions of text editor
+### features :
+<pre>
     small footprint (about 100KB binary size)
     quick show (customized Swing component)
-    good unicode support
-    run where Java run: Windows, Linux, ...
-    IME-Aware, on-the-spot pre-edting.
+    good unicode support(thanks the nature os Java)
+    run where Java run: Windows, Linux, ...(thanks the nature os Java)
+    IME-Aware, on-the-spot pre-edting.(not well support by java, but neoeedit has original IME plugin)
 
     Fonts, colors and all the following shortcut keys can be configured by editing config file(user's-home-dir/.neoeedit/data.py.verX)
+    
+    default key-binding:
     
     ctrl-C/V/X for copy/paste/cut
     select text using both mouse and keyboard
@@ -72,6 +73,7 @@ features:
 
     ctrl-F: find/replace
     F3 : find next
+    F4 : find prev
 
     ctrl-E: set encoding
     F5 : reload with encoding
@@ -92,6 +94,7 @@ features:
     replace/find in files, and in dir/sub-dir
 
     alt-\: rectangular mode
+    alt-/: switch line between / and \ (for path switch between unix and Windows)
 
     ctrl-mouse scroll: zoom in/out
     ctrl-0: zoom reset
@@ -109,13 +112,13 @@ features:
         Ctrl-W / H / O: functions like what it did in text editor mode
         F1 or TAB: toggle thumbnail
 
-    configurable custom Freetype font
+    configurable custom Freetype font (in config file)
 
     integrated NeoeIme as a plugin.(see Plugins)
 
         ctrl-space to toggle IME
 
-    hold CTRL for a second: show command panel.
-    (more... )
+    context_menu: show commands panel.
+    (more...not listed or not added)
 
 </pre>

@@ -62,6 +62,7 @@
 	[toggleIME, ctrl-SPACE, etc, "toggle input method"],
 	[toggleFps, ctrl-alt-F, etc, "toggle FPS"],
 	[changePathSep, alt-SLASH, edit2, "change between / and \\" ],
+	[commandPanel, CONTEXT_MENU, help, "show commands panel" ],
 ],
 color:{
     defaultBackgroundColor:0xffffff,
