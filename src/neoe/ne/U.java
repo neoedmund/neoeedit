@@ -2144,6 +2144,9 @@ public class U {
 
 	public static Commands mappingToCommand(KeyEvent env) {
 		int kc = env.getKeyCode();
+		if (kc == KeyEvent.VK_SHIFT || kc == KeyEvent.VK_CONTROL || kc == KeyEvent.VK_ALT)
+			// fast pass
+			return null;
 		String name = KeyEvent.getKeyText(kc);
 		if (env.isAltDown()) {
 			name = "A" + name;
@@ -2154,6 +2157,7 @@ public class U {
 		// if (env.isShiftDown()) {
 		// name = "S" + name;
 		// }
+		// System.out.println("key name="+name);
 		Commands cmd = keys.get(name);
 		return cmd;
 	}
