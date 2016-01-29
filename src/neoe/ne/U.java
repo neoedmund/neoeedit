@@ -320,7 +320,6 @@ public class U {
 		void insertLines(int x1, List<CharSequence> s1) {
 			if (record) {
 				new RuntimeException("Bug? unpected").printStackTrace();
-				;
 			}
 			lines().addAll(x1, s1);
 		}
@@ -344,7 +343,8 @@ public class U {
 			if (!configChanged()) {
 				return conf;
 			}
-
+			System.out.println("load " + Version.CONFIG_FN);
+			;
 			BufferedReader in = new BufferedReader(U.getInstalledReader(Version.CONFIG_FN));
 			Map o = null;
 			try {
@@ -3003,5 +3003,140 @@ public class U {
 			pageData.editRec.deleteInLine(cy, 0, line.length());
 			pageData.editRec.insertInLine(cy, 0, line2);
 		}
+	}
+
+	/**
+	 * http://stackoverflow.com/questions/3422673/evaluating-a-math-expression-
+	 * given-in-string-form<br/>
+	 * and modified to support HEX(0xBEEF) and Scientific form(1E10)
+	 */
+	public static double evalMath(final String str) {
+		System.out.println("eval:" + str);
+		class Parser {
+			int pos = -1, c;
+
+			void eatChar() {
+				c = (++pos < str.length()) ? str.charAt(pos) : -1;
+			}
+
+			void eatSpace() {
+				while (Character.isWhitespace(c))
+					eatChar();
+			}
+
+			double parse() {
+				eatChar();
+				double v = parseExpression();
+				if (c != -1)
+					throw new RuntimeException("Unexpected: " + (char) c);
+				return v;
+			}
+
+			// Grammar:
+			// expression = term | expression `+` term | expression `-` term
+			// term = factor | term `*` factor | term `/` factor | term brackets
+			// factor = brackets | number | factor `^` factor
+			// brackets = `(` expression `)`
+
+			double parseExpression() {
+				double v = parseTerm();
+				for (;;) {
+					eatSpace();
+					if (c == '+') { // addition
+						eatChar();
+						v += parseTerm();
+					} else if (c == '-') { // subtraction
+						eatChar();
+						v -= parseTerm();
+					} else {
+						return v;
+					}
+				}
+			}
+
+			double parseTerm() {
+				double v = parseFactor();
+				for (;;) {
+					eatSpace();
+					if (c == '/') { // division
+						eatChar();
+						v /= parseFactor();
+					} else if (c == '*' || c == '(') { // multiplication
+						if (c == '*')
+							eatChar();
+						v *= parseFactor();
+					} else {
+						return v;
+					}
+				}
+			}
+
+			double parseFactor() {
+				double v;
+				boolean negate = false;
+				eatSpace();
+				if (c == '+' || c == '-') { // unary plus & minus
+					negate = c == '-';
+					eatChar();
+					eatSpace();
+				}
+				if (c == '(') { // brackets
+					eatChar();
+					v = parseExpression();
+					if (c == ')')
+						eatChar();
+				} else { // numbers
+					StringBuilder sb = new StringBuilder();
+					while (isMathExprNumberChar(c)) {
+						sb.append((char) c);
+						eatChar();
+					}
+					if (sb.length() == 0)
+						throw new RuntimeException("Unexpected: " + (char) c);
+					String s = sb.toString();
+					if (s.startsWith("0x")) {
+						v = Long.parseLong(s.substring(2), 16);
+					} else {
+						v = Double.parseDouble(sb.toString());
+					}
+				}
+				eatSpace();
+				if (c == '^') { // exponentiation
+					eatChar();
+					v = Math.pow(v, parseFactor());
+				}
+				if (negate)
+					v = -v; // unary minus is applied after exponentiation; e.g.
+							// -3^2=-9
+				return v;
+			}
+		}
+		return new Parser().parse();
+	}
+
+	public static String getMathExprTail(String ss) {
+		// System.out.println("getMathExprTail=" + ss);
+		int p1 = ss.length();
+		while (p1 > 0 && isMathExprChar(ss.charAt(p1 - 1))) {
+			p1--;
+		}
+		ss = ss.substring(p1);
+		// System.out.println("getMathExprTail2=" + ss);
+		for (int i = 0; i < ss.length(); i++) {
+			char ch = ss.charAt(i);
+			if ("+-/*^x".indexOf(ch) >= 0)
+				return ss;
+		}
+		// System.out.println("getMathExprTail ret empty");
+		return "";
+	}
+
+	private static boolean isMathExprChar(char c) {
+		return isMathExprNumberChar(c) || ("+-/*^() ".indexOf(c) >= 0);
+	}
+
+	private static boolean isMathExprNumberChar(int c) {
+		return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || c == '.' || c == 'E'
+				|| c == 'x';
 	}
 }

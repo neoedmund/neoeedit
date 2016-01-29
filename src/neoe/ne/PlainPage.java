@@ -1346,7 +1346,6 @@ public class PlainPage {
 			mshift = evt.isShiftDown();
 			int ocx = cx;
 			int ocy = cy;
-
 			Commands cmd = U.mappingToCommand(evt);
 			if (cmd == null) {
 				int kc = evt.getKeyCode();
@@ -1415,6 +1414,23 @@ public class PlainPage {
 					}
 				} else {
 					ptEdit.insert(kc);
+					if (kc == '=') {
+						String ss = pageData.roLines.getline(cy).toString();
+						if (cx <= ss.length() && cx >= 3) {
+							try {
+								ss = ss.substring(0, cx);
+								if (ss.endsWith("="))
+									ss = ss.substring(0, ss.length() - 1);
+								ss = U.getMathExprTail(ss);
+								if (!ss.isEmpty()) {
+									double v = U.evalMath(ss);
+									ptEdit.insertString(" " + v);
+								}
+							} catch (Exception ex) {
+								/* ignore */
+							}
+						}
+					}
 				}
 
 			}
@@ -1784,6 +1800,23 @@ public class PlainPage {
 			break;
 		case ShellCommand:
 			Shell.run(PlainPage.this, cy);
+			break;
+		case mathEval:
+			String ss = pageData.roLines.getline(cy).toString();
+			if (cx <= ss.length() && cx >= 3) {
+				try {
+					ss = ss.substring(0, cx);
+					if (ss.endsWith("="))
+						ss = ss.substring(0, ss.length() - 1);
+					ss = U.getMathExprTail(ss);
+					if (!ss.isEmpty()) {
+						double v = U.evalMath(ss);
+						ptEdit.insertString(" = " + v);
+					}
+				} catch (Exception ex) {
+					/* ignore */
+				}
+			}
 			break;
 		default:
 			ui.message("unprocessed Command:" + cmd);

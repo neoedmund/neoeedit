@@ -63,6 +63,7 @@
 	[toggleFps, ctrl-alt-F, etc, "toggle FPS"],
 	[changePathSep, alt-SLASH, edit2, "change between / and \\" ],
 	[commandPanel, CONTEXT_MENU, help, "show commands panel" ],
+	[mathEval, F6 , etc, "evaluate a math expression" ],
 ],
 color:{
     defaultBackgroundColor:0xffffff,

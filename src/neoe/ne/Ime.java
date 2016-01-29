@@ -1,5 +1,7 @@
 package neoe.ne;
 
+import static neoe.ne.U.Config.getConfig;
+
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -8,7 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import static neoe.ne.U.Config.getConfig;
 
 /**
  * All IME plugin extend this class.
