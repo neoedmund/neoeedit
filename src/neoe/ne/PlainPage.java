@@ -1423,8 +1423,7 @@ public class PlainPage {
 									ss = ss.substring(0, ss.length() - 1);
 								ss = U.getMathExprTail(ss);
 								if (!ss.isEmpty()) {
-									double v = U.evalMath(ss);
-									ptEdit.insertString(" " + v);
+									ptEdit.insertString(" " + U.evalMath(ss));
 								}
 							} catch (Exception ex) {
 								/* ignore */
@@ -1810,8 +1809,7 @@ public class PlainPage {
 						ss = ss.substring(0, ss.length() - 1);
 					ss = U.getMathExprTail(ss);
 					if (!ss.isEmpty()) {
-						double v = U.evalMath(ss);
-						ptEdit.insertString(" = " + v);
+						ptEdit.insertString(" = " + U.evalMath(ss));
 					}
 				} catch (Exception ex) {
 					/* ignore */
