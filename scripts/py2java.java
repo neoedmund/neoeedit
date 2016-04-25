@@ -19,7 +19,7 @@ public class py2java implements Script {
 				if (p1>=0){
 					int p2 = s.indexOf(":", p1+key.length());
 					if (p2>0){
-						s = s.substring(0,p1)+" if ("+s.substring(p1+key.length(),p2)+") {" ;
+						s = s.substring(0,p1)+key+" ("+s.substring(p1+key.length(),p2)+") {" ;
 						needColon =false;
 					}
 				}
