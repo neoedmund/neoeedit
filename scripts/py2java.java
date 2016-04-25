@@ -12,7 +12,11 @@ public class py2java implements Script {
 		for (CharSequence cs:lines){
 			String s = cs.toString();
 			boolean needColon=true;
-			if (s.trim().isEmpty()) needColon = false;
+			boolean isEmpty = false;
+			if (s.trim().isEmpty()) {
+				needColon = false;
+				isEmpty =true;
+			}
 			// if
 			for (String key: new String[]{" if ", " while ", " for "}) {
 				int p1 = s.indexOf(key);
@@ -36,10 +40,13 @@ public class py2java implements Script {
 				s = s.substring(0, p1) + " { ";
 				needColon =false;
 			}
-			int indent = getIndent(s);
-			if (indent < lastIndent) {
-				ret.add(s.substring(0,indent) + " } ") ;
-				needColon=false;
+			int indent = 0;
+			if (!isEmpty) {
+				indent = getIndent(s);
+				if (indent < lastIndent) {
+					ret.add(s.substring(0,indent) + " } ") ;
+					needColon=false;
+				}
 			}
 			// #
 			{
@@ -67,7 +74,7 @@ public class py2java implements Script {
 				}
 				if (p1!= s.length()-1) s = s.substring(0, p1+1);
 			}
-			lastIndent = indent;
+			if (!isEmpty) lastIndent = indent;
 			if (needColon ) s =s + " ;" ;
 			ret.add(s);
 		}
