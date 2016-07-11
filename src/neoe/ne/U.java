@@ -1997,7 +1997,7 @@ public class U {
 				if (s.length() > 3)
 					s = s.substring(0, s.length() - 3);// multi bytes string, so
 														// tail may be mistaken
-				if (new String(s.getBytes(enc), enc).equals(s) && s.indexOf("�") < 0) {
+				if (new String(s.getBytes(enc), enc).equals(s) && s.indexOf("锟�") < 0) {
 					return enc;
 				}
 			}
@@ -2655,11 +2655,12 @@ public class U {
 	}
 
 	public static void setFont(PlainPage pp, String font) {
-		// Font f = new Font(font, Font.PLAIN, 12);
-		// for (PlainPage p : pp.uiComp.pageSet) {
-		// p.ui.font = f;
-		// }
-		showSelfDispMessage(pp, "Deprecated! Please set font by editing data.py in <home>/.neoeedit", 3000);
+		Font f = new Font(font, Font.PLAIN, 12);
+		ArrayList fonts = new ArrayList(Arrays.asList(U.fontList));
+		fonts.add(0, f);
+		U.fontList = (Font[]) fonts.toArray(new Font[fonts.size()]);
+		// showSelfDispMessage(pp, "Deprecated! Please set font by editing
+		// data.py in <home>/.neoeedit", 3000);
 	}
 
 	static void setFrameSize(JFrame f, int w, int h) {
@@ -3005,9 +3006,8 @@ public class U {
 		}
 	}
 
-
 	public static String evalMath(final String str) {
-		System.out.println("eval:" + str);		
+		System.out.println("eval:" + str);
 		return new MathExprParser(str).parse().stripTrailingZeros().toPlainString();
 	}
 
