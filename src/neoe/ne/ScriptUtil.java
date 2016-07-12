@@ -23,6 +23,7 @@ public class ScriptUtil {
 			List<CharSequence> input) throws Exception {
 		// 3.1.
 		String neoeeditCP = findMyCP();
+		//System.out.println("neoeeditCP="+neoeeditCP);
 		String javaPath = new FindJDK().find(0, true);
 		String javac = javaPath
 				+ (FindJDK.isWindows ? "/bin/javac.exe" : "/bin/javac");
@@ -116,8 +117,9 @@ public class ScriptUtil {
 			error("Sorry I cannot find where the neoeedit.jar is located.");
 		}
 		String path = location.getPath();
-		if (path.startsWith("file:/"))
-			path = path.substring("file:/".length());
+		System.out.println("path="+path);
+		if (path.startsWith("file:"))
+			path = path.substring("file:".length());
 		int p1 = path.indexOf('!');
 		if (p1 < 0) {
 			int p2 = path.lastIndexOf("/bin/");
