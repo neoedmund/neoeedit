@@ -97,15 +97,28 @@ public class PlainPage {
 		}
 
 		void moveLeftWord() {
-			if (cx == 0) {
-				moveLeft();
-				return;
-			}
 			CharSequence line = pageData.roLines.getline(cy);
 			cx = Math.max(0, cx - 1);
-			char ch1 = line.charAt(cx);
-			while (cx > 0 && U.isSkipChar(line.charAt(cx), ch1)) {
-				cx--;
+			char ch1 = U.charAtWhenMove(line, cx);
+			while (true) {
+				if (cx <= 0) {
+					if (cy <= 0) {
+						break;
+					} else {
+						cy--;
+						line = pageData.roLines.getline(cy);
+						cx = Math.max(0, line.length() - 1);
+					}
+				} else {
+					cx--;
+					if (U.isSkipChar(line.charAt(cx), ch1))
+						continue;
+					else {
+						cx++;
+						break;
+					}
+				}
+
 			}
 		}
 
@@ -149,15 +162,18 @@ public class PlainPage {
 
 		void moveRightWord() {
 			CharSequence line = pageData.roLines.getline(cy);
-			if (cx >= line.length() - 1) {
-				moveRight();
-				return;
-			}
+			char ch1 = U.charAtWhenMove(line, cx);
 			cx = Math.min(line.length(), cx + 1);
-			if (cx < line.length()) {
-				char ch1 = line.charAt(cx);
-				while (cx < line.length() && U.isSkipChar(line.charAt(cx), ch1)) {
-					cx++;
+			while (U.isSkipChar(U.charAtWhenMove(line, cx), ch1)) {
+				cx = Math.min(line.length(), cx + 1);
+				if (cx >= line.length()) {
+					if (cy >= pageData.roLines.getLinesize() - 1) {
+						break;
+					} else {
+						cy++;
+						line = pageData.roLines.getline(cy);
+						cx = 0;
+					}
 				}
 			}
 		}
@@ -231,6 +247,14 @@ public class PlainPage {
 			// pageData.editRec.deleteInLine(cy, 0, len);
 			// }
 			// pageData.editRec.deleteEmptyLine(cy);
+		}
+
+		void deleteSpace() {
+			// CharSequence line = pageData.roLines.getline(cy);
+			int x0 = cx, y0 = cy;
+			cursor.moveRightWord();
+			int x2 = cx, y2 = cy;
+			deleteRect(new Rectangle(x0, y0, x2, y2));
 		}
 
 		void deleteRect(Rectangle r) {
@@ -1737,6 +1761,10 @@ public class PlainPage {
 			break;
 		case moveLeftWord:
 			cursor.moveLeftWord();
+			focusCursor();
+			break;
+		case deleteWord:
+			ptEdit.deleteSpace();
 			focusCursor();
 			break;
 		case moveRightWord:

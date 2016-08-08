@@ -1,8 +1,10 @@
 package neoe.ne;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -10,10 +12,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,11 +22,13 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 public class PicView {
 
-	public class PicViewPanel extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener {
+	public class PicViewPanel extends JPanel
+			implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener {
 
 		private static final long serialVersionUID = -74255011004476996L;
 		private File f;
@@ -224,9 +225,11 @@ public class PicView {
 
 		@Override
 		protected void paintComponent(Graphics g) {
+			g.setPaintMode();
 			int w = getWidth();
 			int h = getHeight();
-			g.clearRect(0, 0, w, h);
+			g.setColor(Color.WHITE);
+			g.fillRect(0, 0, w, h);
 			// System.out.println(w+"x"+h);
 			int sw = w / 4;
 			int sh = sw * ph / pw;
@@ -247,15 +250,25 @@ public class PicView {
 
 		public void rotate(int direction) {
 			int angle = direction * 90;
-			AffineTransform at = new AffineTransform();
-			at.rotate(angle * Math.PI / 180.0, img.getWidth() / 2.0, img.getHeight() / 2.0);
-			BufferedImageOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-			img = op.filter(img, null);
+			int w = img.getWidth();
+			int h = img.getHeight();
+			int neww = h, newh = w;
+			BufferedImage dest = new BufferedImage(neww, newh, img.getType());
+			Graphics2D g = dest.createGraphics();
+			g.translate((neww - w) / 2, (newh - h) / 2);
+			g.rotate(Math.toRadians(angle), w / 2, h / 2);
+			g.drawRenderedImage(img, null);
+			g.dispose();
+			img = dest;
+			setSize(img);
 			repaint();
 		}
 
 		private void setSize(BufferedImage img) {
-			setPreferredSize(new Dimension(pw = img.getWidth() + 20, ph = img.getHeight() + 50));
+			Dimension dim = new Dimension(pw = img.getWidth() + 20, ph = img.getHeight() + 50);
+			dim.width = Math.max(200, dim.width);
+			dim.height = Math.max(200, dim.height);
+			frame.setSize(dim);
 		}
 
 		public void viewFile(int i) {
@@ -273,7 +286,6 @@ public class PicView {
 			try {
 				img = ImageIO.read(files.get(fi));
 				setTitleWithSize(files.get(fi).getName());
-
 				setSize(img);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -305,7 +317,8 @@ public class PicView {
 		JFrame f = new JFrame();
 		f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		PicViewPanel p = new PicViewPanel(f, fn);
-		f.add(p);
+		f.getContentPane().setLayout(new BorderLayout());
+		f.getContentPane().add(p);
 		U.setFrameSize(f, p.pw, p.ph);
 		p.setTitleWithSize(fn.getName());
 		f.setTransferHandler(new U.TH(ep));

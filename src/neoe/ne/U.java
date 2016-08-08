@@ -3047,4 +3047,12 @@ public class U {
 		return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || c == '.' || c == 'E'
 				|| c == 'x';
 	}
+
+	public static char charAtWhenMove(CharSequence line, int index) {
+		if (line.length() == 0)
+			return ' ';
+		if (index >= line.length())
+			return ' ';
+		return line.charAt(index);
+	}
 }

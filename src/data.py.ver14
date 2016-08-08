@@ -18,6 +18,7 @@
 	[cut, ctrl-X, edit],
 	[selectAll, ctrl-A, edit],
 	[deleteLine, ctrl-D, edit],
+	[deleteWord, ctrl-DELETE, edit],
 	[openFile, ctrl-O, file],
 	[newPage, ctrl-N, ui],
 	[newWindow, ctrl-M, ui],
