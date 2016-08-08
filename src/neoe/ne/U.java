@@ -1869,6 +1869,17 @@ public class U {
 				}
 			}
 		}
+		{
+			String dir = ep.getPage().pageData.workPath;
+			if (dir == null) {
+				dir = ".";
+			}
+			File f = new File(dir, sb.toString());
+			if(f.exists()&&f.isFile()){
+				gotoFileLinePos(ep, f.getAbsolutePath(), 0, -1, true);
+				return true;
+			}
+		}
 		return false;
 	}
 
