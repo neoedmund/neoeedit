@@ -509,6 +509,7 @@ public class PlainPage {
 			}
 			String title = "wrapped " + pageData.getTitle() + " #" + U.randomID();
 			PlainPage p2 = new PlainPage(uiComp, PageData.newEmpty(title));
+			p2.pageData.workPath = pageData.workPath;
 			p2.pageData.setLines(newtext);
 		}
 	}
