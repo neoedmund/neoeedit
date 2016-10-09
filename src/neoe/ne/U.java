@@ -1,7 +1,9 @@
 package neoe.ne;
 
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -90,44 +92,77 @@ public class U {
 	}
 
 	public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y) {
+		return drawString(g2, fonts, s, x, y, false, 0);
+	}
+
+	private Graphics2D createGraphics(BufferedImage img, Graphics2D g2) {
+		Graphics2D g;
+		// g= img.createGraphics();
+		// g.setComposite(AlphaComposite.Clear);
+		// g.fillRect(0, 0, img.getWidth(), img.getHeight());
+		// g.dispose();
+		g = img.createGraphics();
+		g.setColor(g2.getColor());
+		g.setFont(g2.getFont());
+		return g;
+	}
+
+	public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y, boolean isCurrentLine,
+			int lineHeight) {
 		if (s == null || s.length() <= 0) {
 			return 0;
 		}
-		Font f = fonts[0];
-		// StringBuilder s = new StringBuilder(s0);
-		g2.setFont(f);
-		g2.drawString(s, x, y);
-		int w = g2.getFontMetrics(f).stringWidth(s);
 
-		// // multi-font display disabled for performance
-		// while (true) {
-		// if (s.length() <= 0) {
-		// break;
-		// }
-		// int fp = 0;
-		// Font f = fonts[fp];
-		// int p1 = -1; // performance119: f.canDisplayUpTo(s.toString());
-		// if (p1 < 0) { // all
-		// g2.setFont(f);
-		// g2.drawString(s.toString(), x + w, y);
-		// w += g2.getFontMetrics(f).stringWidth(s.toString());
-		// s.setLength(0);
-		// } else {
-		// if (p1 != 0) {
-		// String sx = s.substring(0, p1);
-		// g2.setFont(f);
-		// g2.drawString(sx, x + w, y);
-		// w += g2.getFontMetrics(f).stringWidth(sx);
-		// s.delete(0, p1);
-		// }
-		// if (s.length() > 0) {
-		// char c0 = s.charAt(0);
-		// s.delete(0, 1);
-		// w += drawChar(g2, fonts, c0, x + w, y);
-		// }
-		//
-		// }
-		// }
+		Font f = fonts[0];
+		int w = g2.getFontMetrics(f).stringWidth(s);
+		if (isCurrentLine) {
+			int ad = g2.getFontMetrics().getMaxDescent();
+			BufferedImage img = new BufferedImage(w, lineHeight + ad, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g3 = img.createGraphics();
+			g3.setColor(g2.getColor());
+			g3.setFont(f);
+			g3.drawString(s, 0, lineHeight);
+			g3.dispose();
+			img = Gimp.glowing(img, g2.getColor());
+			Composite savedComp = g2.getComposite();
+			g2.setComposite(AlphaComposite.SrcOver);
+			g2.drawImage(img, x, y - lineHeight, null);
+			g2.setComposite(savedComp);
+		} else {
+			// StringBuilder s = new StringBuilder(s0);
+			g2.setFont(f);
+			g2.drawString(s, x, y);
+			// // multi-font display disabled for performance
+			// while (true) {
+			// if (s.length() <= 0) {
+			// break;
+			// }
+			// int fp = 0;
+			// Font f = fonts[fp];
+			// int p1 = -1; // performance119: f.canDisplayUpTo(s.toString());
+			// if (p1 < 0) { // all
+			// g2.setFont(f);
+			// g2.drawString(s.toString(), x + w, y);
+			// w += g2.getFontMetrics(f).stringWidth(s.toString());
+			// s.setLength(0);
+			// } else {
+			// if (p1 != 0) {
+			// String sx = s.substring(0, p1);
+			// g2.setFont(f);
+			// g2.drawString(sx, x + w, y);
+			// w += g2.getFontMetrics(f).stringWidth(sx);
+			// s.delete(0, p1);
+			// }
+			// if (s.length() > 0) {
+			// char c0 = s.charAt(0);
+			// s.delete(0, 1);
+			// w += drawChar(g2, fonts, c0, x + w, y);
+			// }
+			//
+			// }
+			// }
+
+		}
 		return w;
 	}
 
@@ -1483,11 +1518,12 @@ public class U {
 		page.uiComp.repaint();
 	}
 
-	static int drawTwoColor(Graphics2D g2, Font[] fonts, String s, int x, int y, Color c1, Color c2, int d) {
+	static int drawTwoColor(Graphics2D g2, Font[] fonts, String s, int x, int y, Color c1, Color c2, int d,
+			boolean isCurrentLine, int lineHeight) {
 		g2.setColor(c2);
 		int w = U.drawString(g2, fonts, s, x + d, y + d);
 		g2.setColor(c1);
-		U.drawString(g2, fonts, s, x, y);
+		U.drawString(g2, fonts, s, x, y, isCurrentLine, lineHeight);
 		return w;
 
 	}
@@ -1875,7 +1911,7 @@ public class U {
 				dir = ".";
 			}
 			File f = new File(dir, sb.toString());
-			if(f.exists()&&f.isFile()){
+			if (f.exists() && f.isFile()) {
 				gotoFileLinePos(ep, f.getAbsolutePath(), 0, -1, true);
 				return true;
 			}

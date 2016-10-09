@@ -624,6 +624,7 @@ public class PlainPage {
 		private boolean fpsOn = false;
 		private int charCntInLine;
 		private int textAreaWidth;
+		private boolean useCurrentLineGlowing = false;
 
 		Paint() {
 			try {
@@ -749,21 +750,22 @@ public class PlainPage {
 
 		}
 
-		int drawStringLine(Graphics2D g2, Font[] fonts, CharSequence s, int x, int y) {
+		int drawStringLine(Graphics2D g2, Font[] fonts, CharSequence s, int x, int y, boolean isCurrentLine) {
 			int w = 0;
 			int commentPos = getCommentPos(s);
 			if (commentPos >= 0) {
 				CharSequence s1 = s.subSequence(0, commentPos);
 				CharSequence s2 = s.subSequence(commentPos, s.length());
-				int w1 = drawText(g2, fonts, s1, x, y, false);
-				w = w1 + drawText(g2, fonts, s2, x + w1, y, true);
+				int w1 = drawText(g2, fonts, s1, x, y, false, isCurrentLine);
+				w = w1 + drawText(g2, fonts, s2, x + w1, y, true, isCurrentLine);
 			} else {
-				w = drawText(g2, fonts, s, x, y, false);
+				w = drawText(g2, fonts, s, x, y, false, isCurrentLine);
 			}
 			return w;
 		}
 
-		int drawText(Graphics2D g2, Font[] fonts, CharSequence s, int x, int y, boolean isComment) {
+		int drawText(Graphics2D g2, Font[] fonts, CharSequence s, int x, int y, boolean isComment,
+				boolean isCurrentLine) {
 			int w = 0;
 			if (isComment) {
 				List<String> ws = U.split(s.toString(), '\t');
@@ -773,7 +775,8 @@ public class PlainPage {
 						g2.drawImage(U.tabImg, x + w, y - lineHeight, null);
 						w += TABWIDTH;
 					}
-					w += U.drawTwoColor(g2, fonts, s1.toString(), x + w, y, colorComment, colorComment2, 1);
+					w += U.drawTwoColor(g2, fonts, s1.toString(), x + w, y, colorComment, colorComment2, 1,
+							isCurrentLine, lineHeight);
 					if (w > dim.width - gutterWidth) {
 						break;
 					}
@@ -788,7 +791,7 @@ public class PlainPage {
 					} else {
 						// int highlightid =
 						U.getHighLightID(s1, g2, colorKeyword, colorDigit, colorNormal);
-						U.drawString(g2, U.fontList, s1, x + w, y);
+						U.drawString(g2, U.fontList, s1, x + w, y, isCurrentLine, lineHeight);
 						w += U.stringWidth(g2, U.fontList, s1);
 					}
 					if (w > dim.width - gutterWidth) {
@@ -811,7 +814,7 @@ public class PlainPage {
 					int chari2 = Math.min(charCntInLine + sx, sb.length());
 					CharSequence s = U.subs(sb, sx, chari2);
 					g2.setColor(colorNormal);
-					int w = drawStringLine(g2, fonts, s, 0, py);
+					int w = drawStringLine(g2, fonts, s, 0, py, y == cy && useCurrentLineGlowing);
 					// U.strWidth(g2,s,TABWIDTH);
 					drawReturn(g2, w, py);
 				} else {
@@ -1059,6 +1062,7 @@ public class PlainPage {
 						U.drawString(g2, U.fontList, preeditText, w + 2, y0 + lineHeight);
 					}
 
+				
 					// ime
 					Ime.ImeInterface ime = Ime.getCurrentIme();
 					if (ime != null) {
