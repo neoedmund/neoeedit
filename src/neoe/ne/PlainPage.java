@@ -624,7 +624,6 @@ public class PlainPage {
 		private boolean fpsOn = false;
 		private int charCntInLine;
 		private int textAreaWidth;
-		private boolean useCurrentLineGlowing = false;
 
 		Paint() {
 			try {
@@ -814,7 +813,7 @@ public class PlainPage {
 					int chari2 = Math.min(charCntInLine + sx, sb.length());
 					CharSequence s = U.subs(sb, sx, chari2);
 					g2.setColor(colorNormal);
-					int w = drawStringLine(g2, fonts, s, 0, py, y == cy && useCurrentLineGlowing);
+					int w = drawStringLine(g2, fonts, s, 0, py, y == cy && !Gimp.glowDisabled);
 					// U.strWidth(g2,s,TABWIDTH);
 					drawReturn(g2, w, py);
 				} else {
@@ -1062,7 +1061,6 @@ public class PlainPage {
 						U.drawString(g2, U.fontList, preeditText, w + 2, y0 + lineHeight);
 					}
 
-				
 					// ime
 					Ime.ImeInterface ime = Ime.getCurrentIme();
 					if (ime != null) {

@@ -118,8 +118,9 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		Plugin.load();
 		U.Config.setDefaultLookAndFeel();
 		U.Config.setDefaultBKColor();
-		U.Config.initKeys();
+		U.Config.initKeys();		
 		Ime.loadImes();
+		Gimp.loadFromConfig();
 	}
 	public EditorPanel(EditorPanelConfig config) throws Exception {
 		doinit();

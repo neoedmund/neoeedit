@@ -581,6 +581,41 @@ public class U {
 			}
 
 		}
+
+		public static Object get(String path, Object dv) throws IOException {
+			Object o = get(getConfig(), path);
+			if (o == null)
+				return dv;
+			return dv;
+		}
+
+		/**
+		 * xxx.[2].yyy.[0]
+		 */
+		public static Object get(Map config, String name) {
+			String[] ss = name.split("\\.");
+			Object node = config;
+			Object o = null;
+			for (int i = 0; i < ss.length; i++) {
+				if (node == null)
+					return null;
+				String s = ss[i];
+				if (s.startsWith("[") && s.endsWith("]")) {
+					int p = Integer.parseInt(s.substring(1, s.length() - 1));
+					if (node instanceof Map) {
+						o = ((Map) node).values().toArray()[p];
+					} else {
+						o = ((List) node).get(p);
+					}
+				} else {
+					o = ((Map) node).get(s);
+				}
+				node = o;
+			}
+			// Log.log("config["+name+"]="+o);
+			return o;
+		}
+
 	}
 
 	static class FindAndReplace {
@@ -3090,5 +3125,34 @@ public class U {
 		if (index >= line.length())
 			return ' ';
 		return line.charAt(index);
+	}
+
+	public static boolean getBool(Object o) {
+		if (o == null)
+			return false;
+		if (o instanceof Boolean)
+			return ((Boolean) o).booleanValue();
+		String s = o.toString().toLowerCase();
+		if ("y".equals(s) || "1".equals(s) || "true".equals(s))
+			return true;
+		if ("n".equals(s) || "0".equals(s) || "false".equals(s))
+			return false;
+		return false;
+	}
+
+	public static int getInt(Object o) {
+		if (o == null)
+			return 0;
+		if (o instanceof Number)
+			return ((Number) o).intValue();
+		return (int) Float.parseFloat(o.toString());
+	}
+
+	public static float getFloat(Object o) {
+		if (o == null)
+			return 0;
+		if (o instanceof Number)
+			return ((Number) o).floatValue();
+		return Float.parseFloat(o.toString());
 	}
 }

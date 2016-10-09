@@ -5,10 +5,19 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.IOException;
 
 public class Gimp {
 
-	private static final int RANGE = 3;
+	private static int range = 2;
+	private static float center_weight = 100f;
+	public static boolean glowDisabled  = false;
+	
+	public static void loadFromConfig() throws IOException{
+		center_weight = U.getFloat(U.Config.get("glow.center",100f));
+		range =  U.getInt(U.Config.get("glow.range",2));
+		glowDisabled =  U.getBool(U.Config.get("glow.disabled", false));
+	}
 
 	public static BufferedImage glowing(BufferedImage img, Color color2) {
 		int w = img.getWidth();
@@ -16,7 +25,7 @@ public class Gimp {
 		float[][] f = new float[w][h];
 		final int[] pixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
 		getColorF(f, img, w, h, pixels);
-		f = glowing(f, w, h, RANGE);
+		f = glowing(f, w, h, range);
 		f = normalize(f, w, h);
 
 		BufferedImage img2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -103,7 +112,7 @@ public class Gimp {
 			for (int y = -r; y <= r; y++) {
 				int d = x * x + y * y;
 				if (d == 0) {
-					f[r + x][r + y] = 1;
+					f[r + x][r + y] = center_weight;
 				} else {
 					float k;
 					k = 1.0f / d / d;
