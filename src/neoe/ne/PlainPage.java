@@ -813,7 +813,7 @@ public class PlainPage {
 					int chari2 = Math.min(charCntInLine + sx, sb.length());
 					CharSequence s = U.subs(sb, sx, chari2);
 					g2.setColor(colorNormal);
-					int w = drawStringLine(g2, fonts, s, 0, py, y == cy && !Gimp.glowDisabled);
+					int w = drawStringLine(g2, fonts, s, 0, py, y == cy && !Gimp.glowDisabled || Gimp.glowAll);
 					// U.strWidth(g2,s,TABWIDTH);
 					drawReturn(g2, w, py);
 				} else {

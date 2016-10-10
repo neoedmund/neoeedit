@@ -115,7 +115,7 @@ public class U {
 
 		Font f = fonts[0];
 		int w = g2.getFontMetrics(f).stringWidth(s);
-		if (isCurrentLine) {
+		if (isCurrentLine && w > 0) {
 			int ad = g2.getFontMetrics().getMaxDescent();
 			BufferedImage img = new BufferedImage(w, lineHeight + ad, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g3 = img.createGraphics();
@@ -124,10 +124,10 @@ public class U {
 			g3.drawString(s, 0, lineHeight);
 			g3.dispose();
 			img = Gimp.glowing(img, g2.getColor());
-			Composite savedComp = g2.getComposite();
+			g2 = (Graphics2D) g2.create();
 			g2.setComposite(AlphaComposite.SrcOver);
 			g2.drawImage(img, x, y - lineHeight, null);
-			g2.setComposite(savedComp);
+			g2.dispose();
 		} else {
 			// StringBuilder s = new StringBuilder(s0);
 			g2.setFont(f);

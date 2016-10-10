@@ -12,6 +12,7 @@ public class Gimp {
 	private static int range = 2;
 	private static float center_weight = 100f;
 	public static boolean glowDisabled  = false;
+	public static boolean glowAll  = false;
 	
 	public static void loadFromConfig() throws IOException{
 		center_weight = U.getFloat(U.Config.get("glow.center",100f));
