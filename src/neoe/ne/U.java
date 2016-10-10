@@ -114,20 +114,12 @@ public class U {
 		}
 
 		Font f = fonts[0];
-		int w = g2.getFontMetrics(f).stringWidth(s);
+		int w = g2.getFontMetrics(f).stringWidth(s);		
+		Color c2 = g2.getColor();
+	
 		if (isCurrentLine && w > 0) {
-			int ad = g2.getFontMetrics().getMaxDescent();
-			BufferedImage img = new BufferedImage(w, lineHeight + ad, BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g3 = img.createGraphics();
-			g3.setColor(g2.getColor());
-			g3.setFont(f);
-			g3.drawString(s, 0, lineHeight);
-			g3.dispose();
-			img = Gimp.glowing(img, g2.getColor());
-			g2 = (Graphics2D) g2.create();
-			g2.setComposite(AlphaComposite.SrcOver);
-			g2.drawImage(img, x, y - lineHeight, null);
-			g2.dispose();
+			Gimp.drawString(g2,x,y,lineHeight,s,c2,f,w);
+			
 		} else {
 			// StringBuilder s = new StringBuilder(s0);
 			g2.setFont(f);

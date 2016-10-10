@@ -2,6 +2,7 @@ package neoe.ne;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -9,17 +10,34 @@ import java.io.IOException;
 
 public class Gimp {
 
-	private static int range = 2;
+	private static final int Alpha = 0xff000000;
+	private static int range = 3;
 	private static float center_weight = 100f;
-	public static boolean glowDisabled  = false;
-	public static boolean glowAll  = false;
+	public static boolean glowDisabled = false;
+	public static boolean glowAll = false;
 	private static float glow_threshold;
-	
-	public static void loadFromConfig() throws IOException{
-		center_weight = U.getFloat(U.Config.get("glow.center",100f));
-		range =  U.getInt(U.Config.get("glow.range",2));
-		glowDisabled =  U.getBool(U.Config.get("glow.disabled", false));
-		glow_threshold = U.getFloat(U.Config.get("glow.threshold",0.035f));
+
+	public static void loadFromConfig() throws IOException {
+		center_weight = U.getFloat(U.Config.get("glow.center", 100f));
+		range = U.getInt(U.Config.get("glow.range", 3));
+		glowDisabled = U.getBool(U.Config.get("glow.disabled", false));
+		glow_threshold = U.getFloat(U.Config.get("glow.threshold", 0));
+	}
+
+	public static void drawString(Graphics2D g2, int x, int y, int lineHeight, String s, Color c2, Font f, int w) {
+		// System.out.println(Long.toHexString(0xffffffffL & c2.getRGB()));
+		int ad = g2.getFontMetrics().getMaxDescent();
+		BufferedImage img = new BufferedImage(w, lineHeight + ad, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g3 = img.createGraphics();
+		g3.setColor(c2);
+		g3.setFont(f);
+		g3.drawString(s, 0, lineHeight);
+		g3.dispose();
+		img = glowing(img, c2);
+		// g2 = (Graphics2D) g2.create();
+		// g2.setComposite(AlphaComposite.SrcOver);
+		g2.drawImage(img, x, y - lineHeight, null);
+		// g2.dispose();
 	}
 
 	public static BufferedImage glowing(BufferedImage img, Color color2) {
@@ -36,11 +54,16 @@ public class Gimp {
 		g.setComposite(AlphaComposite.Clear);
 		g.fillRect(0, 0, w, h);
 		g.dispose();
-		int color = (0xff000000) | color2.getRGB(); // (0xff000000)|pixels[x+y*w];//
+		int color = 0xffffff & color2.getRGB(); // (Alpha)|pixels[x+y*w];//
 		// img.getRGB(x, y);
 		for (int x = 0; x < w; x++) {
 			for (int y = 0; y < h; y++) {
-				int c = getColor(f[x][y], color);
+				float f1 = f[x][y];
+				if (f1 < glow_threshold)
+					continue;
+				// int c = getColor(f1, color);
+				int t = b(Alpha, 3, f1);
+				int c = t | color;// b(c, 2, f) | b(c, 1, f) | b(c, 0, f);
 				img2.setRGB(x, y, c);
 			}
 		}
@@ -106,7 +129,6 @@ public class Gimp {
 
 	static float[][] _weight;
 
-
 	private synchronized static float[][] getWeight2D(int r) {
 		if (_weight != null)
 			return _weight;
@@ -131,37 +153,22 @@ public class Gimp {
 
 	private static void getColorF(float[][] f, BufferedImage image, int width, int height, int[] pixels) {
 
-		// int[][] result = new int[height][width];
 		final int pixelLength = 1;
-		// int zerocnt=0;
 		for (int pixel = 0, row = 0, col = 0; pixel < pixels.length; pixel += pixelLength) {
-			// int argb = 0;
-			// argb += (((int) pixels[pixel] & 0xff) << 24); // alpha
-			// argb += ((int) pixels[pixel + 1] & 0xff); // blue
-			// argb += (((int) pixels[pixel + 2] & 0xff) << 8); // green
-			// argb += (((int) pixels[pixel + 3] & 0xff) << 16); // red
 			int alpha = (pixels[pixel] >> 24) & 0xff;
 			f[col][row] = alpha / 256.0f;
-			// result[row][col] = argb;
 			col++;
 			if (col == width) {
 				col = 0;
 				row++;
 			}
 		}
-		// System.out.println("pixels=" + pixels.length+",zero="+zerocnt);
 
-	}
-
-	private static int getColor(float f, int c) {
-		int t = b(0xff000000, 3, f);
-		if (((t >> 24) & 0xff)/256.0f < glow_threshold)
-			t = 0;
-		return t | b(c, 2, f) | b(c, 1, f) | b(c, 0, f);
 	}
 
 	private static int b(int v, int shift, float f) {
 		int x = Math.round((0xff & (v >> (8 * shift))) * f);
 		return x << (8 * shift);
 	}
+
 }
