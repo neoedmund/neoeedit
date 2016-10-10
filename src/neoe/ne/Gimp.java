@@ -41,6 +41,7 @@ public class Gimp {
 	}
 
 	public static BufferedImage glowing(BufferedImage img, Color color2) {
+
 		int w = img.getWidth();
 		int h = img.getHeight();
 		float[][] f = new float[w][h];
@@ -54,6 +55,7 @@ public class Gimp {
 		g.setComposite(AlphaComposite.Clear);
 		g.fillRect(0, 0, w, h);
 		g.dispose();
+		color2 = color2.brighter();
 		int color = 0xffffff & color2.getRGB(); // (Alpha)|pixels[x+y*w];//
 		// img.getRGB(x, y);
 		for (int x = 0; x < w; x++) {
