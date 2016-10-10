@@ -13,11 +13,13 @@ public class Gimp {
 	private static float center_weight = 100f;
 	public static boolean glowDisabled  = false;
 	public static boolean glowAll  = false;
+	private static float glow_threshold;
 	
 	public static void loadFromConfig() throws IOException{
 		center_weight = U.getFloat(U.Config.get("glow.center",100f));
 		range =  U.getInt(U.Config.get("glow.range",2));
 		glowDisabled =  U.getBool(U.Config.get("glow.disabled", false));
+		glow_threshold = U.getFloat(U.Config.get("glow.threshold",0.035f));
 	}
 
 	public static BufferedImage glowing(BufferedImage img, Color color2) {
@@ -104,6 +106,7 @@ public class Gimp {
 
 	static float[][] _weight;
 
+
 	private synchronized static float[][] getWeight2D(int r) {
 		if (_weight != null)
 			return _weight;
@@ -151,7 +154,10 @@ public class Gimp {
 	}
 
 	private static int getColor(float f, int c) {
-		return b(0xff000000, 3, f) | b(c, 2, f) | b(c, 1, f) | b(c, 0, f);
+		int t = b(0xff000000, 3, f);
+		if (((t >> 24) & 0xff)/256.0f < glow_threshold)
+			t = 0;
+		return t | b(c, 2, f) | b(c, 1, f) | b(c, 0, f);
 	}
 
 	private static int b(int v, int shift, float f) {
