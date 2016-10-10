@@ -92,6 +92,7 @@ glow:{
 	center:100,
 	range:3,
 	disabled:false,
+	threshold:0,
 },
 
 tabWidthInPixel:40,
