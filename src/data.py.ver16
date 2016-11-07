@@ -97,5 +97,6 @@ glow:{
 
 tabWidthInPixel:40,
 lookAndFeel:"",
+KEY_TEXT_ANTIALIASING:VALUE_TEXT_ANTIALIAS_LCD_HRGB,
 frameSize:[800,600],
 }

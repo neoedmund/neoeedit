@@ -885,7 +885,7 @@ public class PlainPage {
 			long fpsT1 = System.currentTimeMillis();
 			Graphics2D g2 = (Graphics2D) g;
 
-			g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+			g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, uiComp.config.VALUE_TEXT_ANTIALIAS);
 			this.dim = size;
 			Graphics2D g3 = null;
 			if (fpsOn) {

@@ -1,9 +1,7 @@
 package neoe.ne;
 
-import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Composite;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -13,6 +11,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
@@ -114,12 +113,12 @@ public class U {
 		}
 
 		Font f = fonts[0];
-		int w = g2.getFontMetrics(f).stringWidth(s);		
+		int w = g2.getFontMetrics(f).stringWidth(s);
 		Color c2 = g2.getColor();
-	
+
 		if (isCurrentLine && w > 0) {
-			Gimp.drawString(g2,x,y,lineHeight,s,c2,f,w);
-			
+			Gimp.drawString(g2, x, y, lineHeight, s, c2, f, w);
+
 		} else {
 			// StringBuilder s = new StringBuilder(s0);
 			g2.setFont(f);
@@ -421,6 +420,22 @@ public class U {
 			}
 		}
 
+		public static void loadOtherConfig(EditorPanelConfig conf) throws IOException {
+			Map config = getConfig();
+			String v = "" + config.get("KEY_TEXT_ANTIALIASING");
+			if (v.length() == 0 || "null".equals(v)) {
+				return;
+			}
+			try {
+				Field f = RenderingHints.class.getDeclaredField(v);
+				Object o = f.get(null);
+				if (o != null)
+					conf.VALUE_TEXT_ANTIALIAS = o;
+			} catch (Exception e) {
+				System.out.println("cannot find in RenderingHints:" + v);
+			}
+		}
+
 		public static Font[] getFont(Font[] defaultIfFail) {
 			try {
 				Map config = getConfig();
@@ -571,7 +586,6 @@ public class U {
 			} catch (ClassNotFoundException e) {
 				System.out.println("not found lookAndFeel:" + e);
 			}
-
 		}
 
 		public static Object get(String path, Object dv) throws IOException {
@@ -3147,4 +3161,5 @@ public class U {
 			return ((Number) o).floatValue();
 		return Float.parseFloat(o.toString());
 	}
+
 }

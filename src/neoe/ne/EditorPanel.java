@@ -31,27 +31,21 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-
-public class EditorPanel extends JPanel implements MouseMotionListener,
-		MouseListener, MouseWheelListener, KeyListener {
+public class EditorPanel extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener {
 
 	/** It's only need to be not-null and not actually called? */
 	class MyInputMethodRequestsHandler implements InputMethodRequests {
 		Rectangle rect = new Rectangle(200, 200, 0, 10);
 
 		@Override
-		public AttributedCharacterIterator cancelLatestCommittedText(
-				Attribute[] attributes) {
-			System.out.println("cancelLatestCommittedText="
-					+ Arrays.deepToString(attributes));
+		public AttributedCharacterIterator cancelLatestCommittedText(Attribute[] attributes) {
+			System.out.println("cancelLatestCommittedText=" + Arrays.deepToString(attributes));
 			return null;
 		}
 
 		@Override
-		public AttributedCharacterIterator getCommittedText(int beginIndex,
-				int endIndex, Attribute[] attributes) {
-			System.out.printf("getCommittedText %d, %d, %s\n", beginIndex,
-					endIndex, Arrays.deepToString(attributes));
+		public AttributedCharacterIterator getCommittedText(int beginIndex, int endIndex, Attribute[] attributes) {
+			System.out.printf("getCommittedText %d, %d, %s\n", beginIndex, endIndex, Arrays.deepToString(attributes));
 			return null;
 		}
 
@@ -74,10 +68,8 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		}
 
 		@Override
-		public AttributedCharacterIterator getSelectedText(
-				Attribute[] attributes) {
-			System.out.println("getSelectedText="
-					+ Arrays.deepToString(attributes));
+		public AttributedCharacterIterator getSelectedText(Attribute[] attributes) {
+			System.out.println("getSelectedText=" + Arrays.deepToString(attributes));
 			return null;
 		}
 
@@ -94,9 +86,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 
 	private static final long serialVersionUID = -1667283144475200365L;
 
-
 	JFrame frame;
-
 
 	PlainPage lastPage;
 
@@ -108,8 +98,9 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 
 	static final String WINDOW_NAME = "neoeedit " + Version.REV;
 
-	//CursorHistory ptCh = new CursorHistory();
+	// CursorHistory ptCh = new CursorHistory();
 	static boolean init = false;
+
 	private static void doinit() throws Exception {
 		if (init)
 			return;
@@ -118,13 +109,15 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		Plugin.load();
 		U.Config.setDefaultLookAndFeel();
 		U.Config.setDefaultBKColor();
-		U.Config.initKeys();		
+		U.Config.initKeys();
 		Ime.loadImes();
 		Gimp.loadFromConfig();
 	}
+
 	public EditorPanel(EditorPanelConfig config) throws Exception {
 		doinit();
-		this.config=config;
+		this.config = config;
+		U.Config.loadOtherConfig(config);
 		enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.INPUT_METHOD_EVENT_MASK);
 		setBackground(U.Config.getDefaultBgColor());
 		setFocusable(true);
@@ -136,8 +129,8 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 
 			@Override
 			public void caretPositionChanged(InputMethodEvent event) {
-				System.out
-						.println("if you see this, tell neoeedit's author what system you are in pls. caretPositionChanged="
+				System.out.println(
+						"if you see this, tell neoeedit's author what system you are in pls. caretPositionChanged="
 								+ event.paramString());
 
 			}
@@ -155,8 +148,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 					return;
 				}
 				StringBuilder textBuffer = new StringBuilder();
-				int committedCharacterCount = event
-						.getCommittedCharacterCount();
+				int committedCharacterCount = event.getCommittedCharacterCount();
 				char c = text.first();
 				while (c != CharacterIterator.DONE) {
 					textBuffer.append(c);
@@ -169,8 +161,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		setOpaque(false);
 		setCursor(new Cursor(Cursor.TEXT_CURSOR));
 		setFocusTraversalKeysEnabled(false);
-		PlainPage pp = new PlainPage(this, PageData.newEmpty("UNTITLED #"
-				+ U.randomID()));
+		PlainPage pp = new PlainPage(this, PageData.newEmpty("UNTITLED #" + U.randomID()));
 		pp.ptSelection.selectAll();
 	}
 
@@ -183,16 +174,13 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 			return;
 		String fn = page.pageData.getFn();
 		if (fn != null) {
-			frame.setTitle(new File(fn).getName() + " "
-					+ new File(fn).getParent() + " - (" + pageSet.size()
-					+ ") - " + EditorPanel.WINDOW_NAME + suNotice());
+			frame.setTitle(new File(fn).getName() + " " + new File(fn).getParent() + " - (" + pageSet.size() + ") - "
+					+ EditorPanel.WINDOW_NAME + suNotice());
 		} else {
-			frame.setTitle(page.pageData.getTitle() + " - (" + pageSet.size()
-					+ ") - " + EditorPanel.WINDOW_NAME + suNotice());
+			frame.setTitle(
+					page.pageData.getTitle() + " - (" + pageSet.size() + ") - " + EditorPanel.WINDOW_NAME + suNotice());
 		}
 	}
-
- 
 
 	public PlainPage getPage() {
 		return page;
@@ -322,13 +310,10 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 								pp.changedOutside = true;
 								if (pp.pageData.history.size() == 0) {
 									U.readFile(pp.pageData, pp.pageData.getFn());// reload
-									U.showSelfDispMessage(pp,
-											"File changed outside.(reloaded)",
-											4000);
+									U.showSelfDispMessage(pp, "File changed outside.(reloaded)", 4000);
 									pp.changedOutside = false;
 								} else {
-									U.showSelfDispMessage(pp,
-											"File changed outside.", 4000);
+									U.showSelfDispMessage(pp, "File changed outside.", 4000);
 								}
 								// break;
 							}
@@ -377,14 +362,14 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-	
+
 	}
 
 	public void setPage(PlainPage pp, boolean recCh) {
-		lastPage=page;
+		lastPage = page;
 		page = pp;
 		changeTitle();
-		 
+
 	}
 
 	private String suNotice() {
@@ -395,7 +380,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener,
 			return "";
 		}
 	}
-	
+
 	public String getCurrentText() {
 		PageData pd = getPage().pageData;
 		return U.exportString(pd.lines, pd.lineSep);
