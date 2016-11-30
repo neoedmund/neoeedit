@@ -2776,7 +2776,7 @@ public class U {
 					gi.drawString("NeoeEdit", 6, h - 20);
 					gi.setColor(Color.YELLOW);
 					gi.setFont(new Font("Arial", Font.PLAIN, 16));
-					gi.drawString("holding CTRL key for seconds to see commands", 6, h - 6);
+					gi.drawString("press Menu key to see all commands", 6, h - 6);
 					gi.dispose();
 					ui.aboutY = -h;
 					ui.aboutOn = true;
