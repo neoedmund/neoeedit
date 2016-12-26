@@ -635,8 +635,8 @@ public class U {
 			this.pp = plainPage;
 		}
 
-		void doFind(String text, boolean ignoreCase, boolean selected2, boolean inDir, String dir, boolean backward)
-				throws Exception {
+		void doFind(String text, boolean ignoreCase, boolean selected2, boolean inDir, String dir, String fnFilter,
+				boolean backward) throws Exception {
 			if (!inDir) {
 				text2find = text;
 				pp.ignoreCase = ignoreCase;
@@ -647,7 +647,7 @@ public class U {
 					findNext();
 				pp.uiComp.repaint();
 			} else {
-				doFindInDir(pp, text, ignoreCase, selected2, inDir, dir);
+				doFindInDir(pp, text, ignoreCase, selected2, inDir, dir, fnFilter);
 			}
 		}
 
@@ -1468,12 +1468,18 @@ public class U {
 	}
 
 	static void doFindInDir(PlainPage page, String text, boolean ignoreCase, boolean selected2, boolean inDir,
-			String dir) throws Exception {
+			String dir, String fnFilter) throws Exception {
 		Iterable<File> it = new FileIterator(dir);
 		List<String> all = new ArrayList<String>();
+		fnFilter = fnFilter.trim().toLowerCase();
 		for (File f : it) {
 			if (f.isDirectory()) {
 				continue;
+			}
+			if (fnFilter.length() > 0) {
+				String fn = f.getName().toLowerCase();
+				if (fn.indexOf(fnFilter) < 0)
+					continue;
 			}
 			List<String> res = U.findInFile(f, text, ignoreCase);
 			all.addAll(res);
@@ -1525,28 +1531,34 @@ public class U {
 	}
 
 	static void doReplaceAll(PlainPage page, String text, boolean ignoreCase, boolean selected2, String text2,
-			boolean inDir, String dir) throws Exception {
+			boolean inDir, String dir, String fnFilter) throws Exception {
 		if (inDir) {
-			U.doReplaceInDir(page, text, ignoreCase, text2, inDir, dir);
+			U.doReplaceInDir(page, text, ignoreCase, text2, inDir, dir, fnFilter);
 		} else {
 			U.doReplace(page, text, ignoreCase, selected2, text2, true, inDir, dir);
 		}
 	}
 
 	static void doReplaceInDir(PlainPage page, String text, boolean ignoreCase2, String text2, boolean inDir,
-			String dir) throws Exception {
+			String dir, String fnFilter) throws Exception {
 		Iterable<File> it = new FileIterator(dir);
 		List<String> all = new ArrayList<String>();
+		fnFilter = fnFilter.trim().toLowerCase();
 		for (File f : it) {
 			if (f.isDirectory()) {
 				continue;
+			}
+			if (fnFilter.length() > 0) {
+				String fn = f.getName().toLowerCase();
+				if (fn.indexOf(fnFilter) < 0)
+					continue;
 			}
 			try {
 				List<String> res = U.findInFile(f, text, page.ignoreCase);
 				if (!res.isEmpty()) {
 					PlainPage pi = new PlainPage(page.uiComp, PageData.newFromFile(f.getCanonicalPath()));
 					if (pi != null) {
-						doReplaceAll(pi, text, ignoreCase2, false, text2, false, null);
+						doReplaceAll(pi, text, ignoreCase2, false, text2, false, null, fnFilter);
 					}
 				}
 				all.addAll(res);

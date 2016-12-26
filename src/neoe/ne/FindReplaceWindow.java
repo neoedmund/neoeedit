@@ -9,6 +9,7 @@ import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -33,9 +34,11 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 	private JRadioButton jrb2;
 	JTextField jta1;
 	JTextField jta2;
-	private JTextField jtadir;
+	private JTextField jtadir, jtFnFilter;
 	private PlainPage page;
 	private JCheckBox jcbDirection;
+	private JLabel lbfnfilter;
+	private JLabel lbdir;
 
 	public FindReplaceWindow(JFrame f, PlainPage page) {
 		this.page = page;
@@ -59,8 +62,10 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 		jrb2.setVisible(false);
 
 		s.add(jcb1 = new JCheckBox("in files", false));
-		s.add(new JLabel("Dir:"));
+		s.add(lbdir = new JLabel("Dir:"));
 		s.add(jtadir = new JTextField());
+		s.add(lbfnfilter = new JLabel("fn filter:"));
+		s.add(jtFnFilter = new JTextField());
 		s.newline();
 		s.add(jcbDirection = new JCheckBox("backward", false));
 		s.add(jcb2 = new JCheckBox("include subdir", true));
@@ -72,6 +77,7 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 		s.add(jb2 = new JButton("Replace"));
 		s.add(jb3 = new JButton("Replace All"));
 		s.newline();
+		final JComponent[] pack1 = new JComponent[] { jtadir, jtFnFilter, lbdir, lbfnfilter };
 
 		jcb1.addActionListener(new ActionListener() {
 			@Override
@@ -81,16 +87,16 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 				if (jcb1.isSelected()) {
 					jb1.setText("Find in Files");
 					jb3.setText("Replace in Files");
-					jtadir.setEnabled(true);
+					setVisible(pack1, true);
 				} else {
 					jb1.setText("Find");
 					jb3.setText("Replace All");
-					jtadir.setEnabled(false);
+					setVisible(pack1, false);
 				}
 			}
 		});
 		jcb1.setSelected(false);
-		jtadir.setEnabled(false);
+		setVisible(pack1, false);
 		jb1.setActionCommand("find");
 		jb2.setActionCommand("replace");
 		jb3.setActionCommand("replaceall");
@@ -120,11 +126,18 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 		jta1.addKeyListener(closeOnEsc);
 		jta2.addKeyListener(closeOnEsc);
 		jtadir.addKeyListener(closeOnEsc);
+		jtFnFilter.addKeyListener(closeOnEsc);
 		jrb1.addKeyListener(closeOnEsc);
 		jrb2.addKeyListener(closeOnEsc);
 		jcb1.addKeyListener(closeOnEsc);
 		jcb2.addKeyListener(closeOnEsc);
 		jcb3.addKeyListener(closeOnEsc);
+	}
+
+	protected static void setVisible(JComponent[] pack, boolean b) {
+		for (JComponent p : pack) {
+			p.setVisible(b);
+		}
 	}
 
 	@Override
@@ -135,7 +148,7 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 			if (command.equals("find")) {
 
 				page.ptFind.doFind(jta1.getText(), jrb1.isSelected(), jrb2.isSelected(), jcb1.isSelected(),
-						jtadir.getText(), jcbDirection.isSelected());
+						jtadir.getText(), jtFnFilter.getText(), jcbDirection.isSelected());
 
 			} else if (command.equals("findall")) {
 				U.doFindInPage(page, jta1.getText(), jrb1.isSelected());
@@ -144,7 +157,7 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 						null);
 			} else if (command.equals("replaceall")) {
 				U.doReplaceAll(page, jta1.getText(), jrb1.isSelected(), jrb2.isSelected(), jta2.getText(),
-						jcb1.isSelected(), jtadir.getText());
+						jcb1.isSelected(), jtadir.getText(), jtFnFilter.getText());
 			} else {
 				return;
 			}
