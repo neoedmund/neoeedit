@@ -38,6 +38,9 @@ public class Gimp {
 		img = glowing(img, c2);
 		// g2 = (Graphics2D) g2.create();
 		// g2.setComposite(AlphaComposite.SrcOver);
+		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2.drawImage(img, x, y - lineHeight, null);
 		// g2.dispose();
 	}
