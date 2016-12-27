@@ -11,5 +11,5 @@ public class EditorPanelConfig {
 		editable, showLineNo, showTopBar
 	}
 
-	public Object VALUE_TEXT_ANTIALIAS = RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB;
+	public static Object VALUE_TEXT_ANTIALIAS = RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB;
 }

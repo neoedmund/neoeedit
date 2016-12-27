@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class Gimp {
 		Graphics2D g3 = img.createGraphics();
 		g3.setColor(c2);
 		g3.setFont(f);
+		g3.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, EditorPanelConfig.VALUE_TEXT_ANTIALIAS);
 		g3.drawString(s, 0, lineHeight);
 		g3.dispose();
 		img = glowing(img, c2);
