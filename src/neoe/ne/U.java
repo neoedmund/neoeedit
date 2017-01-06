@@ -1484,7 +1484,7 @@ public class U {
 			List<String> res = U.findInFile(f, text, ignoreCase);
 			all.addAll(res);
 		}
-		showResult(page, all, "dir", dir, text);
+		showResult(page, all, "dir", dir, text, fnFilter);
 		page.uiComp.repaint();
 	}
 
@@ -1504,7 +1504,7 @@ public class U {
 						p = p2;
 					}
 				}
-				showResult(page, all, "file", page.pageData.getTitle(), text2find);
+				showResult(page, all, "file", page.pageData.getTitle(), text2find, null);
 				page.uiComp.repaint();
 			}
 		}
@@ -1567,7 +1567,7 @@ public class U {
 			}
 
 		}
-		showResult(page, all, "dir", dir, text);
+		showResult(page, all, "dir", dir, text, fnFilter);
 		page.uiComp.repaint();
 	}
 
@@ -2839,13 +2839,19 @@ public class U {
 		ep.repaint();
 	}
 
-	static void showResult(PlainPage pp, List<String> all, String type, String name, String text) throws Exception {
-		PlainPage p2 = new PlainPage(pp.uiComp,
-				PageData.newEmpty(String.format("(%s)'%s' in %s %s #%s", all.size(), text, type, name, randomID())));
+	static void showResult(PlainPage pp, List<String> all, String type, String name, String text, String fnFilter)
+			throws Exception {
+		String withFilter = "";
+		if (fnFilter != null && fnFilter.length() > 0) {
+			withFilter = String.format(" with filter '" + fnFilter + "'");
+		}
+		PlainPage p2 = new PlainPage(pp.uiComp, PageData.newEmpty(
+				String.format("(%s)'%s' in %s '%s'%s #%s", all.size(), text, type, name, withFilter, randomID())));
 		p2.pageData.workPath = pp.pageData.workPath;
 		p2.ui.applyColorMode(pp.ui.colorMode);
 		List<CharSequence> sbs = new ArrayList<CharSequence>();
-		sbs.add(new StringBuilder(String.format("find %s results in %s for '%s'", all.size(), name, text)));
+		sbs.add(new StringBuilder(
+				String.format("find %s results in '%s'%s for '%s'", all.size(), name, withFilter, text)));
 		for (Object o : all) {
 			sbs.add(o.toString());
 		}
