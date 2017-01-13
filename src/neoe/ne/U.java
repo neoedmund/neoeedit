@@ -2619,7 +2619,7 @@ public class U {
 
 	static void saveAs(PlainPage page) throws Exception {
 		EditorPanel editor = page.uiComp;
-		JFileChooser chooser = new JFileChooser(page.pageData.getFn());
+		JFileChooser chooser = new JFileChooser(page.pageData.workPath);
 		int returnVal = chooser.showSaveDialog(editor);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			String fn = chooser.getSelectedFile().getAbsolutePath();
