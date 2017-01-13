@@ -2432,8 +2432,8 @@ public class U {
 			pp.ui.message("file not saved.");
 			return;
 		}
-		setEncodingByUser(pp, "Reload with Encoding:");
-		readFile(pp.pageData, fn);
+		if (setEncodingByUser(pp, "Reload with Encoding:"))
+			readFile(pp.pageData, fn);
 	}
 
 	static String removeAsciiZero(String s) {
@@ -2740,18 +2740,19 @@ public class U {
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(s), null);
 	}
 
-	static void setEncodingByUser(PlainPage plainPage, String msg) {
+	static boolean setEncodingByUser(PlainPage plainPage, String msg) {
 		String s = JOptionPane.showInputDialog(plainPage.uiComp, msg, plainPage.pageData.encoding);
 		if (s == null) {
-			return;
+			return false;
 		}
 		try {
 			"a".getBytes(s);
 		} catch (Exception e) {
 			plainPage.ui.message("bad encoding:" + s);
-			return;
+			return false;
 		}
 		plainPage.pageData.encoding = s;
+		return true;
 	}
 
 	public static void setFont(PlainPage pp, String font) {
