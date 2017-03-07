@@ -2068,7 +2068,7 @@ public class U {
 
 	static String guessEncoding(String fn) throws Exception {
 		// S/ystem.out.println("guessing encoding");
-		String[] encodings = { UTF8, "utf-8", "sjis", "gbk", "unicode", "euc-jp", "gb2312" };
+		String[] encodings = { "sjis", "gbk", UTF8, "unicode", "euc-jp" };
 
 		FileInputStream in = new FileInputStream(fn);
 		final int defsize = 4096 * 2;
