@@ -2068,10 +2068,10 @@ public class U {
 
 	static String guessEncoding(String fn) throws Exception {
 		// S/ystem.out.println("guessing encoding");
-		String[] encodings = { "sjis", "gbk", UTF8, "unicode", "euc-jp" };
+		String[] encodings = { UTF8, "sjis", "gbk", "unicode", "euc-jp" };
 
 		FileInputStream in = new FileInputStream(fn);
-		final int defsize = 4096 * 2;
+		final int defsize = 1024 * 1024 * 2;
 		int len = Math.min(defsize, (int) new File(fn).length());
 		try {
 			byte[] buf = new byte[len];
