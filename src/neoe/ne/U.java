@@ -2068,10 +2068,10 @@ public class U {
 
 	static String guessEncoding(String fn) throws Exception {
 		// S/ystem.out.println("guessing encoding");
-		String[] encodings = { UTF8, "utf-8", "sjis", "gbk", "unicode", "euc-jp", "gb2312" };
+		String[] encodings = { UTF8, "sjis", "gbk", "unicode", "euc-jp" };
 
 		FileInputStream in = new FileInputStream(fn);
-		final int defsize = 4096 * 2;
+		final int defsize = 1024 * 1024 * 2;
 		int len = Math.min(defsize, (int) new File(fn).length());
 		try {
 			byte[] buf = new byte[len];
@@ -2094,9 +2094,12 @@ public class U {
 			}
 			for (String enc : encodings) {
 				String s = new String(buf, enc);
-				if (s.length() > 3)
-					s = s.substring(0, s.length() - 3);// multi bytes string, so
-														// tail may be mistaken
+				if (s.length() > 3) {
+					// multi bytes string, so tail may be mistaken
+					s = s.substring(0, s.length() - 3);
+				} else {
+					return UTF8;// utf8 for empty file
+				}
 				if (new String(s.getBytes(enc), enc).equals(s) && s.indexOf("锟�") < 0) {
 					return enc;
 				}
@@ -2619,7 +2622,7 @@ public class U {
 
 	static void saveAs(PlainPage page) throws Exception {
 		EditorPanel editor = page.uiComp;
-		JFileChooser chooser = new JFileChooser(page.pageData.getFn());
+		JFileChooser chooser = new JFileChooser(page.pageData.workPath);
 		int returnVal = chooser.showSaveDialog(editor);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			String fn = chooser.getSelectedFile().getAbsolutePath();
