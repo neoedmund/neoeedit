@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -22,7 +24,6 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 public class PicView {
@@ -48,11 +49,14 @@ public class PicView {
 
 		private int vy;
 		private int vy1;
+		Rectangle maxWindow;
 
 		public PicViewPanel(JFrame f, File fn) throws IOException {
 			this.frame = f;
 			long t1 = System.currentTimeMillis();
 			this.f = fn;
+			GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			maxWindow = env.getMaximumWindowBounds();
 			img = ImageIO.read(fn);
 			System.out.println("read in " + (System.currentTimeMillis() - t1));
 			setSize(img);
@@ -225,11 +229,14 @@ public class PicView {
 
 		@Override
 		protected void paintComponent(Graphics g) {
-			g.setPaintMode();
+
 			int w = getWidth();
 			int h = getHeight();
-			g.setColor(Color.WHITE);
-			g.fillRect(0, 0, w, h);
+			{
+				g.setPaintMode();
+				g.setColor(Color.WHITE);
+				g.fillRect(0, 0, w, h);
+			}
 			// System.out.println(w+"x"+h);
 			int sw = w / 4;
 			int sh = sw * ph / pw;
@@ -266,8 +273,8 @@ public class PicView {
 
 		private void setSize(BufferedImage img) {
 			Dimension dim = new Dimension(pw = img.getWidth() + 20, ph = img.getHeight() + 50);
-			dim.width = Math.max(200, dim.width);
-			dim.height = Math.max(200, dim.height);
+			dim.width = Math.min(maxWindow.width, Math.max(200, dim.width));
+			dim.height = Math.min(maxWindow.height, Math.max(200, dim.height));
 			frame.setSize(dim);
 		}
 
@@ -285,7 +292,7 @@ public class PicView {
 				fi = 0;
 			try {
 				img = ImageIO.read(files.get(fi));
-				setTitleWithSize(files.get(fi).getName());
+				setTitleWithSize(files.get(fi).getName(), fi, files.size());
 				setSize(img);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -293,8 +300,9 @@ public class PicView {
 			repaint();
 		}
 
-		private void setTitleWithSize(String name) {
-			frame.setTitle(String.format("PicView %s [%dx%d]", name, img.getWidth(), img.getHeight()));
+		private void setTitleWithSize(String name, int index, int total) {
+			frame.setTitle(
+					String.format("PicView %s [%dx%d] %d/%d", name, img.getWidth(), img.getHeight(), index, total));
 		}
 
 	}
@@ -320,7 +328,7 @@ public class PicView {
 		f.getContentPane().setLayout(new BorderLayout());
 		f.getContentPane().add(p);
 		U.setFrameSize(f, p.pw, p.ph);
-		p.setTitleWithSize(fn.getName());
+		p.setTitleWithSize(fn.getName(), 0, 1);
 		f.setTransferHandler(new U.TH(ep));
 		f.setVisible(true);
 		U.saveFileHistory(fn.getAbsolutePath(), 0);
