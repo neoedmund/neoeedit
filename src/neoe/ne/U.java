@@ -2068,7 +2068,7 @@ public class U {
 
 	static String guessEncoding(String fn) throws Exception {
 		// S/ystem.out.println("guessing encoding");
-		String[] encodings = { UTF8, "sjis", "gbk", "unicode", "euc-jp" };
+		String[] encodings = { "gbk", "sjis", UTF8, "unicode", "euc-jp" };
 
 		FileInputStream in = new FileInputStream(fn);
 		final int defsize = 1024 * 1024 * 2;
@@ -2100,7 +2100,8 @@ public class U {
 				} else {
 					return UTF8;// utf8 for empty file
 				}
-				if (new String(s.getBytes(enc), enc).equals(s) && s.indexOf("锟�") < 0) {
+				String s1 = new String(s.getBytes(enc), enc);
+				if (s1.equals(s) && s.indexOf("�") < 0) {
 					return enc;
 				}
 			}
