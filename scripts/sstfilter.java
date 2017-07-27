@@ -1,4 +1,4 @@
-
+/*this script is used by neoeedit alt-j*/
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,17 +10,25 @@ public class sstfilter implements Script {
 	@Override
 	public List<CharSequence> run(List<CharSequence> lines) {
 		List<CharSequence> ret = new ArrayList<CharSequence>();
+		List<CharSequence> ret2 = new ArrayList<CharSequence>();
 		for (CharSequence line : lines) {
 			String s = line.toString();
-			if (s.endsWith("build")
-			||s.endsWith("bin")
-			||s.endsWith("dist")
+			s = s.replace('\\', '/');
+			if (s.endsWith("/build")
+			||s.endsWith("/bin")
+			||s.endsWith("/dist")
+			||s.endsWith("/classes")
 			||s.endsWith(".log")
 			){
 			}else{
-				ret.add(line);
+				if (s.startsWith("D ")||s.startsWith("A ")||s.startsWith("M ")){
+					ret2.add(line);
+				}else{
+					ret.add(line);
+				}
 			}
 		}
+		ret.addAll(ret2);
 		return ret;
 	}
 }

@@ -180,8 +180,8 @@ public class U {
 	}
 
 	/**
-	 * use first font, if cannot display character in that font , use second,
-	 * and so on
+	 * use first font, if cannot display character in that font , use second, and so
+	 * on
 	 */
 	public static int stringWidth(Graphics2D g2, Font[] fonts, String s0) {
 		if (s0 == null || s0.length() <= 0) {
@@ -2068,7 +2068,7 @@ public class U {
 
 	static String guessEncoding(String fn) throws Exception {
 		// S/ystem.out.println("guessing encoding");
-		String[] encodings = { "gbk", "sjis", UTF8, "unicode", "euc-jp" };
+		String[] encodings = { UTF8, "gbk", "sjis", "unicode", "euc-jp" };
 
 		FileInputStream in = new FileInputStream(fn);
 		final int defsize = 1024 * 1024 * 2;
@@ -2100,16 +2100,26 @@ public class U {
 				} else {
 					return UTF8;// utf8 for empty file
 				}
-				String s1 = new String(s.getBytes(enc), enc);
-				if (s1.equals(s) && s.indexOf("�") < 0) {
+				byte[] bs2 = s.getBytes(enc);
+				// bs2 maybe short than buf
+				if (bsCompare(buf, bs2, bs2.length)) {
 					return enc;
 				}
+
 			}
 		} finally {
 			in.close();
 		}
 
 		return null;
+	}
+
+	private static boolean bsCompare(byte[] b1, byte[] b2, int len) {
+		for (int i = 0; i < len; i++) {
+			if (b1[i] != b2[i])
+				return false;
+		}
+		return true;
 	}
 
 	static String guessEncodingForEditor(String fn) {
