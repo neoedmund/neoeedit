@@ -3,7 +3,7 @@ package neoe.ne;
 import java.util.List;
 
 /**
- * Script Notes: 
+ * Script Notes:
  * 
  * I found All script sucks except use java itself.
  * 

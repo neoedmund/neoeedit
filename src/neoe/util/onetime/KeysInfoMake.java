@@ -21,7 +21,8 @@ public class KeysInfoMake {
 	}
 
 	private void run() throws Exception {
-		BufferedReader in = new BufferedReader(new StringReader(FileUtil.readStringSmall(new FileInputStream("src/data.py"), "utf8")));
+		BufferedReader in = new BufferedReader(
+				new StringReader(FileUtil.readStringSmall(new FileInputStream("src/data.py"), "utf8")));
 		Object o = new PyData().parseAll(in);
 		// System.out.println("V=" + o);
 		List o1 = (List) ((Map) o).get("keys");

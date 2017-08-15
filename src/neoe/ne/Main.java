@@ -4,7 +4,6 @@ import java.io.File;
 
 public class Main {
 
-
 	public static void main(String[] args) throws Exception {
 		EditorPanel editor = new EditorPanel(EditorPanelConfig.DEFAULT);
 		if (args.length > 0) {
@@ -29,7 +28,6 @@ public class Main {
 		editor.openWindow();
 		return editor;
 	}
-
 
 	/**
 	 * something like said in https://forums.oracle.com/thread/1542114

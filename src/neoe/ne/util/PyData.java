@@ -20,7 +20,8 @@ public class PyData {
 	static char EOF = (char) -1;
 
 	public static void main(String[] args) throws Exception {
-		BufferedReader in = new BufferedReader(new StringReader("{CATEGORIES:{1:1},'D\\'GM\nATTRIBS':{1:1,2:4},GROUPS:{2:2},TYPES:{2:2,3:'ad\n" + "as10'}}"));
+		BufferedReader in = new BufferedReader(new StringReader(
+				"{CATEGORIES:{1:1},'D\\'GM\nATTRIBS':{1:1,2:4},GROUPS:{2:2},TYPES:{2:2,3:'ad\n" + "as10'}}"));
 		Object o = new PyData().parseAll(in);
 		System.out.println("V=" + o);
 	}
@@ -124,7 +125,8 @@ public class PyData {
 		sb.append(first);
 		while (true) {
 			char i = read(in);
-			if (i == EOF || i == ' ' || i == '\n' || i == '\r' || i == '\t' || i == ',' || i == '}' || i == ')' || i == ']' || i == ':') {
+			if (i == EOF || i == ' ' || i == '\n' || i == '\r' || i == '\t' || i == ',' || i == '}' || i == ')'
+					|| i == ']' || i == ':') {
 				pushBack(i);
 				break;
 			}

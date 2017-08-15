@@ -31,6 +31,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+import neoe.ne.U.LocationHistory;
+
 public class EditorPanel extends JPanel implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener {
 
 	/** It's only need to be not-null and not actually called? */
@@ -89,6 +91,8 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 	JFrame frame;
 
 	PlainPage lastPage;
+
+	LocationHistory<String> pageHis = new LocationHistory<String>();
 
 	public PlainPage page;
 
@@ -365,11 +369,13 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 
 	}
 
-	public void setPage(PlainPage pp, boolean recCh) {
+	public void setPage(PlainPage pp, boolean rec) {
 		lastPage = page;
 		page = pp;
+		if (rec) {
+			pageHis.add(U.getLocString(pp), U.getLocString(lastPage));
+		}
 		changeTitle();
-
 	}
 
 	private String suNotice() {

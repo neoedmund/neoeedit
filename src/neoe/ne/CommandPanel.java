@@ -15,8 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A help panel shows all commands.
- * Hold down CTRL for seconds to activate it.
+ * A help panel shows all commands. Hold down CTRL for seconds to activate it.
  */
 public class CommandPanel {
 
@@ -53,21 +52,20 @@ public class CommandPanel {
 			g.drawString(ss[0], r.x + 4, r.y + 4 - g.getFontMetrics().getDescent() + g.getFontMetrics().getHeight());
 			if (ss.length > 1) {
 				g.setFont(fontTopLine2);
-				g.drawString(ss[1], r.x + 4, r.y + 4 + 4 + g.getFontMetrics(fontTopLine1).getHeight() - g.getFontMetrics().getDescent() + g.getFontMetrics().getHeight());
+				g.drawString(ss[1], r.x + 4, r.y + 4 + 4 + g.getFontMetrics(fontTopLine1).getHeight()
+						- g.getFontMetrics().getDescent() + g.getFontMetrics().getHeight());
 			}
 		}
 
 		private Color bkColor = new Color(0xcccccc);
 		String clickedName;
 		private List<Object> comps = new ArrayList<Object>();
-//		long controlDownMs;
-//		boolean hasCheckThread;
+		// long controlDownMs;
+		// boolean hasCheckThread;
 		private Dimension dim;
 		private Font font1, font2;
 
 		private Graphics2D g;
-
-
 
 		boolean inited = false;
 		private Object lastInObj;
@@ -288,17 +286,21 @@ public class CommandPanel {
 		public void xpaint(Graphics2D g) {
 
 			g.setColor(Color.WHITE);
-			g.drawRoundRect(rect.x + spacing, rect.y + spacing, rect.width - 2 * +spacing, rect.height - 2 * +spacing, padding, padding);
+			g.drawRoundRect(rect.x + spacing, rect.y + spacing, rect.width - 2 * +spacing, rect.height - 2 * +spacing,
+					padding, padding);
 			if (selected) {
 				g.setColor(selectedBk);
-				g.fillRoundRect(1 + rect.x + spacing, 1 + rect.y + spacing, rect.width - 2 * +spacing, rect.height - 2 * +spacing, padding, padding);
+				g.fillRoundRect(1 + rect.x + spacing, 1 + rect.y + spacing, rect.width - 2 * +spacing,
+						rect.height - 2 * +spacing, padding, padding);
 			} else {
 				g.setColor(Color.BLACK);
-				g.drawRoundRect(1 + rect.x + spacing, 1 + rect.y + spacing, rect.width - 2 * +spacing, rect.height - 2 * +spacing, padding, padding);
+				g.drawRoundRect(1 + rect.x + spacing, 1 + rect.y + spacing, rect.width - 2 * +spacing,
+						rect.height - 2 * +spacing, padding, padding);
 			}
 			g.setColor(color);
 			g.setFont(font);
-			g.drawString(text, rect.x + padding + spacing, rect.y + padding + spacing + g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent());
+			g.drawString(text, rect.x + padding + spacing,
+					rect.y + padding + spacing + g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent());
 
 		}
 

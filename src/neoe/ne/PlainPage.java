@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -597,9 +598,8 @@ public class PlainPage {
 				colorKeyword, colorGutMark1, colorGutMark2, colorReturnMark;
 		int colorMode;
 		/**
-		 * 0:white mode 1: black mode 2: blue mode * 1 bg, 2 normal, 3 keyword,
-		 * 4 digit, 5 comment, 6 gutNumber, 7 gutLine, 8 currentLineBg, 9
-		 * comment2
+		 * 0:white mode 1: black mode 2: blue mode * 1 bg, 2 normal, 3 keyword, 4 digit,
+		 * 5 comment, 6 gutNumber, 7 gutLine, 8 currentLineBg, 9 comment2
 		 */
 		int[][] ColorModes = null;
 		Color colorNormal = Color.BLACK;
@@ -1309,7 +1309,7 @@ public class PlainPage {
 			index = 0;
 		}
 		editor.pageSet.add(index, this);
-		editor.setPage(this, false);
+		editor.setPage(this, true);
 		editor.changeTitle();
 		// uiComp.ptCh.record(data.getTitle(), cx, cy);
 		data.ref++;
@@ -1328,7 +1328,7 @@ public class PlainPage {
 			index = uiComp.pageSet.size() - 1;
 		}
 		if (index >= 0) {
-			uiComp.setPage(uiComp.pageSet.get(index), false);
+			uiComp.setPage(uiComp.pageSet.get(index), true);
 		} else {
 			// nothing to show
 			if (uiComp.frame != null)
@@ -1474,12 +1474,18 @@ public class PlainPage {
 					mx = 0;
 					my = 0;
 					ui.cp.showCommandPanel = false;
-				} catch (Exception e) {
+				} catch (Throwable e) {
+					ui.message("err:" + e);
 					e.printStackTrace();
 				}
 				ui.cp.clickedName = null;
 			}
 			return;
+		}
+		{
+			if (isButtonDown(4, evt) || isButtonDown(5, evt)) {
+				return;
+			}
 		}
 		int my = evt.getY();
 		if (my > 0 && my < toolbarHeight) {
@@ -1507,9 +1513,52 @@ public class PlainPage {
 		}
 	}
 
-	public void mouseDragged(MouseEvent env) {
-		mx = env.getX();
-		my = env.getY();
+	private boolean processButton5(MouseEvent evt) {
+		if (!isButtonDown(5, evt)) {
+			return false;
+		}
+		String s = uiComp.pageHis.forward(U.getLocString(this));
+		if (s != null) {
+			try {
+				doGo(s, false);
+			} catch (Throwable e) {
+				ui.message("err:" + e);
+				e.printStackTrace();
+			}
+		}
+		return true;
+	}
+
+	private boolean isButtonDown(int i, MouseEvent evt) {
+		int b = InputEvent.getMaskForButton(i);
+		int ex = evt.getModifiersEx();
+		return (ex & b) != 0;
+	}
+
+	private boolean processButton4(MouseEvent evt) {
+		if (!isButtonDown(4, evt)) {
+			return false;
+		}
+		String s = uiComp.pageHis.back(U.getLocString(this));
+		if (s != null) {
+			try {
+				doGo(s, false);
+			} catch (Throwable e) {
+				ui.message("err:" + e);
+				e.printStackTrace();
+			}
+		}
+		return true;
+	}
+
+	public void mouseDragged(MouseEvent evt) {
+		{
+			if (isButtonDown(4, evt) || isButtonDown(5, evt)) {
+				return;
+			}
+		}
+		mx = evt.getX();
+		my = evt.getY();
 		mshift = true;
 		uiComp.repaint();
 	}
@@ -1521,11 +1570,16 @@ public class PlainPage {
 
 	}
 
-	public void mousePressed(MouseEvent env) {
-		mx = env.getX();
-		my = env.getY();
-		mshift = env.isShiftDown();
-		mcount = env.getClickCount();
+	public void mousePressed(MouseEvent evt) {
+		{
+			if (processButton4(evt) || processButton5(evt)) {
+				return;
+			}
+		}
+		mx = evt.getX();
+		my = evt.getY();
+		mshift = evt.isShiftDown();
+		mcount = evt.getClickCount();
 		uiComp.repaint();
 		// System.out.println("m press");
 	}
@@ -1786,17 +1840,7 @@ public class PlainPage {
 		case go:
 			if (cy < pageData.lines.size()) {
 				String line = pageData.roLines.getline(cy).toString();
-				if (line.startsWith("set-font:")) {
-					U.setFont(this, line.substring("set-font:".length()).trim());
-				} else {
-					if (searchResultOf == null || !U.gotoFileLine2(uiComp, line, searchResultOf)) {
-						if (!U.gotoFileLine(line, uiComp, pageData.getTitle().equals(U.titleOfPages(uiComp)))) {
-							if (!U.listDir(PlainPage.this, cy)) {
-								U.launch(line);
-							}
-						}
-					}
-				}
+				doGo(line, true);
 			}
 			break;
 		case launch:
@@ -1819,7 +1863,8 @@ public class PlainPage {
 			break;
 		case quickSwitchPage:
 			// U.switchPageInOrder(this);
-			U.switchToLastPage(this);
+			// U.switchToLastPage(this);
+			doGo(uiComp.pageHis.back(U.getLocString(this)), false);
 			break;
 		case toggleIME:
 			Ime.nextIme();
@@ -1850,6 +1895,22 @@ public class PlainPage {
 		default:
 			ui.message("unprocessed Command:" + cmd);
 		}
+	}
+
+	private void doGo(String line, boolean record) throws Exception {
+
+		if (line.startsWith("set-font:")) {
+			U.setFont(this, line.substring("set-font:".length()).trim());
+		} else {
+			if (searchResultOf == null || !U.gotoFileLine2(uiComp, line, searchResultOf, record)) {
+				if (!U.gotoFileLine(line, uiComp, record /* , pageData.getTitle().equals(U.titleOfPages(uiComp)) */)) {
+					if (!U.listDir(PlainPage.this, cy)) {
+						U.launch(line);
+					}
+				}
+			}
+		}
+
 	}
 
 	private void unknownCommand(KeyEvent env) {

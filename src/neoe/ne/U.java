@@ -77,6 +77,57 @@ import neoe.ne.util.PyData;
  */
 public class U {
 
+	public static class LocationHistory<E> {
+
+		LinkedList<E> his = new LinkedList<E>();
+		int pos = 0;
+
+		public E back(E updateCurrent) {
+			// System.out.printf("his.back size=%s, pos=%s\n", his.size(), pos);
+			if (pos > 0) {
+				his.set(pos, updateCurrent);
+				pos--;
+				return his.get(pos);
+			} else {
+				return null;
+			}
+		}
+
+		public E forward(E updateCurrent) {
+			// System.out.printf("his.forward size=%s, pos=%s\n", his.size(), pos);
+			if (pos < his.size() - 1) {
+				his.set(pos, updateCurrent);
+				pos++;
+				return his.get(pos);
+			} else {
+				return null;
+			}
+		}
+
+		public void add(E loc, E updateCurrent) {
+
+			if (his.size() > pos + 1) {
+				removeLastN(his.size() - pos - 1);
+			}
+			// String last = "<Empty>";
+			if (!his.isEmpty()) {
+				// last = his.getLast().toString();
+				his.set(his.size() - 1, updateCurrent);
+				// System.out.println("[d]" + last + "=>" + updateCurrent);
+			}
+
+			his.add(loc);
+			pos = his.size() - 1;
+			// System.out.printf("his.add size=%s, pos=%s\n", his.size(), pos);
+		}
+
+		private void removeLastN(int cnt) {
+			for (int i = 0; i < cnt; i++)
+				his.removeLast();
+		}
+
+	}
+
 	static void drawStringShrink(Graphics2D g2, Font[] fontList, String s, int x, int y, float maxWidth) {
 		int width = stringWidth(g2, fontList, s);
 		int max = Math.round(maxWidth);
@@ -1693,21 +1744,22 @@ public class U {
 		}
 	}
 
-	static boolean findAndShowPageListPage(EditorPanel ep, String title, boolean recCh) {
-		boolean show = true;
+	static boolean findAndShowPageListPage(EditorPanel ep, String title, int lineNo, boolean rec) {
 		PlainPage pp = findPage(ep, title);
 		if (pp == null) {
 			return false;
 		} else {
-			if (show) {
-				ep.setPage(pp, recCh);
-			}
+			ep.setPage(pp, rec);
 			return true;
 		}
 	}
 
+	private static String getLocString(String title, int lineNo) {
+		return String.format("%s|%s:", title, lineNo);
+	}
+
 	static boolean findAndShowPageListPage(EditorPanel ep, String title, int lineNo, int x, boolean recCh) {
-		boolean b = findAndShowPageListPage(ep, title, false);
+		boolean b = findAndShowPageListPage(ep, title, lineNo, recCh);
 		if (b) {
 			ep.getPage().cursor.setSafePos(x, lineNo - 1, recCh);
 			ep.getPage().focusCursor();
@@ -1931,6 +1983,12 @@ public class U {
 		return ss;
 	}
 
+	static String getLocString(PlainPage pp) {
+		if (pp == null)
+			return null;
+		return pp.pageData.getTitle() + "|" + (pp.cy + 1) + ":";
+	}
+
 	public static Reader getResourceReader(String fn) throws IOException {
 		return new InputStreamReader(U.class.getResourceAsStream(fn), "utf8");
 	}
@@ -1942,7 +2000,7 @@ public class U {
 		return "" + row.get(i);
 	}
 
-	static boolean gotoFileLine(String sb, EditorPanel ep, boolean isInPageListPage) throws Exception {
+	static boolean gotoFileLine(String sb, EditorPanel ep, boolean record) throws Exception {
 		int p1, p2;
 		if ((p1 = sb.indexOf("|")) >= 0) {
 			String fn = sb.substring(0, p1);
@@ -1953,7 +2011,7 @@ public class U {
 				} catch (Exception e) {
 				}
 				if (line >= 0) {
-					gotoFileLinePos(ep, fn, line, -1, true);
+					gotoFileLinePos(ep, fn, line, -1, record);
 					return true;
 				}
 			}
@@ -1965,14 +2023,14 @@ public class U {
 			}
 			File f = new File(dir, sb.toString());
 			if (f.exists() && f.isFile()) {
-				gotoFileLinePos(ep, f.getAbsolutePath(), 0, -1, true);
+				gotoFileLinePos(ep, f.getAbsolutePath(), 0, -1, record);
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public static boolean gotoFileLine2(EditorPanel ep, String sb, String title) throws Exception {
+	public static boolean gotoFileLine2(EditorPanel ep, String sb, String title, boolean record) throws Exception {
 		int p2;
 		if ((p2 = sb.indexOf(":")) >= 0) {
 			int line = -1;
@@ -1981,8 +2039,8 @@ public class U {
 			} catch (Exception e) {
 			}
 			if (line >= 0) {
-				if (!U.findAndShowPageListPage(ep, title, line, 0, true)) {
-					return openFile(title, line, ep, true);
+				if (!U.findAndShowPageListPage(ep, title, line, 0, record)) {
+					return openFile(title, line, ep, record);
 				}
 			}
 		}
@@ -2300,7 +2358,7 @@ public class U {
 			if (ep == null) {
 				return null;// ignore
 			}
-			if (findAndShowPageListPage(ep, f.getCanonicalPath(), false)) {
+			if (findAndShowPageListPage(ep, f.getCanonicalPath(), 0, true)) {
 				return ep.getPage();
 			}
 			return new PlainPage(ep, PageData.newFromFile(f.getCanonicalPath()));
@@ -2323,7 +2381,7 @@ public class U {
 			pp.pageData.workPath = page.pageData.workPath;
 		} else {
 			EditorPanel ep = page.uiComp;
-			if (!U.findAndShowPageListPage(ep, title, false)) {
+			if (!U.findAndShowPageListPage(ep, title, 0, true)) {
 				new PlainPage(page.uiComp, pd);
 			}
 		}
@@ -2336,9 +2394,10 @@ public class U {
 			new PicView().show(f);
 			return true;
 		}
-		if (findAndShowPageListPage(ep, title, false)) {
+		if (findAndShowPageListPage(ep, title, line, recCh)) {
 			return true;
 		}
+
 		PageData pd = PageData.dataPool.get(title);
 		// including titles not saved
 		if (pd == null) {
@@ -2355,8 +2414,8 @@ public class U {
 			page.selectstopy = page.cy;
 			page.sy = Math.max(0, page.cy - 3);
 			page.uiComp.repaint();
-
 		}
+
 		return true;
 	}
 
@@ -2842,7 +2901,7 @@ public class U {
 	}
 
 	public static void showPageListPage(EditorPanel ep) throws Exception {
-		if (findAndShowPageListPage(ep, titleOfPages(ep), true)) {
+		if (findAndShowPageListPage(ep, titleOfPages(ep), 0, true)) {
 			ep.getPage().pageData.setLines(getPageListStrings(ep));// refresh
 			ep.repaint();
 			return;
@@ -3020,15 +3079,15 @@ public class U {
 		return sb.subSequence(a, b);
 	}
 
-	public static void switchPageInOrder(PlainPage pp) {
-		List<PlainPage> pps = pp.uiComp.pageSet;
-		if (pps.size() <= 1) {
-			return;
-		}
-		int i = (1 + pps.indexOf(pp)) % pps.size();
-		pp.uiComp.setPage(pps.get(i), true);
-		pp.uiComp.repaint();
-	}
+	// public static void switchPageInOrder(PlainPage pp) {
+	// List<PlainPage> pps = pp.uiComp.pageSet;
+	// if (pps.size() <= 1) {
+	// return;
+	// }
+	// int i = (1 + pps.indexOf(pp)) % pps.size();
+	// pp.uiComp.setPage(pps.get(i));
+	// pp.uiComp.repaint();
+	// }
 
 	public static void switchToPageListPage(PlainPage pp) throws Exception {
 		EditorPanel uiComp = pp.uiComp;
@@ -3057,13 +3116,13 @@ public class U {
 		return i > 0 ? s.subSequence(i, s.length()) : s;
 	}
 
-	public static void switchToLastPage(PlainPage pp) {
-		EditorPanel uiComp = pp.uiComp;
-		PlainPage lastPage = uiComp.lastPage;
-		if (lastPage != null) {
-			uiComp.setPage(lastPage, true);
-		}
-	}
+	// public static void switchToLastPage(PlainPage pp) {
+	// EditorPanel uiComp = pp.uiComp;
+	// PlainPage lastPage = uiComp.lastPage;
+	// if (lastPage != null) {
+	// uiComp.setPage(lastPage);
+	// }
+	// }
 
 	public static String exportString(List<CharSequence> ss, String lineSep) {
 		StringBuilder sb = new StringBuilder();

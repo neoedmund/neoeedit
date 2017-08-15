@@ -48,12 +48,12 @@ public class FindJDK {
 	 * @param jdk
 	 *            true must be JDK, false JRE is okay
 	 * @return
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public String find(int bit, boolean jdk) throws IOException {
 		String path = "";
 		this.jdk = jdk;
-		System.out.println("isX86:"+isX86);
+		System.out.println("isX86:" + isX86);
 		if (isWindows) {
 			if (isX86) {
 				if (bit == 64) {

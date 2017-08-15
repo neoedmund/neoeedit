@@ -96,7 +96,7 @@ public class MathExprParser {
 				throw new RuntimeException("Unexpected: " + (char) c);
 			String s = sb.toString();
 			if (s.startsWith("0x")) {
-				v= new BigDecimal( new BigInteger(s.substring(2), 16));
+				v = new BigDecimal(new BigInteger(s.substring(2), 16));
 			} else {
 				v = new BigDecimal(s);
 			}

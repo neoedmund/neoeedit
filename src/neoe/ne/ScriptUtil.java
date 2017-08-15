@@ -19,14 +19,12 @@ import neoe.ne.util.Finder;
 
 public class ScriptUtil {
 
-	public List<CharSequence> runSingleScript(String script,
-			List<CharSequence> input) throws Exception {
+	public List<CharSequence> runSingleScript(String script, List<CharSequence> input) throws Exception {
 		// 3.1.
 		String neoeeditCP = findMyCP();
-		//System.out.println("neoeeditCP="+neoeeditCP);
+		// System.out.println("neoeeditCP="+neoeeditCP);
 		String javaPath = new FindJDK().find(0, true);
-		String javac = javaPath
-				+ (FindJDK.isWindows ? "/bin/javac.exe" : "/bin/javac");
+		String javac = javaPath + (FindJDK.isWindows ? "/bin/javac.exe" : "/bin/javac");
 
 		// 1.
 		String className = findClassName(script);
@@ -69,10 +67,8 @@ public class ScriptUtil {
 		// if (!bin.endsWith("/"))
 		// bin = bin + "/";
 		log("bin=" + bin);
-		ClassLoader ncl = new URLClassLoader(new URL[] { bin },
-				U.class.getClassLoader());
-		Class cls = ncl.loadClass(packageName.isEmpty() ? className
-				: (packageName + "." + className));
+		ClassLoader ncl = new URLClassLoader(new URL[] { bin }, U.class.getClassLoader());
+		Class cls = ncl.loadClass(packageName.isEmpty() ? className : (packageName + "." + className));
 		Script sc = (Script) cls.newInstance();
 		List<CharSequence> ret = sc.run(input);
 		// delete when hot
@@ -111,13 +107,12 @@ public class ScriptUtil {
 	}
 
 	private String findMyCP() {
-		URL location = U.class.getResource('/'
-				+ U.class.getName().replace('.', '/') + ".class");
+		URL location = U.class.getResource('/' + U.class.getName().replace('.', '/') + ".class");
 		if (location == null) {
 			error("Sorry I cannot find where the neoeedit.jar is located.");
 		}
 		String path = location.getPath();
-		System.out.println("path="+path);
+		System.out.println("path=" + path);
 		if (path.startsWith("file:"))
 			path = path.substring("file:".length());
 		int p1 = path.indexOf('!');
@@ -165,10 +160,8 @@ public class ScriptUtil {
 
 		public int execute() throws Exception {
 			Process p = new ProcessBuilder().command(sb).start();
-			StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(),
-					"stderr");
-			StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(),
-					"stdout");
+			StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), "stderr");
+			StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), "stdout");
 			outputGobbler.start();
 			errorGobbler.start();
 			return p.waitFor();
