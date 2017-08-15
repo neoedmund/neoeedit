@@ -19,14 +19,78 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+import neoe.ne.PicView.DigitFilenameCompare;
+
 public class PicView {
+
+	public static class DigitFilenameCompare implements Comparator {
+		private Map<File, String> cache;
+
+		DigitFilenameCompare() {
+			cache = new HashMap();
+		}
+
+		@Override
+		public int compare(Object o1, Object o2) {
+			File f1 = (File) o1;
+			File f2 = (File) o2;
+			return dfn(f1).compareTo(dfn(f2));
+		}
+
+		private String dfn(File f) {
+			String s = cache.get(f);
+			if (s == null) {
+				s = dfn_get(f);
+				cache.put(f, s);
+			}
+			return s;
+		}
+
+		private String dfn_get(File f) {
+			String fn = f.getName();
+			StringBuilder sb = new StringBuilder();
+			StringBuilder sb2 = new StringBuilder();
+			boolean isDigit = false;
+			for (int i = 0; i < fn.length(); i++) {
+				char c = fn.charAt(i);
+				if (Character.isDigit(c)) {
+					sb2.append(c);
+					if (isDigit) {
+					} else {
+						isDigit = true;
+					}
+				} else {
+					if (isDigit) {
+						submit(sb2, sb);
+						isDigit = false;
+					} else {
+					}
+					sb.append(c);
+				}
+			}
+			submit(sb2, sb);
+			return sb.toString();
+		}
+
+		private void submit(StringBuilder sb2, StringBuilder sb) {
+			if (sb2.length() <= 0)
+				return;
+			int v = Integer.parseInt(sb2.toString());
+			sb2.setLength(0);
+			sb.append((char) v);
+		}
+
+	}
 
 	public class PicViewPanel extends JPanel
 			implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener {
@@ -124,7 +188,7 @@ public class PicView {
 					files.add(f1);
 				}
 			}
-			Collections.sort(files);
+			Collections.sort(files, new DigitFilenameCompare());
 			fi = files.indexOf(f);
 			if (fi < 0) {
 				fi = 0;
