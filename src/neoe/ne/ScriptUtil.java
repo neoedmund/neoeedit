@@ -173,6 +173,7 @@ public class ScriptUtil {
 			private PrintWriter out;
 
 			private StreamGobbler(InputStream is, String type) {
+				setDaemon(true);
 				this.is = is;
 				this.type = type;
 				out = new PrintWriter(sw);

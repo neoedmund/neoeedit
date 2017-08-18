@@ -431,6 +431,7 @@ public class PlainPage {
 				new Thread() {
 					@Override
 					public void run() {
+						setDaemon(true);
 						U.guessComment(PlainPage.this);
 					}
 				}.start();
@@ -905,6 +906,7 @@ public class PlainPage {
 					new Thread() {
 						@Override
 						public void run() {
+							setDaemon(true);
 							U.guessComment(PlainPage.this);
 						}
 					}.start();

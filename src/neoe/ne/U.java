@@ -1142,6 +1142,7 @@ public class U {
 			new Thread() {
 				@Override
 				public void run() {
+					setDaemon(true);
 					try {
 						PrinterJob job = PrinterJob.getPrinterJob();
 						PageFormat pf = job.pageDialog(job.defaultPage());
@@ -1427,6 +1428,7 @@ public class U {
 		new Thread() {
 			@Override
 			public void run() {
+				setDaemon(true);
 				try {
 					String enc = System.getProperty("sun.jnu.encoding");
 					if (enc == null) {
@@ -2554,6 +2556,7 @@ public class U {
 		new Thread() {
 			@Override
 			public void run() {
+				setDaemon(true);
 				try {
 					Thread.sleep(t);
 					edit.repaint();
@@ -2850,6 +2853,7 @@ public class U {
 		new Thread() {
 			@Override
 			public void run() {
+				setDaemon(true);
 				try {
 					int w = uiComp.getWidth();
 					int h = 60;
