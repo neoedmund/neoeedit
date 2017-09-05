@@ -2,7 +2,7 @@ package neoe.ne;
 
 public class Version {
 	// use git instead of svn , so change rxxx to vxxx
-	public static final String REV = "v290"; // β
+	public static final String REV = "v292"; // β
 	public static final String CONFIG_FN = "/data.py.ver16";
 }
 /*

@@ -624,6 +624,9 @@ public class PlainPage {
 		private boolean fpsOn = false;
 		private int charCntInLine;
 		private int textAreaWidth;
+		private boolean inComment;
+		private String commentClose;
+		private String commentStart;
 
 		Paint() {
 			try {
@@ -751,14 +754,42 @@ public class PlainPage {
 
 		int drawStringLine(Graphics2D g2, Font[] fonts, CharSequence s, int x, int y, boolean isCurrentLine) {
 			int w = 0;
-			int commentPos = getCommentPos(s);
-			if (commentPos >= 0) {
-				CharSequence s1 = s.subSequence(0, commentPos);
-				CharSequence s2 = s.subSequence(commentPos, s.length());
-				int w1 = drawText(g2, fonts, s1, x, y, false, isCurrentLine);
-				w = w1 + drawText(g2, fonts, s2, x + w1, y, true, isCurrentLine);
+			if (inComment) {
+				int p1 = U.indexOf(s, commentClose, 0);
+				if (p1 > 0) {
+					inComment = false;
+					CharSequence s1 = s.subSequence(0, p1 + commentClose.length());
+					CharSequence s2 = s.subSequence(p1 + commentClose.length(), s.length());
+					int w1 = drawText(g2, fonts, s1, x, y, true, isCurrentLine);
+					w = w1 + drawText(g2, fonts, s2, x + w1, y, false, isCurrentLine);
+				} else {
+					w = drawText(g2, fonts, s, x, y, true, isCurrentLine);
+				}
 			} else {
-				w = drawText(g2, fonts, s, x, y, false, isCurrentLine);
+				int commentPos = getCommentPos(s);
+				if (commentPos >= 0) {
+					CharSequence s1 = s.subSequence(0, commentPos);
+					CharSequence s2 = s.subSequence(commentPos, s.length());
+					if (inComment) {
+						int p1 = U.indexOf(s2, commentClose, commentStart.length());
+						if (p1 >= 0) {
+							CharSequence s2a = s2.subSequence(0, p1 + commentClose.length());
+							CharSequence s2b = s2.subSequence(p1 + commentClose.length(), s2.length());
+							int w1 = drawText(g2, fonts, s1, x, y, false, isCurrentLine);
+							int w2 = w1 + drawText(g2, fonts, s2a, x + w1, y, true, isCurrentLine);
+							w = w2 + drawText(g2, fonts, s2b, x + w2, y, false, isCurrentLine);
+							inComment = false;
+						} else {
+							int w1 = drawText(g2, fonts, s1, x, y, false, isCurrentLine);
+							w = w1 + drawText(g2, fonts, s2, x + w1, y, true, isCurrentLine);
+						}
+					} else {
+						int w1 = drawText(g2, fonts, s1, x, y, false, isCurrentLine);
+						w = w1 + drawText(g2, fonts, s2, x + w1, y, true, isCurrentLine);
+					}
+				} else {
+					w = drawText(g2, fonts, s, x, y, false, isCurrentLine);
+				}
 			}
 			return w;
 		}
@@ -855,14 +886,25 @@ public class PlainPage {
 
 		private int getCommentPos(CharSequence s) {
 			if (comment == null) {
+				inComment = false;
 				return -1;
 			}
 			for (String c : comment) {
 				int p = U.indexOf(s, c, 0);
 				if (p >= 0) {
+					if ("/*".equals(c)) {
+						inComment = true;
+						commentClose = "*/";
+						commentStart = c;
+					} else if ("<!--".equals(c)) {
+						inComment = true;
+						commentClose = "-->";
+						commentStart = c;
+					}
 					return p;
 				}
 			}
+			inComment = false;
 			return -1;
 		}
 

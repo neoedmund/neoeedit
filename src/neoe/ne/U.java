@@ -2084,7 +2084,7 @@ public class U {
 
 	static void guessComment(PlainPage page) {
 		List<String> comment = new ArrayList<String>();
-		String[] commentchars = { "#", "%", "'", "//", "!", ";", "--", "/*", "<!--" };
+		String[] commentchars = { "/*", "<!--", "#", "%", "'", "//", "!", ";", "--", };
 		int[] cnts = new int[commentchars.length];
 		int maxLines = Math.min(10000, page.pageData.roLines.getLinesize());
 		for (int i = 0; i < maxLines; i++) {
