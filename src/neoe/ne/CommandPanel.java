@@ -14,12 +14,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JComponent;
+
 /**
  * A help panel shows all commands. Hold down CTRL for seconds to activate it.
  */
 public class CommandPanel {
 
 	public static class CommandPanelPaint {
+		private PlainPage pp;
+
+		public CommandPanelPaint(PlainPage plainPage) {
+			this.pp = plainPage;
+		}
+
 		static Font fontTopLine1 = new Font("Courier", Font.PLAIN, 11);
 		static Font fontTopLine2 = new Font("Courier", Font.ITALIC, 11);
 
@@ -142,10 +150,10 @@ public class CommandPanel {
 					XButton btn = (XButton) o;
 					if (btn == lastInObj) {
 						btn.selected = true;
-						long now = System.currentTimeMillis();
-						if (now - lastInObjMs > tipMs) {
-							btn.showTip = true;
-						}
+						// long now = System.currentTimeMillis();
+						// if (now - lastInObjMs > tipMs) {
+						btn.showTip = true;
+						// }
 					}
 					btn.xpaint(g);
 
@@ -236,12 +244,23 @@ public class CommandPanel {
 				} else {
 					lastInObj = inObj;
 					lastInObjMs = System.currentTimeMillis();
+					repaint();
+
 				}
 			} else {
 				lastInObj = inObj;
 				lastInObjMs = System.currentTimeMillis();
+				repaint();
 			}
 
+		}
+
+		private void repaint() {
+			if (pp != null) {
+				EditorPanel comp = pp.uiComp;
+				if (comp != null)
+					comp.repaint();
+			}
 		}
 
 		public void xpaint(Graphics2D g, Dimension size) {

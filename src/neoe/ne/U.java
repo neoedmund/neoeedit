@@ -1139,10 +1139,9 @@ public class U {
 
 		void printPages() {
 
-			new Thread() {
+			U.startThread(new Thread() {
 				@Override
 				public void run() {
-					setDaemon(true);
 					try {
 						PrinterJob job = PrinterJob.getPrinterJob();
 						PageFormat pf = job.pageDialog(job.defaultPage());
@@ -1167,7 +1166,7 @@ public class U {
 						e.printStackTrace();
 					}
 				}
-			}.start();
+			});
 		}
 	}
 
@@ -1391,6 +1390,11 @@ public class U {
 
 	}
 
+	public static void startThread(Thread thread) {
+		thread.setDaemon(true);
+		thread.start();
+	}
+
 	public static int indexOf(CharSequence input, char needle) {
 		if (input instanceof String) {
 			String text = (String) input;
@@ -1425,10 +1429,9 @@ public class U {
 	}
 
 	static void attach(final PlainPage page, final InputStream std) {
-		new Thread() {
+		U.startThread(new Thread() {
 			@Override
 			public void run() {
-				setDaemon(true);
 				try {
 					String enc = System.getProperty("sun.jnu.encoding");
 					if (enc == null) {
@@ -1446,7 +1449,7 @@ public class U {
 					page.ptEdit.append("error:" + e + "\n");
 				}
 			}
-		}.start();
+		});
 	}
 
 	static boolean changedOutside(PlainPage pp) {
@@ -2553,10 +2556,9 @@ public class U {
 	}
 
 	static void repaintAfter(final long t, final JComponent edit) {
-		new Thread() {
+		U.startThread(new Thread() {
 			@Override
 			public void run() {
-				setDaemon(true);
 				try {
 					Thread.sleep(t);
 					edit.repaint();
@@ -2564,7 +2566,7 @@ public class U {
 					e.printStackTrace();
 				}
 			}
-		}.start();
+		});
 	}
 
 	static Point replace(PlainPage page, String s, int x, int y, String s2, boolean all, boolean ignoreCase) {
@@ -2850,10 +2852,9 @@ public class U {
 		if (ui.aboutImg != null) {
 			return;
 		}
-		new Thread() {
+		U.startThread(new Thread() {
 			@Override
 			public void run() {
-				setDaemon(true);
 				try {
 					int w = uiComp.getWidth();
 					int h = 60;
@@ -2888,7 +2889,7 @@ public class U {
 					ui.aboutImg = null;
 				}
 			}
-		}.start();
+		});
 
 	}
 
@@ -3023,7 +3024,7 @@ public class U {
 	}
 
 	static void startNoiseThread(final Paint ui, final EditorPanel uiComp) {
-		Thread t = new Thread() {
+		U.startThread(new Thread() {
 			@Override
 			public void run() {
 				try {// noise thread
@@ -3041,9 +3042,7 @@ public class U {
 					e.printStackTrace();
 				}
 			}
-		};
-		t.setDaemon(true);
-		t.start();
+		});
 	}
 
 	static int strWidth(Graphics2D g2, Font[] fonts, String s, int TABWIDTH) {

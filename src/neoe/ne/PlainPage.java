@@ -428,13 +428,12 @@ public class PlainPage {
 			}
 			if (len >= 5 && ui.comment == null) {
 				isCommentChecked = true;
-				new Thread() {
+				U.startThread(new Thread() {
 					@Override
 					public void run() {
-						setDaemon(true);
 						U.guessComment(PlainPage.this);
 					}
-				}.start();
+				});
 			}
 			focusCursor();
 		}
@@ -606,7 +605,7 @@ public class PlainPage {
 		Color colorNormal = Color.BLACK;
 		String[] comment = null;
 		Comment commentor = new Comment();
-		CommandPanelPaint cp = new CommandPanelPaint();
+		CommandPanelPaint cp = new CommandPanelPaint(PlainPage.this);
 		Dimension dim;
 
 		int gutterWidth = 40;
@@ -903,13 +902,12 @@ public class PlainPage {
 
 				if (!isCommentChecked) {// find comment pattern
 					isCommentChecked = true;
-					new Thread() {
+					U.startThread(new Thread() {
 						@Override
 						public void run() {
-							setDaemon(true);
 							U.guessComment(PlainPage.this);
 						}
-					}.start();
+					});
 				}
 
 				// g2.setFont(font);
