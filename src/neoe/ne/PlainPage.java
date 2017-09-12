@@ -244,7 +244,7 @@ public class PlainPage {
 			}
 		}
 
-		public void consoleAppend(String s) {			
+		public void consoleAppend(String s) {
 			synchronized (console) {
 				int size = pageData.lines.size();
 				CharSequence lastLine = pageData.lines.get(size - 1);
@@ -263,12 +263,10 @@ public class PlainPage {
 					consoleSubmitLastLine();
 
 				} else if (ch == KeyEvent.VK_BACK_SPACE) {
-
 					if (cx > 0) {
 						pageData.editRec.deleteInLine(cy, cx - 1, cx);
 						cx -= 1;
 					}
-
 				} else if (ch == KeyEvent.VK_DELETE) {
 					if (cx < pageData.roLines.getline(cy).length()) {
 						pageData.editRec.deleteInLine(cy, cx, cx + 1);
@@ -289,8 +287,7 @@ public class PlainPage {
 		private void consoleSubmitLastLine() {
 			cy = pageData.roLines.getLinesize() - 1;
 			String sb = pageData.roLines.getline(cy).toString();
-			pageData.editRec.insertEmptyLine(cy + 1);
-			cy += 1;
+			pageData.editRec.deleteLines(cy, cy + 1);
 			cx = 0;
 			sb += "\n";
 			console.submit(sb);

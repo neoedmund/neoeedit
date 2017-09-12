@@ -1437,12 +1437,17 @@ public class U {
 					if (enc == null) {
 						enc = "utf8";
 					}
-					BufferedReader in = new BufferedReader(new InputStreamReader(std, enc));
-					String line;
-					page.ptEdit.append("encoding:" + enc + "\n");
-					while ((line = in.readLine()) != null) {
+					InputStreamReader in = new InputStreamReader(std, enc);
+					int len;
+					char[] buf = new char[10240];
+					page.ptEdit.consoleAppend("encoding:" + enc + "\n");
+					while ((len = in.read(buf)) > 0) {
+						String line = new String(buf, 0, len);
 						line = Console.filterSimpleTTY(line);
-						page.ptEdit.consoleAppend(line + "\n");
+						String[] ss = line.split("\\n");
+						for (String s : ss) {
+							page.ptEdit.consoleAppend(U.removeTailR(s) + "\n");
+						}
 						page.uiComp.repaint();
 					}
 					page.ptEdit.consoleAppend("<EOF>\n");
@@ -3150,7 +3155,16 @@ public class U {
 	public static List<CharSequence> removeTailR(List<String> split) {
 		List<CharSequence> r = new ArrayList<CharSequence>();
 		for (String s : split) {
-			r.add(U.removeTailR(s));
+			s = U.removeTailR(s).toString();
+			if (s.contains("\r")) { // lines that replacing the last line
+				String[] ss = s.split("\\r");
+				for (String s1 : ss) {
+					r.add(s1);
+				}
+				System.out.println("sep "+ss.length);
+			} else {
+				r.add(s);
+			}
 		}
 		return r;
 	}

@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Console {
-	String cmd;
+	public String cmd;
 	OutputStream out;
 	InputStream stdout;
 	InputStream stderr;
@@ -26,6 +26,12 @@ public class Console {
 		PlainPage pp = ep.getPage();
 		this.pp = pp;
 		pp.console = this;
+		ep.changeTitle();
+		{
+			PageData pageData = pp.pageData;
+			int size = pageData.roLines.getline(pp.cy).length();
+			pageData.editRec.deleteInLine(pp.cy, 0, size);
+		}
 		U.attach(pp, stdout);
 		U.attach(pp, stderr);
 	}
