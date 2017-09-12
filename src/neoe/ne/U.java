@@ -1441,12 +1441,12 @@ public class U {
 					String line;
 					page.ptEdit.append("encoding:" + enc + "\n");
 					while ((line = in.readLine()) != null) {
-						page.ptEdit.append(line + "\n");
+						page.ptEdit.consoleAppend(line + "\n");
 						page.uiComp.repaint();
 					}
-					page.ptEdit.append("<EOF>\n");
+					page.ptEdit.consoleAppend("<EOF>\n");
 				} catch (Throwable e) {
-					page.ptEdit.append("error:" + e + "\n");
+					page.ptEdit.consoleAppend("error:" + e + "\n");
 				}
 			}
 		});
@@ -1642,10 +1642,13 @@ public class U {
 			return;
 		}
 		Process proc = Runtime.getRuntime().exec(cmd);
+		OutputStream out = proc.getOutputStream();
 		InputStream stdout = proc.getInputStream();
 		InputStream stderr = proc.getErrorStream();
-		attach(getPage(pp.uiComp, "[stderr]"), stderr);
-		attach(getPage(pp.uiComp, "[stdout]"), stdout);
+
+		new Console(cmd, out, stdout, stderr, proc).start();
+		// attach(getPage(pp.uiComp, "[stderr]"), stderr);
+		// attach(getPage(pp.uiComp, "[stdout]"), stdout);
 	}
 
 	static Point find(PlainPage page, String s, int x, int y, boolean ignoreCase) {

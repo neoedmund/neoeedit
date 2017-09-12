@@ -236,8 +236,87 @@ public class PlainPage {
 			insertString(s);
 		}
 
-		private void deleteLineRange(int start, int end) {
-			pageData.editRec.deleteLines(start, end);
+		private void consoleAdjustToLastLine() {
+			int size = pageData.lines.size();
+			if (cy != size - 1) {
+				cy = size - 1;
+				cx = pageData.lines.get(size - 1).length();
+			}
+		}
+
+		public void consoleAppend(String s) {
+			synchronized (console) {
+				int size = pageData.lines.size();
+				CharSequence lastLine = pageData.lines.get(size - 1);
+				pageData.lines.remove(size - 1);
+				cy = pageData.roLines.getLinesize() - 1;
+				cx = pageData.roLines.getline(cy).length();
+				insertString(s);
+				pageData.lines.add(lastLine);
+			}
+		}
+
+		private void consoleInsertChar(char ch) {
+			synchronized (console) {
+				consoleAdjustToLastLine();
+				if (ch == KeyEvent.VK_ENTER) {
+					consoleSubmitLastLine();
+
+				} else if (ch == KeyEvent.VK_BACK_SPACE) {
+
+					if (cx > 0) {
+						pageData.editRec.deleteInLine(cy, cx - 1, cx);
+						cx -= 1;
+					}
+
+				} else if (ch == KeyEvent.VK_DELETE) {
+					if (cx < pageData.roLines.getline(cy).length()) {
+						pageData.editRec.deleteInLine(cy, cx, cx + 1);
+					}
+				} else if (ch == KeyEvent.VK_ESCAPE) {
+					int size = pageData.roLines.getline(cy).length();
+					pageData.editRec.deleteInLine(cy, 0, size);
+				} else {
+					pageData.editRec.insertInLine(cy, cx, "" + ch);
+					cx += 1;
+				}
+			}
+			focusCursor();
+			uiComp.repaint();
+
+		}
+
+		private void consoleSubmitLastLine() {
+			cy = pageData.roLines.getLinesize() - 1;
+			String sb = pageData.roLines.getline(cy).toString();
+			pageData.editRec.insertEmptyLine(cy + 1);
+			cy += 1;
+			cx = 0;
+			sb += "\n";
+			console.submit(sb);
+
+		}
+
+		private void consoleUserInput(List<CharSequence> ss) {
+			synchronized (console) {
+				consoleAdjustToLastLine();
+				int len = ss.size();
+				if (len == 1) {
+					pageData.editRec.insertInLine(cy, cx, ss.get(0));
+					cx += ss.get(0).length();
+				} else {
+					pageData.editRec.deleteInLine(cy, cx, Integer.MAX_VALUE);
+					pageData.editRec.insertInLine(cy, cx, ss.get(0));
+					for (int i = 1; i < len; i++) {
+						consoleSubmitLastLine();
+						cy++;
+						pageData.editRec.insertEmptyLine(cy);
+						pageData.editRec.insertInLine(cy, 0, ss.get(i));
+					}
+					cx = ss.get(len - 1).length();
+				}
+			}
+			focusCursor();
 		}
 
 		void deleteLine(int cy) {
@@ -250,12 +329,8 @@ public class PlainPage {
 			// pageData.editRec.deleteEmptyLine(cy);
 		}
 
-		void deleteSpace() {
-			// CharSequence line = pageData.roLines.getline(cy);
-			int x0 = cx, y0 = cy;
-			cursor.moveRightWord();
-			int x2 = cx, y2 = cy;
-			deleteRect(new Rectangle(x0, y0, x2, y2));
+		private void deleteLineRange(int start, int end) {
+			pageData.editRec.deleteLines(start, end);
 		}
 
 		void deleteRect(Rectangle r) {
@@ -287,7 +362,19 @@ public class PlainPage {
 			focusCursor();
 		}
 
+		void deleteSpace() {
+			// CharSequence line = pageData.roLines.getline(cy);
+			int x0 = cx, y0 = cy;
+			cursor.moveRightWord();
+			int x2 = cx, y2 = cy;
+			deleteRect(new Rectangle(x0, y0, x2, y2));
+		}
+
 		void insert(char ch) {
+			if (console != null) {
+				consoleInsertChar(ch);
+				return;
+			}
 			// Fix cy here! ?
 			if (cy < 0)
 				cy = 0;
@@ -378,11 +465,11 @@ public class PlainPage {
 			uiComp.repaint();
 		}
 
-		void insertString(String s) {
-			insertString(U.removeTailR(U.split(s, U.N)));
-		}
-
-		void insertString(List<CharSequence> ss) {
+		void insertString(List<CharSequence> ss, boolean userInput) {
+			if (userInput && console != null) {
+				consoleUserInput(ss);
+				return;
+			}
 			// Fix cy here! ?
 			if (cy < 0)
 				cy = 0;
@@ -436,6 +523,14 @@ public class PlainPage {
 				});
 			}
 			focusCursor();
+		}
+
+		void insertString(String s) {
+			insertString(s, false);
+		}
+
+		public void insertString(String s, boolean userInput) {
+			insertString(U.removeTailR(U.split(s, U.N)), userInput);
 		}
 
 		void moveLineLeft(int cy) {
@@ -673,6 +768,11 @@ public class PlainPage {
 			}
 		}
 
+		void drawNextToolbarText(Graphics2D g2, String s) {
+			g2.setColor(colorGutMark2);
+			nextXToolBar += 10 + U.drawString(g2, U.fontList, s, 10 + nextXToolBar, lineHeight);
+		}
+
 		void drawReturn(Graphics2D g2, int w, int py) {
 			g2.setColor(colorReturnMark);
 			g2.drawLine(w, py - lineHeight + U.fontList[0].getSize(), w + 3, py - lineHeight + U.fontList[0].getSize());
@@ -877,11 +977,6 @@ public class PlainPage {
 					U.drawString(g2, U.fontList, msg, dim.width - w, lineHeight);
 				}
 			}
-		}
-
-		void drawNextToolbarText(Graphics2D g2, String s) {
-			g2.setColor(colorGutMark2);
-			nextXToolBar += 10 + U.drawString(g2, U.fontList, s, 10 + nextXToolBar, lineHeight);
 		}
 
 		private int getCommentPos(CharSequence s) {
@@ -1339,6 +1434,8 @@ public class PlainPage {
 	public Paint ui = new Paint();
 	EditorPanel uiComp;
 
+	public Console console;
+
 	private PlainPage() {
 	}
 
@@ -1378,6 +1475,22 @@ public class PlainPage {
 		}
 	}
 
+	private void doGo(String line, boolean record) throws Exception {
+
+		if (line.startsWith("set-font:")) {
+			U.setFont(this, line.substring("set-font:".length()).trim());
+		} else {
+			if (searchResultOf == null || !U.gotoFileLine2(uiComp, line, searchResultOf, record)) {
+				if (!U.gotoFileLine(line, uiComp, record /* , pageData.getTitle().equals(U.titleOfPages(uiComp)) */)) {
+					if (!U.listDir(PlainPage.this, cy)) {
+						U.launch(line);
+					}
+				}
+			}
+		}
+
+	}
+
 	public void focusCursor() {
 		if (cy < sy) {
 			sy = Math.max(0, cy - showLineCnt / 2 + 1);
@@ -1387,6 +1500,12 @@ public class PlainPage {
 				sy = Math.max(0, cy - showLineCnt / 2 + 1);
 			}
 		}
+	}
+
+	private boolean isButtonDown(int i, MouseEvent evt) {
+		int b = InputEvent.getMaskForButton(i);
+		int ex = evt.getModifiersEx();
+		return (ex & b) != 0;
 	}
 
 	public void keyPressed(KeyEvent evt) {
@@ -1555,44 +1674,6 @@ public class PlainPage {
 		}
 	}
 
-	private boolean processButton5(MouseEvent evt) {
-		if (!isButtonDown(5, evt)) {
-			return false;
-		}
-		String s = uiComp.pageHis.forward(U.getLocString(this));
-		if (s != null) {
-			try {
-				doGo(s, false);
-			} catch (Throwable e) {
-				ui.message("err:" + e);
-				e.printStackTrace();
-			}
-		}
-		return true;
-	}
-
-	private boolean isButtonDown(int i, MouseEvent evt) {
-		int b = InputEvent.getMaskForButton(i);
-		int ex = evt.getModifiersEx();
-		return (ex & b) != 0;
-	}
-
-	private boolean processButton4(MouseEvent evt) {
-		if (!isButtonDown(4, evt)) {
-			return false;
-		}
-		String s = uiComp.pageHis.back(U.getLocString(this));
-		if (s != null) {
-			try {
-				doGo(s, false);
-			} catch (Throwable e) {
-				ui.message("err:" + e);
-				e.printStackTrace();
-			}
-		}
-		return true;
-	}
-
 	public void mouseDragged(MouseEvent evt) {
 		{
 			if (isButtonDown(4, evt) || isButtonDown(5, evt)) {
@@ -1655,6 +1736,38 @@ public class PlainPage {
 		}
 		this.preeditText = text;
 		uiComp.repaint();
+	}
+
+	private boolean processButton4(MouseEvent evt) {
+		if (!isButtonDown(4, evt)) {
+			return false;
+		}
+		String s = uiComp.pageHis.back(U.getLocString(this));
+		if (s != null) {
+			try {
+				doGo(s, false);
+			} catch (Throwable e) {
+				ui.message("err:" + e);
+				e.printStackTrace();
+			}
+		}
+		return true;
+	}
+
+	private boolean processButton5(MouseEvent evt) {
+		if (!isButtonDown(5, evt)) {
+			return false;
+		}
+		String s = uiComp.pageHis.forward(U.getLocString(this));
+		if (s != null) {
+			try {
+				doGo(s, false);
+			} catch (Throwable e) {
+				ui.message("err:" + e);
+				e.printStackTrace();
+			}
+		}
+		return true;
 	}
 
 	void processCommand(Commands cmd) throws Exception {
@@ -1789,10 +1902,15 @@ public class PlainPage {
 			U.listFonts(this);
 			break;
 		case copySelected:
+			if (console != null) {
+				if (!ptSelection.isSelected()) {
+					console.submit(3);
+				}
+			}
 			ptSelection.copySelected();
 			break;
 		case paste:
-			ptEdit.insertString(U.getClipBoard());
+			ptEdit.insertString(U.getClipBoard(), true);
 			break;
 		case cut:
 			ptSelection.cutSelected();
@@ -1937,22 +2055,6 @@ public class PlainPage {
 		default:
 			ui.message("unprocessed Command:" + cmd);
 		}
-	}
-
-	private void doGo(String line, boolean record) throws Exception {
-
-		if (line.startsWith("set-font:")) {
-			U.setFont(this, line.substring("set-font:".length()).trim());
-		} else {
-			if (searchResultOf == null || !U.gotoFileLine2(uiComp, line, searchResultOf, record)) {
-				if (!U.gotoFileLine(line, uiComp, record /* , pageData.getTitle().equals(U.titleOfPages(uiComp)) */)) {
-					if (!U.listDir(PlainPage.this, cy)) {
-						U.launch(line);
-					}
-				}
-			}
-		}
-
 	}
 
 	private void unknownCommand(KeyEvent env) {
