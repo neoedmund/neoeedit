@@ -54,15 +54,7 @@ public class Console {
 	public static String filterSimpleTTY(String s) {
 		while (true) {
 			{
-				String k1 = "[0m";
-				int p1 = s.indexOf(k1);
-				if (p1 >= 0) {
-					s = s.substring(0, p1) + s.substring(p1 + k1.length());
-					continue;
-				}
-			}
-			{
-				String k1 = "[01;";
+				String k1 = "[";
 				int p1 = s.indexOf(k1);
 				if (p1 >= 0) {
 					int p2 = s.indexOf("m", p1 + k1.length());
