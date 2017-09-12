@@ -547,16 +547,28 @@ public class U {
 			for (Object o2 : o1) {
 				List row = (List) o2;
 				String cmd = row.get(0).toString();
-				String key = row.get(1).toString().toUpperCase();
-				if (keys.contains(key)) {
-					System.err.println("Error: duplicated key:" + key);
-					continue;
-				}
-				keys.add(key);
+				Object kk = row.get(1);
+				if (kk instanceof List) {
+					for (Object k : (List) kk) {
+						String key = k.toString().toUpperCase();
+						addOneKey(key, cmd, keys);
+					}
 
-				addKey(U.keys, key, cmd);
+				} else {
+					String key = row.get(1).toString().toUpperCase();
+					addOneKey(key, cmd, keys);
+				}
 			}
 			addKey(U.keys, "alt-Enter", "ShellCommand");
+		}
+
+		private static void addOneKey(String key, String cmd, Set<String> keys) throws Exception {
+			if (keys.contains(key)) {
+				System.err.println("Error: duplicated key:" + key);
+				return;
+			}
+			keys.add(key);
+			addKey(U.keys, key, cmd);
 		}
 
 		public static int[][] loadColorModes() throws IOException {

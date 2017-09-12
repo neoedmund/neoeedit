@@ -2,8 +2,8 @@ package neoe.ne;
 
 public class Version {
 	// use git instead of svn , so change rxxx to vxxx
-	public static final String REV = "v295".toString(); // β
-	public static final String CONFIG_FN = "/data.py.ver16";
+	public static final String REV = "v296".toString(); // β
+	public static final String CONFIG_FN = "/data.py.ver17".toString();
 }
 /*
  * changelog:
