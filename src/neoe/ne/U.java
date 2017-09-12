@@ -1433,16 +1433,16 @@ public class U {
 			@Override
 			public void run() {
 				try {
-					String enc = System.getProperty("sun.jnu.encoding");
-					if (enc == null) {
-						enc = "utf8";
-					}
-					InputStreamReader in = new InputStreamReader(std, enc);
+					InputStream in = std;
 					int len;
-					char[] buf = new char[10240];
-					page.ptEdit.consoleAppend("encoding:" + enc + "\n");
+					byte[] buf = new byte[10240];
+					// page.ptEdit.consoleAppend("encoding:" + enc + "\n");
 					while ((len = in.read(buf)) > 0) {
-						String line = new String(buf, 0, len);
+						String enc = page.pageData.encoding;
+						if (enc == null) {
+							enc = "utf8";
+						}
+						String line = new String(buf, 0, len, enc);
 						line = Console.filterSimpleTTY(line);
 						String[] ss = line.split("\\n");
 						for (String s : ss) {
@@ -3156,12 +3156,16 @@ public class U {
 		List<CharSequence> r = new ArrayList<CharSequence>();
 		for (String s : split) {
 			s = U.removeTailR(s).toString();
+			// for console
+			if (s.startsWith("\r"))
+				s = s.substring(1);
 			if (s.contains("\r")) { // lines that replacing the last line
 				String[] ss = s.split("\\r");
 				for (String s1 : ss) {
 					r.add(s1);
 				}
-				System.out.println("sep "+ss.length);
+				System.out.println("sep " + ss.length);
+
 			} else {
 				r.add(s);
 			}

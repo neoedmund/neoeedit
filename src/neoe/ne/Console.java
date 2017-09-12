@@ -24,11 +24,16 @@ public class Console {
 		ep.openWindow();
 		// ep.changeTitle();
 		PlainPage pp = ep.getPage();
+
 		this.pp = pp;
 		pp.console = this;
 		ep.changeTitle();
 		{
 			PageData pageData = pp.pageData;
+			pageData.encoding = System.getProperty("sun.jnu.encoding");
+			if (pageData.encoding == null) {
+				pageData.encoding = "UTF-8";
+			}
 			int size = pageData.roLines.getline(pp.cy).length();
 			pageData.editRec.deleteInLine(pp.cy, 0, size);
 		}
@@ -38,7 +43,7 @@ public class Console {
 
 	public void submit(String s) {
 		try {
-			out.write(s.getBytes());
+			out.write(s.getBytes(pp.pageData.encoding));
 			out.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
