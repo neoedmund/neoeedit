@@ -31,7 +31,7 @@ public class Console {
 	}
 
 	public void submit(String s) {
-		try {			
+		try {
 			out.write(s.getBytes());
 			out.flush();
 		} catch (Exception e) {
@@ -43,20 +43,20 @@ public class Console {
 	public static String filterSimpleTTY(String s) {
 		while (true) {
 			{
-				String k1 = "[0m";
+				String k1 = "[0m";
 				int p1 = s.indexOf(k1);
 				if (p1 >= 0) {
-					s = s.substring(0, p1-1) + s.substring(p1 + k1.length());
+					s = s.substring(0, p1) + s.substring(p1 + k1.length());
 					continue;
 				}
 			}
 			{
-				String k1 = "[01;";
+				String k1 = "[01;";
 				int p1 = s.indexOf(k1);
 				if (p1 >= 0) {
 					int p2 = s.indexOf("m", p1 + k1.length());
 					if (p2 >= 0) {
-						s = s.substring(0, p1-1) + s.substring(p2 + 1);
+						s = s.substring(0, p1) + s.substring(p2 + 1);
 						continue;
 					}
 				}
