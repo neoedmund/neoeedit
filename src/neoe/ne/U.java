@@ -94,7 +94,8 @@ public class U {
 		}
 
 		public E forward(E updateCurrent) {
-			// System.out.printf("his.forward size=%s, pos=%s\n", his.size(), pos);
+			// System.out.printf("his.forward size=%s, pos=%s\n", his.size(),
+			// pos);
 			if (pos < his.size() - 1) {
 				his.set(pos, updateCurrent);
 				pos++;
@@ -231,8 +232,8 @@ public class U {
 	}
 
 	/**
-	 * use first font, if cannot display character in that font , use second, and so
-	 * on
+	 * use first font, if cannot display character in that font , use second,
+	 * and so on
 	 */
 	public static int stringWidth(Graphics2D g2, Font[] fonts, String s0) {
 		if (s0 == null || s0.length() <= 0) {
@@ -1458,7 +1459,15 @@ public class U {
 						line = Console.filterSimpleTTY(line);
 						String[] ss = line.split("\\n");
 						for (String s : ss) {
-							page.ptEdit.consoleAppend(U.removeTailR(s) + "\n");
+							s = U.removeTailR(s).toString();
+							if (s.startsWith("\r")) {
+								s = s.substring(1);
+								int y = page.pageData.roLines.getLinesize() - 2;
+								if (y >= 0) {
+									page.ptEdit.deleteLine(y);
+								}
+							}
+							page.ptEdit.consoleAppend(s + "\n");
 						}
 						page.uiComp.repaint();
 					}
@@ -3169,13 +3178,15 @@ public class U {
 		for (String s : split) {
 			s = U.removeTailR(s).toString();
 			// for console
-			if (s.startsWith("\r"))
+			if (s.startsWith("\r")){
+				if (r.size()>0){
+					r.remove(r.size()-1);
+				}
 				s = s.substring(1);
+			}
 			if (s.contains("\r")) { // lines that replacing the last line
 				String[] ss = s.split("\\r");
-				for (String s1 : ss) {
-					r.add(s1);
-				}
+				r.add(ss[ss.length - 1]);
 				System.out.println("sep " + ss.length);
 
 			} else {

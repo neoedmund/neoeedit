@@ -241,6 +241,8 @@ public class PlainPage {
 			if (cy != size - 1) {
 				cy = size - 1;
 				cx = pageData.lines.get(size - 1).length();
+				focusCursor();
+				uiComp.repaint();
 			}
 		}
 
@@ -692,8 +694,9 @@ public class PlainPage {
 				colorKeyword, colorGutMark1, colorGutMark2, colorReturnMark;
 		int colorMode;
 		/**
-		 * 0:white mode 1: black mode 2: blue mode * 1 bg, 2 normal, 3 keyword, 4 digit,
-		 * 5 comment, 6 gutNumber, 7 gutLine, 8 currentLineBg, 9 comment2
+		 * 0:white mode 1: black mode 2: blue mode * 1 bg, 2 normal, 3 keyword,
+		 * 4 digit, 5 comment, 6 gutNumber, 7 gutLine, 8 currentLineBg, 9
+		 * comment2
 		 */
 		int[][] ColorModes = null;
 		Color colorNormal = Color.BLACK;
@@ -1480,7 +1483,11 @@ public class PlainPage {
 			U.setFont(this, line.substring("set-font:".length()).trim());
 		} else {
 			if (searchResultOf == null || !U.gotoFileLine2(uiComp, line, searchResultOf, record)) {
-				if (!U.gotoFileLine(line, uiComp, record /* , pageData.getTitle().equals(U.titleOfPages(uiComp)) */)) {
+				if (!U.gotoFileLine(line, uiComp,
+						record /*
+								 * , pageData.getTitle().equals(U.titleOfPages(
+								 * uiComp))
+								 */)) {
 					if (!U.listDir(PlainPage.this, cy)) {
 						U.launch(line);
 					}
