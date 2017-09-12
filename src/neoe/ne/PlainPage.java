@@ -244,7 +244,7 @@ public class PlainPage {
 			}
 		}
 
-		public void consoleAppend(String s) {
+		public void consoleAppend(String s) {			
 			synchronized (console) {
 				int size = pageData.lines.size();
 				CharSequence lastLine = pageData.lines.get(size - 1);

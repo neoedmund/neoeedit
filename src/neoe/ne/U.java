@@ -1441,6 +1441,7 @@ public class U {
 					String line;
 					page.ptEdit.append("encoding:" + enc + "\n");
 					while ((line = in.readLine()) != null) {
+						line = Console.filterSimpleTTY(line);
 						page.ptEdit.consoleAppend(line + "\n");
 						page.uiComp.repaint();
 					}
