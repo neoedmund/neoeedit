@@ -287,11 +287,13 @@ public class PlainPage {
 		private void consoleSubmitLastLine() {
 			cy = pageData.roLines.getLinesize() - 1;
 			String sb = pageData.roLines.getline(cy).toString();
+			if (sb.trim().length() == 0) {
+				consoleAppend("\n");
+			}
 			pageData.editRec.deleteLines(cy, cy + 1);
 			cx = 0;
 			sb += "\n";
 			console.submit(sb);
-
 		}
 
 		private void consoleUserInput(List<CharSequence> ss) {
