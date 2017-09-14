@@ -178,7 +178,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 			return;
 		String fn = page.pageData.getFn();
 		if (page.console != null) {
-			frame.setTitle("Console:" + page.console.cmd);
+			frame.setTitle("Console - " + page.console.cmd);
 			return;
 		}
 		if (fn != null) {
@@ -292,11 +292,15 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 	}
 
 	public void openWindow() throws IOException {
+		openWindow(U.e_png);
+	}
+
+	public void openWindow(String iconname) throws IOException {
 		openedWindows++;
 		if (frame != null)
 			return;
 		frame = new JFrame(EditorPanel.WINDOW_NAME);
-		frame.setIconImage(U.getAppIcon());
+		frame.setIconImage(U.getAppIcon(iconname));
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		Point p = U.Config.readFrameSize();
 		U.setFrameSize(frame, p.x, p.y);

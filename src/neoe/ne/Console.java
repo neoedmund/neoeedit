@@ -21,7 +21,7 @@ public class Console {
 
 	public void start() throws Exception {
 		EditorPanel ep = new EditorPanel(EditorPanelConfig.DEFAULT);
-		ep.openWindow();
+		ep.openWindow(U.e2_png);
 		// ep.changeTitle();
 		PlainPage pp = ep.getPage();
 

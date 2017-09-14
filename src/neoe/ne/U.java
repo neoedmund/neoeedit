@@ -232,8 +232,8 @@ public class U {
 	}
 
 	/**
-	 * use first font, if cannot display character in that font , use second,
-	 * and so on
+	 * use first font, if cannot display character in that font , use second, and so
+	 * on
 	 */
 	public static int stringWidth(Graphics2D g2, Font[] fonts, String s0) {
 		if (s0 == null || s0.length() <= 0) {
@@ -1462,10 +1462,10 @@ public class U {
 							s = U.removeTailR(s).toString();
 							if (s.startsWith("\r")) {
 								s = s.substring(1);
-								int y = page.pageData.roLines.getLinesize() - 2;
-								if (y >= 0) {
-									page.ptEdit.deleteLine(y);
-								}
+								// int y = page.pageData.roLines.getLinesize() - 2;
+								// if (y >= 0) {
+								// page.ptEdit.deleteLine(y);
+								// }
 							}
 							page.ptEdit.consoleAppend(s + "\n");
 						}
@@ -3178,17 +3178,16 @@ public class U {
 		for (String s : split) {
 			s = U.removeTailR(s).toString();
 			// for console
-			if (s.startsWith("\r")){
-				if (r.size()>0){
-					r.remove(r.size()-1);
-				}
+			if (s.startsWith("\r")) {
+				// if (r.size() > 0) {
+				// r.remove(r.size() - 1);
+				// }
 				s = s.substring(1);
 			}
 			if (s.contains("\r")) { // lines that replacing the last line
 				String[] ss = s.split("\\r");
-				r.add(ss[ss.length - 1]);
-				System.out.println("sep " + ss.length);
-
+				for (String s1 : ss)
+					r.add(s1);
 			} else {
 				r.add(s);
 			}
@@ -3200,12 +3199,17 @@ public class U {
 		return Math.min(max, Math.max(min, i));
 	}
 
-	static Image appIcon;
+	public static final String e_png = "e.png";
+	public static final String e2_png = "e2.png";
+	public static final String e3_png = "e3.png";
+	static Map<String, Image> appIcons = new HashMap();
 
-	public static Image getAppIcon() throws IOException {
+	public static Image getAppIcon(String name) throws IOException {
+		Image appIcon = appIcons.get(name);
 		if (appIcon != null)
 			return appIcon;
-		appIcon = ImageIO.read(EditorPanel.class.getResourceAsStream("/e.png"));
+		appIcon = ImageIO.read(EditorPanel.class.getResourceAsStream("/" + name));
+		appIcons.put(name, appIcon);
 		return appIcon;
 	}
 

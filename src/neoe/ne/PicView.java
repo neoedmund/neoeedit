@@ -388,6 +388,7 @@ public class PicView {
 	public void show(File fn) throws IOException {
 		JFrame f = new JFrame();
 		f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		f.setIconImage(U.getAppIcon(U.e3_png));
 		PicViewPanel p = new PicViewPanel(f, fn);
 		f.getContentPane().setLayout(new BorderLayout());
 		f.getContentPane().add(p);
