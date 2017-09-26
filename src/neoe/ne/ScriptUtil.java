@@ -22,7 +22,7 @@ public class ScriptUtil {
 	public List<CharSequence> runSingleScript(String script, List<CharSequence> input) throws Exception {
 		// 3.1.
 		String neoeeditCP = findMyCP();
-		// System.out.println("neoeeditCP="+neoeeditCP);
+		System.out.println("neoeeditCP="+neoeeditCP);
 		String javaPath = new FindJDK().find(0, true);
 		String javac = javaPath + (FindJDK.isWindows ? "/bin/javac.exe" : "/bin/javac");
 
@@ -52,7 +52,7 @@ public class ScriptUtil {
 		destdir.mkdirs();
 		exec.addArg("-d", destdir.getAbsolutePath());
 		exec.addArg("-encoding", "utf8");
-		exec.addArg("-cp", neoeeditCP);
+		exec.addArg("-cp", new File(neoeeditCP).getAbsolutePath());
 		exec.addArg(src.getAbsolutePath());
 		int retcode = exec.execute();
 		if (retcode != 0) {
@@ -159,6 +159,7 @@ public class ScriptUtil {
 		}
 
 		public int execute() throws Exception {
+			System.out.println(sb.toString());
 			Process p = new ProcessBuilder().command(sb).start();
 			StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), "stderr");
 			StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), "stdout");

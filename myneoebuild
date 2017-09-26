@@ -5,7 +5,7 @@ prjs:[
 ],
 destDir:"dist/",
 debug:true,
-source:7,
-target:7,
+source:8,
+target:8,
 }
                                                              
