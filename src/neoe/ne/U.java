@@ -3199,9 +3199,9 @@ public class U {
 		return Math.min(max, Math.max(min, i));
 	}
 
-	public static final String e_png = "e.png";
-	public static final String e2_png = "e2.png";
-	public static final String e3_png = "e3.png";
+	public static final String e_png = "e.jpg";
+	public static final String e2_png = "e2.jpg";
+	public static final String e3_png = "e3.jpg";
 	static Map<String, Image> appIcons = new HashMap();
 
 	public static Image getAppIcon(String name) throws IOException {
