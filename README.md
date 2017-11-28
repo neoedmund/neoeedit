@@ -23,8 +23,10 @@ https://github.com/neoedmund/neoeedit
 
 Windows:
 
-	- add to content-menu using `neoeedit.reg`
-	``` ﻿Windows Registry Editor Version 5.00
+- add to content-menu using `neoeedit.reg`
+
+```
+Windows Registry Editor Version 5.00
 
 [HKEY_CLASSES_ROOT\*\Shell\Open with neoeedit]
 
@@ -35,12 +37,17 @@ Windows:
 @="\"C:\\Program Files\\Java\\jdk1.8.0\\bin\\javaw.exe\" -cp \"C:\\neoe\\neoeedit.jar\"  \"neoe.ne.CopyFullName\" \"%1\""
 ```
 
-	- add `ne.cmd` to PATH
-	```start javaw -Xmx500M -jar neoeedit.jar %* ```
+- add `ne.cmd` to PATH
+
+```
+start javaw -Xmx500M -jar neoeedit.jar %* 
+```
     
 Linux:
 	add `ne.sh` to PATH
-    ``` java -Xmx500M -jar neoeedit.jar $1 &  ```
+``` 
+java -Xmx500M -jar neoeedit.jar $1 &  
+```
 
 
 
