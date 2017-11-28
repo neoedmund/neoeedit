@@ -1,46 +1,52 @@
-# neoeedit
-
-
-neoeedit - a smart and light GUI text editor
+neoeedit
+=====================
+neoeedit - a smart, light, powerful text editor.
 
 
 https://github.com/neoedmund/neoeedit
 
 
-#### Neoeedit is a light, quick, smart, simple GUI text editor written in Java.  
-
-BSD LICENSE
-
-The size is only about 150KB(Jar File).
-
-The target is to be used daily by everyone specially programmers.
-
-Also neoe's own "dogfooding" project.
-
-Current status: Stable. since year 2009.
-
-Latest Java(JDK/JRE) need to be installed.
-
-Download latest (https://github.com/neoedmund/neoeedit/raw/master/dist/neoeedit.jar)
-
-plugins (Pinyin/Japanese IME)
+- BSD LICENSE
+- Written in Java
+- Java Swing for GUI, highly customized components.
+- Good performance
+- Good Unicode, CJK support
+- Rectangular mode
+- Integrated IME support
+- Script in Java
+- Hack, Nerd, Vim like
+- Small executable(200KB?)
+- Stable, since 2009
 
 
+### How to use
 
+Windows:
 
-### features :
-<pre>
-    small footprint
-    quick show (customized Swing component)
-    good unicode support(thanks the nature of Java)
-    run where Java run: Windows, Linux, ...(thanks the nature of Java)
-    IME-Aware, on-the-spot pre-edting.(not well support by java, but neoeedit has original IME plugin)
-    Scripts written in Java and run hot.
+	- add to content-menu using `neoeedit.reg`
+	``` ﻿Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\Shell\Open with neoeedit]
+
+[HKEY_CLASSES_ROOT\*\Shell\Open with neoeedit\Command]
+@="\"C:\\Program Files\\Java\\jdk1.8.0\\bin\\javaw.exe\" -Xmx1000M -jar \"C:\\neoe\\neoeedit.jar\" \"%1\""
+
+[HKEY_CLASSES_ROOT\*\Shell\Copy full name\Command]
+@="\"C:\\Program Files\\Java\\jdk1.8.0\\bin\\javaw.exe\" -cp \"C:\\neoe\\neoeedit.jar\"  \"neoe.ne.CopyFullName\" \"%1\""
+```
+
+	- add `ne.cmd` to PATH
+	```start javaw -Xmx500M -jar neoeedit.jar %* ```
     
-    Fonts, colors and all the following shortcut keys can be configured 
-    by editing config file (user's-home-dir/.neoeedit/data.py.verX)
-    
-    default key-binding:
+Linux:
+	add `ne.sh` to PATH
+    ``` java -Xmx500M -jar neoeedit.jar $1 &  ```
+
+
+
+
+### Default key-bindings:
+<pre>    
     
     ctrl-C/V/X for copy/paste/cut
     select text using both mouse and keyboard
@@ -129,7 +135,7 @@ plugins (Pinyin/Japanese IME)
 </pre>
 
 
-![granted by neoe 'Work Like Magic' software](https://github.com/neoedmund/neoeedit/raw/master/worklikemagic.png)
+!['Work Like Magic'](https://github.com/neoedmund/neoeedit/raw/master/worklikemagic.png)
 
 (c) 2009-2100 neoe
 
