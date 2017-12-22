@@ -3,9 +3,5 @@ baseDir:".",
 prjs:[
  [neoeedit,., {main:"neoe.ne.Main"}]
 ],
-destDir:"dist/",
-debug:true,
-source:8,
-target:8,
 }
                                                              

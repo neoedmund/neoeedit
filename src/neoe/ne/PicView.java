@@ -29,8 +29,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-import neoe.ne.PicView.DigitFilenameCompare;
-
 public class PicView {
 
 	public static class DigitFilenameCompare implements Comparator {
@@ -76,6 +74,10 @@ public class PicView {
 					} else {
 					}
 					sb.append(c);
+				}
+				if (sb2.length() >= 4) {
+					submit(sb2, sb);
+					isDigit = false;
 				}
 			}
 			submit(sb2, sb);
@@ -123,6 +125,8 @@ public class PicView {
 			maxWindow = env.getMaximumWindowBounds();
 			img = ImageIO.read(fn);
 			System.out.println("read in " + (System.currentTimeMillis() - t1));
+			files = listImgs();
+			setTitleWithSize(f.getName(), fi, files.size());
 			setSize(img);
 			addMouseListener(this);
 			addMouseMotionListener(this);
@@ -357,7 +361,6 @@ public class PicView {
 			try {
 				img = ImageIO.read(files.get(fi));
 				setTitleWithSize(files.get(fi).getName(), fi, files.size());
-				setSize(img);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -366,7 +369,8 @@ public class PicView {
 
 		private void setTitleWithSize(String name, int index, int total) {
 			frame.setTitle(
-					String.format("PicView %s [%dx%d] %d/%d", name, img.getWidth(), img.getHeight(), index, total));
+					String.format("PicView %s [%dx%d] %d/%d", name, img.getWidth(), img.getHeight(), index + 1, total));
+			setSize(img);
 		}
 
 	}
@@ -392,8 +396,6 @@ public class PicView {
 		PicViewPanel p = new PicViewPanel(f, fn);
 		f.getContentPane().setLayout(new BorderLayout());
 		f.getContentPane().add(p);
-		U.setFrameSize(f, p.pw, p.ph);
-		p.setTitleWithSize(fn.getName(), 0, 1);
 		f.setTransferHandler(new U.TH(ep));
 		f.setVisible(true);
 		U.saveFileHistory(fn.getAbsolutePath(), 0);
