@@ -127,6 +127,7 @@ public class PicView {
 			GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			maxWindow = env.getMaximumWindowBounds();
 			img = ImageIO.read(fn);
+			small = (img.getWidth() > maxWindow.width || img.getHeight() > maxWindow.height);
 			System.out.println("read in " + (System.currentTimeMillis() - t1));
 			files = listImgs();
 			setTitleWithSize(fn, fi, files.size());
@@ -382,8 +383,8 @@ public class PicView {
 			if (ss != null) {
 				ss1 = ss.delay > 0 ? " slide:" + ss.delay + " sec" : "";
 			}
-			frame.setTitle(String.format("PicView %s [%dx%d] %d/%d %,d%s", f.getName(), img.getWidth(), img.getHeight(),
-					index + 1, total, f.length(), ss1));
+			frame.setTitle(String.format("PicView %s [%dx%d] %d/%d %,d BS%s - neoeedit %s", f.getName(), img.getWidth(),
+					img.getHeight(), index + 1, total, f.length(), ss1, Version.REV));
 			setSize(img);
 		}
 
