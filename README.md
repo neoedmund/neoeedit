@@ -128,7 +128,9 @@ java -Xmx500M -jar neoeedit.jar $1 &
         Up, Down: rotate image
         0: reset image
         Ctrl-W / H / O: functions like what it did in text editor mode
-        F1 or TAB: toggle thumbnail
+        F1: toggle thumbnail
+        `[` `]`:slide show speed
+        
 
     configurable custom Freetype font (in config file)
 
