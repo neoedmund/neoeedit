@@ -14,6 +14,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -116,6 +118,7 @@ public class PicView {
 		private int vy;
 		private int vy1;
 		Rectangle maxWindow;
+		private boolean autoplay;
 
 		public PicViewPanel(JFrame f, File fn) throws IOException {
 			this.frame = f;
@@ -124,9 +127,10 @@ public class PicView {
 			GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			maxWindow = env.getMaximumWindowBounds();
 			img = ImageIO.read(fn);
+			small = (img.getWidth() > maxWindow.width || img.getHeight() > maxWindow.height);
 			System.out.println("read in " + (System.currentTimeMillis() - t1));
 			files = listImgs();
-			setTitleWithSize(f.getName(), fi, files.size());
+			setTitleWithSize(fn, fi, files.size());
 			setSize(img);
 			addMouseListener(this);
 			addMouseMotionListener(this);
@@ -160,6 +164,12 @@ public class PicView {
 						rotate(1);
 					} else if (kc == KeyEvent.VK_DOWN) {
 						rotate(-1);
+					} else if (kc == KeyEvent.VK_P) {
+						autoplay = true;
+					} else if (kc == KeyEvent.VK_OPEN_BRACKET) {
+						ss.decDelay();
+					} else if (kc == KeyEvent.VK_CLOSE_BRACKET) {
+						ss.incDelay();
 					} else if (kc == KeyEvent.VK_0) {
 						rate = 1;
 						vx = 0;
@@ -340,12 +350,10 @@ public class PicView {
 		}
 
 		private void setSize(BufferedImage img) {
-			Dimension dim = new Dimension(pw = img.getWidth() + 20, ph = img.getHeight() + 50);
+			Dimension dim = new Dimension(pw = (int) (img.getWidth() / rate + 20),
+					ph = (int) (img.getHeight() / rate + 50));
 			dim.width = Math.min(maxWindow.width, Math.max(200, dim.width));
 			dim.height = Math.min(maxWindow.height, Math.max(200, dim.height));
-			if (rate != 1 || (frame.getWidth() <= dim.width && frame.getHeight() <= dim.height)) {
-				return;
-			}
 			frame.setSize(dim);
 		}
 
@@ -362,17 +370,22 @@ public class PicView {
 			else if (fi >= files.size())
 				fi = 0;
 			try {
-				img = ImageIO.read(files.get(fi));
-				setTitleWithSize(files.get(fi).getName(), fi, files.size());
+				File f = files.get(fi);
+				img = ImageIO.read(f);
+				setTitleWithSize(f, fi, files.size());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			repaint();
 		}
 
-		private void setTitleWithSize(String name, int index, int total) {
-			frame.setTitle(
-					String.format("PicView %s [%dx%d] %d/%d", name, img.getWidth(), img.getHeight(), index + 1, total));
+		private void setTitleWithSize(File f, int index, int total) {
+			String ss1 = "";
+			if (ss != null) {
+				ss1 = ss.delay > 0 ? " slide:" + ss.delay + " sec" : "";
+			}
+			frame.setTitle(String.format("PicView %s [%dx%d] %d/%d %,d BS%s - neoeedit %s", f.getName(), img.getWidth(),
+					img.getHeight(), index + 1, total, f.length(), ss1, Version.REV));
 			setSize(img);
 		}
 
@@ -402,6 +415,77 @@ public class PicView {
 		f.setTransferHandler(new U.TH(ep));
 		f.setVisible(true);
 		U.saveFileHistory(fn.getAbsolutePath(), 0);
+		installSlideshow(f, p);
+	}
+
+	private class Slideshow {
+		boolean exited, iconed;
+		int delay = 0;
+		private PicViewPanel p;
+
+		public Slideshow(PicViewPanel p) {
+			this.p = p;
+		}
+
+		public void decDelay() {
+			if (delay > 0) {
+				delay--;
+			} else {
+				delay = 0;
+			}
+
+		}
+
+		public void incDelay() {
+			if (delay <= 0)
+				delay = 5;
+			else {
+				delay++;
+			}
+
+		}
+
+		public void next() {
+			try {
+				Thread.sleep(delay <= 0 ? 1000 : 1000 * delay);
+				if (delay > 0 && !iconed && !exited) {
+					p.viewFile(1);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
+
+	Slideshow ss;
+
+	private void installSlideshow(JFrame frame, PicViewPanel p) {
+		ss = new Slideshow(p);
+		frame.addWindowListener(new WindowAdapter() {
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+				ss.exited = true;
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+				ss.iconed = true;
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+				ss.iconed = false;
+			}
+		});
+		new Thread(() -> {
+			while (true) {
+				if (ss.exited)
+					break;
+				ss.next();
+			}
+		}).start();
 
 	}
 }
