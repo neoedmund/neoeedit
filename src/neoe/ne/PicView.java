@@ -118,7 +118,6 @@ public class PicView {
 		private int vy;
 		private int vy1;
 		Rectangle maxWindow;
-		private boolean autoplay;
 
 		public PicViewPanel(JFrame f, File fn) throws IOException {
 			this.frame = f;
@@ -165,7 +164,7 @@ public class PicView {
 					} else if (kc == KeyEvent.VK_DOWN) {
 						rotate(-1);
 					} else if (kc == KeyEvent.VK_P) {
-						autoplay = true;
+						ss.stop();
 					} else if (kc == KeyEvent.VK_OPEN_BRACKET) {
 						ss.decDelay();
 					} else if (kc == KeyEvent.VK_CLOSE_BRACKET) {
@@ -425,6 +424,10 @@ public class PicView {
 
 		public Slideshow(PicViewPanel p) {
 			this.p = p;
+		}
+
+		public void stop() {
+			delay = 0;
 		}
 
 		public void decDelay() {
