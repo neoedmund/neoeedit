@@ -343,6 +343,9 @@ public class PicView {
 			Dimension dim = new Dimension(pw = img.getWidth() + 20, ph = img.getHeight() + 50);
 			dim.width = Math.min(maxWindow.width, Math.max(200, dim.width));
 			dim.height = Math.min(maxWindow.height, Math.max(200, dim.height));
+			if (rate != 1 || (frame.getWidth() <= dim.width && frame.getHeight() <= dim.height)) {
+				return;
+			}
 			frame.setSize(dim);
 		}
 
