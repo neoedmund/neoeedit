@@ -858,7 +858,7 @@ public class PlainPage {
 			int w = 0;
 			if (inComment) {
 				int p1 = U.indexOf(s, commentClose, 0);
-				if (p1 > 0) {
+				if (p1 >= 0) {
 					inComment = false;
 					CharSequence s1 = s.subSequence(0, p1 + commentClose.length());
 					CharSequence s2 = s.subSequence(p1 + commentClose.length(), s.length());
