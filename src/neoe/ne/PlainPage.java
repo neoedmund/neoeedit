@@ -1508,7 +1508,7 @@ public class PlainPage {
 		}
 	}
 
-	private boolean isButtonDown(int i, MouseEvent evt) {
+	private static boolean isButtonDown(int i, MouseEvent evt) {
 		int b = InputEvent.getMaskForButton(i);
 		int ex = evt.getModifiersEx();
 		return (ex & b) != 0;

@@ -146,16 +146,14 @@ public class U {
 		return drawString(g2, fonts, s, x, y, false, 0);
 	}
 
-	private Graphics2D createGraphics(BufferedImage img, Graphics2D g2) {
-		Graphics2D g;
-		// g= img.createGraphics();
-		// g.setComposite(AlphaComposite.Clear);
-		// g.fillRect(0, 0, img.getWidth(), img.getHeight());
-		// g.dispose();
-		g = img.createGraphics();
-		g.setColor(g2.getColor());
-		g.setFont(g2.getFont());
-		return g;
+
+	static String suNotice() {
+		String user = System.getProperty("user.name");
+		if ("root".equals(user) || "administrator".equalsIgnoreCase(user)) {
+			return " [su]";
+		} else {
+			return "";
+		}
 	}
 
 	public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y, boolean isCurrentLine,

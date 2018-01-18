@@ -142,7 +142,7 @@ public class FindJDK {
 
 	}
 
-	private String getVersion(String s) {
+	private static String getVersion(String s) {
 		int p1 = -1;
 		int p2 = s.length();
 		for (int i = 0; i < s.length(); i++) {

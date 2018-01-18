@@ -95,14 +95,14 @@ public class ScriptUtil {
 		dir.delete();
 	}
 
-	private String findPackageName(String script) {
+	private static String findPackageName(String script) {
 		Finder f = new Finder(script);
 		f.find("package ");
 		String s = f.readUntil(";").trim();
 		return s;
 	}
 
-	private void error(String s) {
+	private static void error(String s) {
 		throw new RuntimeException(s);
 	}
 
@@ -128,12 +128,11 @@ public class ScriptUtil {
 		return path;
 	}
 
-	private void log(String s) {
+	private static void log(String s) {
 		System.out.println(s);
-
 	}
 
-	private String findClassName(String script) {
+	private static String findClassName(String script) {
 		Finder f = new Finder(script);
 		f.find("public class ");
 		String s = f.readUntil(" ").trim();

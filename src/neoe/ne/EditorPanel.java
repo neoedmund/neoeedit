@@ -183,10 +183,10 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 		}
 		if (fn != null) {
 			frame.setTitle(new File(fn).getName() + " " + new File(fn).getParent() + " - (" + pageSet.size() + ") - "
-					+ EditorPanel.WINDOW_NAME + suNotice());
+					+ EditorPanel.WINDOW_NAME + U.suNotice());
 		} else {
 			frame.setTitle(
-					page.pageData.getTitle() + " - (" + pageSet.size() + ") - " + EditorPanel.WINDOW_NAME + suNotice());
+					page.pageData.getTitle() + " - (" + pageSet.size() + ") - " + EditorPanel.WINDOW_NAME + U.suNotice());
 		}
 	}
 
@@ -278,7 +278,6 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
-
 	}
 
 	@Override
@@ -384,15 +383,6 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 			pageHis.add(U.getLocString(pp), U.getLocString(lastPage));
 		}
 		changeTitle();
-	}
-
-	private String suNotice() {
-		String user = System.getProperty("user.name");
-		if ("root".equals(user) || "administrator".equalsIgnoreCase(user)) {
-			return " [su]";
-		} else {
-			return "";
-		}
 	}
 
 	public String getCurrentText() {
