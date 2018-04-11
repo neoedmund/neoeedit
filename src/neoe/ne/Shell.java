@@ -196,7 +196,7 @@ public class Shell {
 		this.pp = pp;
 	}
 
-	private Object getObj(Object o, String name) {
+	private static Object getObj(Object o, String name) {
 		try {
 			Field field = o.getClass().getDeclaredField(name);
 			Object value = field.get(o);
@@ -205,7 +205,6 @@ public class Shell {
 			Method[] methods = o.getClass().getDeclaredMethods();
 			for (Method m : methods) {
 				if (m.getName().equals(name)) {
-
 					return m;
 				}
 			}

@@ -21,6 +21,8 @@ https://github.com/neoedmund/neoeedit
 
 ### How to use
 
+Just download a single jar to start: https://github.com/neoedmund/neoeedit/raw/master/dist/neoeedit.jar
+
 Windows:
 
 - add to content-menu using `neoeedit.reg`
