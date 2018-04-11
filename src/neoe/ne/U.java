@@ -146,7 +146,6 @@ public class U {
 		return drawString(g2, fonts, s, x, y, false, 0);
 	}
 
-
 	static String suNotice() {
 		String user = System.getProperty("user.name");
 		if ("root".equals(user) || "administrator".equalsIgnoreCase(user)) {
@@ -2119,8 +2118,10 @@ public class U {
 			CharSequence sb = page.pageData.roLines.getline(i);
 			for (int j = 0; j < cnts.length; j++) {
 				CharSequence tl = U.trimLeft(sb);
-				if (tl.subSequence(0, Math.min(40, tl.length())).toString().startsWith(commentchars[j])) {
-					cnts[j]++;
+				String s = tl.subSequence(0, Math.min(40, tl.length())).toString();
+				String k = commentchars[j];
+				if (s.startsWith(k) || s.indexOf(k) >= 0) {
+					cnts[j] += k.length();
 				}
 			}
 		}
