@@ -694,9 +694,8 @@ public class PlainPage {
 				colorKeyword, colorGutMark1, colorGutMark2, colorReturnMark;
 		int colorMode;
 		/**
-		 * 0:white mode 1: black mode 2: blue mode * 1 bg, 2 normal, 3 keyword,
-		 * 4 digit, 5 comment, 6 gutNumber, 7 gutLine, 8 currentLineBg, 9
-		 * comment2
+		 * 0:white mode 1: black mode 2: blue mode * 1 bg, 2 normal, 3 keyword, 4 digit,
+		 * 5 comment, 6 gutNumber, 7 gutLine, 8 currentLineBg, 9 comment2
 		 */
 		int[][] ColorModes = null;
 		Color colorNormal = Color.BLACK;
@@ -858,7 +857,7 @@ public class PlainPage {
 			int w = 0;
 			if (inComment) {
 				int p1 = U.indexOf(s, commentClose, 0);
-				if (p1 > 0) {
+				if (p1 >= 0) {
 					inComment = false;
 					CharSequence s1 = s.subSequence(0, p1 + commentClose.length());
 					CharSequence s2 = s.subSequence(p1 + commentClose.length(), s.length());
@@ -1020,7 +1019,7 @@ public class PlainPage {
 		}
 
 		void xpaint(Graphics g, Dimension size) {
-
+			inComment = false;
 			long fpsT1 = System.currentTimeMillis();
 			Graphics2D g2 = (Graphics2D) g;
 
@@ -1483,11 +1482,9 @@ public class PlainPage {
 			U.setFont(this, line.substring("set-font:".length()).trim());
 		} else {
 			if (searchResultOf == null || !U.gotoFileLine2(uiComp, line, searchResultOf, record)) {
-				if (!U.gotoFileLine(line, uiComp,
-						record /*
-								 * , pageData.getTitle().equals(U.titleOfPages(
-								 * uiComp))
-								 */)) {
+				if (!U.gotoFileLine(line, uiComp, record /*
+															 * , pageData.getTitle().equals(U.titleOfPages( uiComp))
+															 */)) {
 					if (!U.listDir(PlainPage.this, cy)) {
 						U.launch(line);
 					}
