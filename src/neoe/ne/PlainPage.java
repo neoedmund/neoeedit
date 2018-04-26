@@ -7,10 +7,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.TexturePaint;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -1131,43 +1133,16 @@ public class PlainPage {
 						g2.fillRect(0, l1 * (lineHeight + lineGap), size.width, lineHeight + lineGap - 1);
 					}
 				}
-				g2.setColor(colorNormal);
+
 				// g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				// RenderingHints.VALUE_ANTIALIAS_ON);
-				drawTextLines(g2, U.fontList, charCntInLine);
-				if (rectSelectMode) {
-					Rectangle r = ptSelection.getSelectRect();
-					int x1 = r.x;
-					int y1 = r.y;
-					int x2 = r.width;
-					int y2 = r.height;
-					int start = Math.max(sy, y1);
-					int end = Math.min(sy + showLineCnt + 1, y2);
-					for (int i = start; i <= end; i++) {
-						g2.setColor(Color.BLUE);
-						g2.setXORMode(new Color(0xf0f030));
-						drawSelect(g2, i, x1, x2);
-					}
-				} else {// select mode
-					Rectangle r = ptSelection.getSelectRect();
-					int x1 = r.x;
-					int y1 = r.y;
-					int x2 = r.width;
-					int y2 = r.height;
-					if (y1 == y2 && x1 < x2) {
-						g2.setColor(Color.BLUE);
-						g2.setXORMode(new Color(0xf0f030));
-						drawSelect(g2, y1, x1, x2);
-					} else if (y1 < y2) {
-						g2.setColor(Color.BLUE);
-						g2.setXORMode(new Color(0xf0f030));
-						drawSelect(g2, y1, x1, Integer.MAX_VALUE);
-						int start = Math.max(sy, y1 + 1);
-						int end = Math.min(sy + showLineCnt + 1, y2);
-						drawSelectLine(g2, start, end);
-						drawSelect(g2, y2, 0, x2);
-					}
+				{ // draw selection background
+					drawSelectionBackground(g2);
+
 				}
+				g2.setColor(colorNormal);
+				drawTextLines(g2, U.fontList, charCntInLine);
+
 				if (true) {// (){}[]<> pair marking
 					if (cx - 1 < pageData.roLines.getline(cy).length() && cx - 1 >= 0) {
 						char c = pageData.roLines.getline(cy).charAt(cx - 1);
@@ -1243,6 +1218,74 @@ public class PlainPage {
 				});
 				return;
 			}
+		}
+
+		private void drawSelectionBackground(Graphics2D g) {
+			Graphics2D g2 = (Graphics2D) g.create();
+
+			TexturePaint tp = getFillImagePaint();
+			g2.setPaint(tp);
+
+			// g2.setColor(colorNormal);
+			if (rectSelectMode) {
+				Rectangle r = ptSelection.getSelectRect();
+				int x1 = r.x;
+				int y1 = r.y;
+				int x2 = r.width;
+				int y2 = r.height;
+				int start = Math.max(sy, y1);
+				int end = Math.min(sy + showLineCnt + 1, y2);
+				for (int i = start; i <= end; i++) {
+					// g2.setColor(Color.BLUE);
+					// g2.setXORMode(new Color(0xf0f030));
+					drawSelect(g2, i, x1, x2);
+				}
+			} else {// select mode
+				Rectangle r = ptSelection.getSelectRect();
+				int x1 = r.x;
+				int y1 = r.y;
+				int x2 = r.width;
+				int y2 = r.height;
+				if (y1 == y2 && x1 < x2) {
+					// g2.setColor(Color.BLUE);
+					// g2.setXORMode(new Color(0xf0f030));
+					drawSelect(g2, y1, x1, x2);
+				} else if (y1 < y2) {
+					// g2.setColor(Color.BLUE);
+					// g2.setXORMode(new Color(0xf0f030));
+					drawSelect(g2, y1, x1, Integer.MAX_VALUE);
+					int start = Math.max(sy, y1 + 1);
+					int end = Math.min(sy + showLineCnt + 1, y2);
+					drawSelectLine(g2, start, end);
+					drawSelect(g2, y2, 0, x2);
+				}
+			}
+			g2.dispose();
+		}
+
+		private TexturePaint getFillImagePaint() {
+			int w = 13;
+			BufferedImage img = new BufferedImage(w, w, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g = img.createGraphics();
+			g.setColor(colorBg);
+			g.fillRect(0, 0, w, w);
+			g.setColor(dissRed(colorBg));
+			int k = w - 1;
+			int k1 = 0;
+			int k2 = k - k1;
+			g.drawLine(k1, k1, k2, k2);
+			g.drawLine(k1, k2, k2, k1);
+			g.dispose();
+			return new TexturePaint(img, new Rectangle(0, 0, w, w));
+		}
+
+		private Color dissRed(Color c) {
+			int r = c.getRed();
+			if (r < 100)
+				r = 220;
+			else
+				r = 30;
+			return new Color(r, c.getGreen(), c.getBlue());
 		}
 	}
 
