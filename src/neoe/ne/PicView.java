@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +32,8 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
+
+import neoe.ne.util.FileIterator;
 
 public class PicView {
 
@@ -119,6 +123,11 @@ public class PicView {
 		private int vy1;
 		Rectangle maxWindow;
 
+		boolean superMode = false;
+		private Iterator<File> sfi;
+		List<File> superModeHistory = new LinkedList<>();
+		int superModeHistoryPointer = 0;
+
 		public PicViewPanel(JFrame f, File fn) throws IOException {
 			this.frame = f;
 			long t1 = System.currentTimeMillis();
@@ -165,6 +174,8 @@ public class PicView {
 						rotate(-1);
 					} else if (kc == KeyEvent.VK_P) {
 						ss.stop();
+					} else if (kc == KeyEvent.VK_S) {
+						toggleSuperMode();
 					} else if (kc == KeyEvent.VK_OPEN_BRACKET) {
 						ss.decDelay();
 					} else if (kc == KeyEvent.VK_CLOSE_BRACKET) {
@@ -190,6 +201,15 @@ public class PicView {
 		@Override
 		public void keyTyped(KeyEvent e) {
 
+		}
+
+		public void toggleSuperMode() {
+			superMode = !superMode;
+			if (superMode && sfi == null) {
+				File dir = f.getParentFile();
+				if (dir != null)
+					sfi = new FileIterator(dir.getAbsolutePath()).iterator();
+			}
 		}
 
 		private List<File> listImgs() {
@@ -357,6 +377,10 @@ public class PicView {
 		}
 
 		public void viewFile(int i) {
+			if (superMode && sfi != null) {
+				superModeViewFile(i);
+				return;
+			}
 			if (files == null) {
 				files = listImgs();
 			}
@@ -368,14 +392,55 @@ public class PicView {
 				fi = files.size() - 1;
 			else if (fi >= files.size())
 				fi = 0;
+
+			File f = files.get(fi);
+			viewFile(f);
+
+		}
+
+		private void viewFile(File f) {
 			try {
-				File f = files.get(fi);
 				img = ImageIO.read(f);
 				setTitleWithSize(f, fi, files.size());
-			} catch (IOException e) {
+				repaint();
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			repaint();
+		}
+
+		/** i only supported to be 1 or -1 */
+		private void superModeViewFile(int i) {
+			if (i > 0) {
+				if (superModeHistoryPointer < superModeHistory.size()) {
+					viewFile(superModeHistory.get(superModeHistoryPointer++));
+				} else {
+					File f = nextSpFile();
+					if (f != null) {
+						viewFile(f);
+					} // else skip
+				}
+			} else if (i < 0) {
+				if (superModeHistoryPointer > 0 && superModeHistoryPointer <= superModeHistory.size()) {
+					viewFile(superModeHistory.get(--superModeHistoryPointer));
+				} // else skip
+			}
+
+		}
+
+		private File nextSpFile() {
+			while (sfi.hasNext()) {
+				File f = sfi.next();
+				if (U.isImageFile(f)) {
+					superModeHistory.add(f);
+					superModeHistoryPointer = superModeHistory.size();
+					if (superModeHistoryPointer > 500) {
+						superModeHistory.remove(0);
+						superModeHistoryPointer--;
+					}
+					return f;
+				}
+			}
+			return null;
 		}
 
 		private void setTitleWithSize(File f, int index, int total) {
@@ -383,8 +448,9 @@ public class PicView {
 			if (ss != null) {
 				ss1 = ss.delay > 0 ? " slide:" + ss.delay + " sec" : "";
 			}
-			frame.setTitle(String.format("PicView %s [%dx%d] %d/%d %,d BS%s - neoeedit %s", f.getName(), img.getWidth(),
-					img.getHeight(), index + 1, total, f.length(), ss1, Version.REV));
+			frame.setTitle(String.format("PicView %s [%dx%d] %s %,d BS%s - neoeedit %s", f.getName(), img.getWidth(),
+					img.getHeight(), superMode ? "SP" : String.format("(%d/%d)", index + 1, total), f.length(), ss1,
+					Version.REV));
 			setSize(img);
 		}
 
