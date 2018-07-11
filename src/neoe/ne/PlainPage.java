@@ -1785,7 +1785,7 @@ public class PlainPage {
 	}
 
 	private boolean processButton4(MouseEvent evt) {
-		if (!isButtonDown(4, evt)) {
+		if (!isButtonDown(4, evt) && !isButtonDown(6, evt)) {
 			return false;
 		}
 		String s = uiComp.pageHis.back(U.getLocString(this));
@@ -1801,7 +1801,7 @@ public class PlainPage {
 	}
 
 	private boolean processButton5(MouseEvent evt) {
-		if (!isButtonDown(5, evt)) {
+		if (!isButtonDown(5, evt) && !isButtonDown(7, evt)) {
 			return false;
 		}
 		String s = uiComp.pageHis.forward(U.getLocString(this));
