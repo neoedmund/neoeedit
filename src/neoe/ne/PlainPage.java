@@ -1287,6 +1287,11 @@ public class PlainPage {
 				r = 30;
 			return new Color(r, c.getGreen(), c.getBlue());
 		}
+
+		public void copy(Paint ui) throws IOException {
+			this.applyColorMode(ui.colorMode);
+			this.scalev = ui.scalev;
+		}
 	}
 
 	class Selection {
@@ -1485,6 +1490,10 @@ public class PlainPage {
 
 	public PlainPage(EditorPanel editor, PageData data) throws Exception {
 		this();
+		PlainPage cp = editor.getPage();
+		if (cp != null) {
+			this.ui.copy(cp.ui);
+		}
 		this.uiComp = editor;
 		this.pageData = data;
 		int index = editor.pageSet.indexOf(editor.getPage());
@@ -1722,7 +1731,7 @@ public class PlainPage {
 
 	public void mouseDragged(MouseEvent evt) {
 		{
-			if (isButtonDown(4, evt) || isButtonDown(5, evt)) {
+			if (isButtonDown(4, evt) || isButtonDown(5, evt) || isButtonDown(6, evt) || isButtonDown(7, evt)) {
 				return;
 			}
 		}
