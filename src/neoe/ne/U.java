@@ -1552,19 +1552,23 @@ public class U {
 		Iterable<File> it = new FileIterator(dir);
 		List<String> all = new ArrayList<String>();
 		fnFilter = fnFilter.trim().toLowerCase();
+		// search, skip binary, filtered
+		int[] cnts = new int[3];
 		for (File f : it) {
 			if (f.isDirectory()) {
 				continue;
 			}
 			if (fnFilter.length() > 0) {
 				String fn = f.getName().toLowerCase();
-				if (fn.indexOf(fnFilter) < 0)
+				if (fn.indexOf(fnFilter) < 0) {
+					cnts[2]++;
 					continue;
+				}
 			}
-			List<String> res = U.findInFile(f, text, ignoreCase);
+			List<String> res = U.findInFile(f, text, ignoreCase, cnts);
 			all.addAll(res);
 		}
-		showResult(page, all, "dir", dir, text, fnFilter);
+		showResult(page, all, "dir", dir, text, fnFilter, cnts);
 		page.uiComp.repaint();
 	}
 
@@ -1584,7 +1588,7 @@ public class U {
 						p = p2;
 					}
 				}
-				showResult(page, all, "file", page.pageData.getTitle(), text2find, null);
+				showResult(page, all, "file", page.pageData.getTitle(), text2find, null, null);
 				page.uiComp.repaint();
 			}
 		}
@@ -1624,17 +1628,20 @@ public class U {
 		Iterable<File> it = new FileIterator(dir);
 		List<String> all = new ArrayList<String>();
 		fnFilter = fnFilter.trim().toLowerCase();
+		int[] cnts = new int[3];
 		for (File f : it) {
 			if (f.isDirectory()) {
 				continue;
 			}
 			if (fnFilter.length() > 0) {
 				String fn = f.getName().toLowerCase();
-				if (fn.indexOf(fnFilter) < 0)
+				if (fn.indexOf(fnFilter) < 0) {
+					cnts[2]++;
 					continue;
+				}
 			}
 			try {
-				List<String> res = U.findInFile(f, text, page.ignoreCase);
+				List<String> res = U.findInFile(f, text, page.ignoreCase, cnts);
 				if (!res.isEmpty()) {
 					PlainPage pi = new PlainPage(page.uiComp, PageData.newFromFile(f.getCanonicalPath()));
 					if (pi != null) {
@@ -1647,7 +1654,7 @@ public class U {
 			}
 
 		}
-		showResult(page, all, "dir", dir, text, fnFilter);
+		showResult(page, all, "dir", dir, text, fnFilter, cnts);
 		page.uiComp.repaint();
 	}
 
@@ -1864,7 +1871,7 @@ public class U {
 		}
 	}
 
-	static List<String> findInFile(File f, String text, boolean ignoreCase2) {
+	static List<String> findInFile(File f, String text, boolean ignoreCase2, int[] cnts) {
 		// System.out.println("find in "+f.getName());
 		int MAX_SHOW_CHARS_IN_LINE = 30;
 		List<String> a = new ArrayList<String>();
@@ -1896,6 +1903,11 @@ public class U {
 					}
 				}
 				in.close();
+				if (cnts != null)
+					cnts[0]++;
+			} else {
+				if (cnts != null)
+					cnts[1]++;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2947,19 +2959,29 @@ public class U {
 		ep.repaint();
 	}
 
-	static void showResult(PlainPage pp, List<String> all, String type, String name, String text, String fnFilter)
-			throws Exception {
+	static void showResult(PlainPage pp, List<String> all, String type, String name, String text, String fnFilter,
+			int[] cnts) throws Exception {
 		String withFilter = "";
 		if (fnFilter != null && fnFilter.length() > 0) {
 			withFilter = String.format(" with filter '" + fnFilter + "'");
 		}
-		PlainPage p2 = new PlainPage(pp.uiComp, PageData.newEmpty(
-				String.format("(%s)'%s' in %s '%s'%s #%s", all.size(), text, type, name, withFilter, randomID())));
+		String cntInfo = "";
+		if (cnts != null) {
+			cntInfo = String.format(",searched %d files", cnts[0]);
+			if (cnts[1] != 0) {
+				cntInfo += String.format(", skipped binary:%d", cnts[1]);
+			}
+			if (cnts[2] != 0) {
+				cntInfo += String.format(", filtered:%d", cnts[2]);
+			}
+		}
+		PlainPage p2 = new PlainPage(pp.uiComp, PageData.newEmpty(String.format("(%s)'%s' in %s '%s'%s %s #%s",
+				all.size(), text, type, name, withFilter, cntInfo, randomID())));
 		p2.pageData.workPath = pp.pageData.workPath;
 		p2.ui.applyColorMode(pp.ui.colorMode);
 		List<CharSequence> sbs = new ArrayList<CharSequence>();
 		sbs.add(new StringBuilder(
-				String.format("find %s results in '%s'%s for '%s'", all.size(), name, withFilter, text)));
+				String.format("find %s results in '%s'%s for '%s' %s", all.size(), name, withFilter, text, cntInfo)));
 		for (Object o : all) {
 			sbs.add(o.toString());
 		}

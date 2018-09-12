@@ -64,6 +64,7 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 		s.add(jcb1 = new JCheckBox("in files", false));
 		s.add(lbdir = new JLabel("Dir:"));
 		s.add(jtadir = new JTextField());
+		s.newline();
 		s.add(lbfnfilter = new JLabel("fn filter:"));
 		s.add(jtFnFilter = new JTextField());
 		s.newline();
@@ -134,10 +135,11 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 		jcb3.addKeyListener(closeOnEsc);
 	}
 
-	protected static void setVisible(JComponent[] pack, boolean b) {
+	protected void setVisible(JComponent[] pack, boolean b) {
 		for (JComponent p : pack) {
 			p.setVisible(b);
 		}
+		dialog.pack();
 	}
 
 	@Override
