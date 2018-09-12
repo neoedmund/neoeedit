@@ -1876,8 +1876,18 @@ public class U {
 		int MAX_SHOW_CHARS_IN_LINE = 30;
 		List<String> a = new ArrayList<String>();
 		try {
+			if (f.getName().endsWith(".class")) {// some .class will be guess to UTF8
+				if (cnts != null)
+					cnts[1]++;
+				return a;
+			}
 			String enc = guessEncoding(f.getAbsolutePath());
 			if (enc == null) {
+				if (guessIsBinFile(f)) {
+					if (cnts != null)
+						cnts[1]++;
+					return a;
+				}
 				enc = UTF8;// avoid wrong skip
 			}
 			if (enc != null) {// skip binary
@@ -1905,14 +1915,37 @@ public class U {
 				in.close();
 				if (cnts != null)
 					cnts[0]++;
-			} else {
-				if (cnts != null)
-					cnts[1]++;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return a;
+	}
+
+	private static final String[] binExt = { ".jar", ".class", ".o", ".so", ".exe", ".dll", ".jpg", ".gif", ".png",
+			".mp3", ".mp4", ".war", ".zip", ".gz", ".rar", ".7z", ".ttc", ".ttf", ".pdf", ".xlsx", ".xls", ".mpeg",
+			".bz2", ".bin" };
+
+	private static boolean guessIsBinFile(File f) {
+		// first, encoding guessed is null
+		String name = f.getName();
+		if (_endsWithAny(binExt, name)) {
+			return true;
+		}
+		long size = f.length();
+		if (size >= 3 * 1000 * 1000)
+			return true;
+		return false;
+	}
+
+	private static boolean _endsWithAny(String[] binExt, String name) {
+		name = name.toLowerCase();
+		for (String ext : binExt) {
+			if (name.endsWith(ext)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	static PlainPage findPage(EditorPanel ep, String title) {
