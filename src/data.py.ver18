@@ -22,6 +22,8 @@
 	[openFile, ctrl-O, file],
 	[newPage, ctrl-N, ui],
 	[newWindow, ctrl-M, ui],
+	[pageBack, alt-MINUS, cursor],
+	[pageForward, alt-EQUALS, cursor],	
 	[save, ctrl-S, file],
 	[gotoLine, ctrl-L, cursor,"goto line with number"],
 	[undo, ctrl-Z, edit],
@@ -97,6 +99,6 @@ glow:{
 
 tabWidthInPixel:40,
 lookAndFeel:"",
-KEY_TEXT_ANTIALIASING:VALUE_TEXT_ANTIALIAS_LCD_HRGB,
+KEY_TEXT_ANTIALIASING: VALUE_TEXT_ANTIALIAS_ON,
 frameSize:[800,600],
 }

@@ -1797,6 +1797,11 @@ public class PlainPage {
 		if (!isButtonDown(4, evt) && !isButtonDown(6, evt)) {
 			return false;
 		}
+		pageBack();
+		return true;
+	}
+
+	private void pageBack() {
 		String s = uiComp.pageHis.back(U.getLocString(this));
 		if (s != null) {
 			try {
@@ -1806,13 +1811,17 @@ public class PlainPage {
 				e.printStackTrace();
 			}
 		}
-		return true;
 	}
 
 	private boolean processButton5(MouseEvent evt) {
 		if (!isButtonDown(5, evt) && !isButtonDown(7, evt)) {
 			return false;
 		}
+		pageForward();
+		return true;
+	}
+
+	private void pageForward() {
 		String s = uiComp.pageHis.forward(U.getLocString(this));
 		if (s != null) {
 			try {
@@ -1822,7 +1831,6 @@ public class PlainPage {
 				e.printStackTrace();
 			}
 		}
-		return true;
 	}
 
 	void processCommand(Commands cmd) throws Exception {
@@ -2090,6 +2098,12 @@ public class PlainPage {
 			break;
 		case ShellCommand:
 			Shell.run(PlainPage.this, cy);
+			break;
+		case pageForward:
+			pageForward();
+			break;
+		case pageBack:
+			pageBack();
 			break;
 		case mathEval:
 			String ss = pageData.roLines.getline(cy).toString();
