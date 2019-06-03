@@ -963,8 +963,9 @@ public class PlainPage {
 			String s1 = "<F1>:Help, " + (pageData.encoding == null ? "-" : pageData.encoding)
 					+ (pageData.lineSep.equals("\n") ? ", U" : ", W") + ", Line:" + pageData.roLines.getLinesize()
 					+ ", X:" + (cx + 1) + ", undo:" + pageData.history.size() + ", " + (rectSelectMode ? "R, " : "")
-					+ (ime == null ? "" : ime.getImeName() + ", ") + (pageData.getFn() == null ? "-"
-							: pageData.getFn() + (changedOutside ? " [ChangedOutside!]" : ""));
+					+ (ime == null ? "" : ime.getImeName() + ", ")
+					+ (pageData.getFn() == null ? "-" : pageData.getFn() + (changedOutside ? " [ChangedOutside!]" : ""))
+					+ (readonly ? ", ro" : "");
 			g2.setColor(colorGutMark1);
 			U.drawString(g2, U.fontList, s1, 2, lineHeight + 2);
 			g2.setColor(colorGutMark2);
@@ -1478,6 +1479,8 @@ public class PlainPage {
 	int showLineCnt;
 	int sy, sx;
 
+	boolean readonly = false;
+
 	int toolbarHeight = 25;
 
 	public Paint ui = new Paint();
@@ -1875,12 +1878,20 @@ public class PlainPage {
 			focusCursor();
 			break;
 		case moveUp:
-			cursor.moveUp();
-			focusCursor();
+			if (readonly) {
+				doMoveViewUp();
+			} else {
+				cursor.moveUp();
+				focusCursor();
+			}
 			break;
 		case moveDown:
-			cursor.moveDown();
-			focusCursor();
+			if (readonly) {
+				doMoveViewDown();
+			} else {
+				cursor.moveDown();
+				focusCursor();
+			}
 			break;
 		case moveHome:
 			cursor.moveHome();
@@ -1891,12 +1902,20 @@ public class PlainPage {
 			focusCursor();
 			break;
 		case movePageUp:
-			cursor.movePageUp();
-			focusCursor();
+			if (readonly) {
+				sy = Math.max(0, sy - showLineCnt);
+			} else {
+				cursor.movePageUp();
+				focusCursor();
+			}
 			break;
 		case movePageDown:
-			cursor.movePageDown();
-			focusCursor();
+			if (readonly) {
+				sy = Math.min(sy + showLineCnt, pageData.roLines.getLinesize() - 1);
+			} else {
+				cursor.movePageDown();
+				focusCursor();
+			}
 			break;
 		case indentLeft:
 			ptEdit.moveLineLeft(cy);
@@ -2052,10 +2071,10 @@ public class PlainPage {
 			focusCursor();
 			break;
 		case moveViewUp:
-			sy = Math.max(0, sy - 1);
+			doMoveViewUp();
 			break;
 		case moveViewDown:
-			sy = Math.min(sy + 1, pageData.roLines.getLinesize() - 1);
+			doMoveViewDown();
 			break;
 		case resetScale:
 			ui.scalev = 1;
@@ -2071,6 +2090,9 @@ public class PlainPage {
 				String line = pageData.roLines.getline(cy).toString();
 				U.launch(line);
 			}
+			break;
+		case readonlyMode:
+			readonly = !readonly;
 			break;
 		case fileHistory:
 			U.openFileHistory(uiComp);
@@ -2124,6 +2146,14 @@ public class PlainPage {
 		default:
 			ui.message("unprocessed Command:" + cmd);
 		}
+	}
+
+	private void doMoveViewUp() {
+		sy = Math.max(0, sy - 1);
+	}
+
+	private void doMoveViewDown() {
+		sy = Math.min(sy + 1, pageData.roLines.getLinesize() - 1);
 	}
 
 	private void unknownCommand(KeyEvent env) {

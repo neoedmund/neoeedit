@@ -67,6 +67,7 @@
 	[changePathSep, alt-SLASH, edit2, "change between / and \\" ],
 	[commandPanel, CONTEXT_MENU, help, "show commands panel" ],
 	[mathEval, F6 , etc, "evaluate a math expression" ],
+	[readonlyMode, alt-R, etc, "navigate mode" ],
 ],
 color:{
     defaultBackgroundColor:0xffffff,
