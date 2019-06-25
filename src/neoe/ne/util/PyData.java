@@ -19,7 +19,7 @@ public class PyData {
 
 	static char EOF = (char) -1;
 
-	public static void main(String[] args) throws Exception {
+	public static void testMain(String[] args) throws Exception {
 		BufferedReader in = new BufferedReader(new StringReader(
 				"{CATEGORIES:{1:1},'D\\'GM\nATTRIBS':{1:1,2:4},GROUPS:{2:2},TYPES:{2:2,3:'ad\n" + "as10'}}"));
 		Object o = new PyData().parseAll(in);
