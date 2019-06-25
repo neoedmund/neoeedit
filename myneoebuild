@@ -3,5 +3,7 @@
 	prjs : [
 		[ neoeedit . { main : "neoe.ne.Main" } ]
 	]
+	source:8
+	target:8
 }
 
