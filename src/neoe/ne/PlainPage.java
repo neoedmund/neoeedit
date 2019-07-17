@@ -229,44 +229,7 @@ public class PlainPage {
 		}
 
 		public void doMoveUpLangLevel() {
-			int ty = cy, tx = cx;
-			int level = 0;
-			CharSequence line = pageData.roLines.getline(ty);
-			if (tx >= line.length())
-				tx = line.length() - 1;
-			while (true) {
-				char c = line.charAt(tx);
-				if (c == '}') {
-					level++;
-				} else if (c == '{') {
-					if (level == 0) {
-						cy = ty;
-						cx = tx;
-						focusCursor();
-						return;// found
-					} else {
-						level--;
-					}
-				}
-				// next
-				while (true) {
-					if (tx <= 0) {
-						if (ty > 0) {
-							ty--;
-							line = pageData.roLines.getline(ty);
-							tx = line.length() - 1;// can be -1
-							if (tx >= 0)
-								break;
-						} else {
-							// not found
-							return;
-						}
-					} else {
-						tx--;
-						break;
-					}
-				}
-			}
+			PlainPage.this.ui.commentor.moveToPairMark(cx - 1, cy, '{', '}', -1);
 		}
 	}
 
@@ -709,6 +672,10 @@ public class PlainPage {
 				U.findchar(PlainPage.this, ch, inc, c1, ch2);
 				if (c1[0] >= 0) {// found
 					cx = c1[0] + 1;
+					int delta = Math.abs(cy - c1[1]);
+					if (delta >= 10) {
+						ui.message(String.format("moved across %,d lines", delta));
+					}
 					cy = c1[1];
 					focusCursor();
 				}
