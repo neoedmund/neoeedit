@@ -226,7 +226,47 @@ public class PlainPage {
 		void setSafePos(int x, int y, boolean record) {
 			cy = Math.max(0, Math.min(pageData.roLines.getLinesize() - 1, y));
 			cx = Math.max(0, Math.min(pageData.roLines.getline(cy).length(), x));
+		}
 
+		public void doMoveUpLangLevel() {
+			int ty = cy, tx = cx;
+			int level = 0;
+			CharSequence line = pageData.roLines.getline(ty);
+			if (tx >= line.length())
+				tx = line.length() - 1;
+			while (true) {
+				char c = line.charAt(tx);
+				if (c == '}') {
+					level++;
+				} else if (c == '{') {
+					if (level == 0) {
+						cy = ty;
+						cx = tx;
+						focusCursor();
+						return;// found
+					} else {
+						level--;
+					}
+				}
+				// next
+				while (true) {
+					if (tx <= 0) {
+						if (ty > 0) {
+							ty--;
+							line = pageData.roLines.getline(ty);
+							tx = line.length() - 1;// can be -1
+							if (tx >= 0)
+								break;
+						} else {
+							// not found
+							return;
+						}
+					} else {
+						tx--;
+						break;
+					}
+				}
+			}
 		}
 	}
 
@@ -2076,6 +2116,8 @@ public class PlainPage {
 		case moveViewDown:
 			doMoveViewDown();
 			break;
+		case moveUpLangLevel:
+			cursor.doMoveUpLangLevel();
 		case resetScale:
 			ui.scalev = 1;
 			break;

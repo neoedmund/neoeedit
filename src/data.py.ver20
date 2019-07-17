@@ -68,6 +68,7 @@
 	[commandPanel, CONTEXT_MENU, help, "show commands panel" ],
 	[mathEval, F6 , etc, "evaluate a math expression" ],
 	[readonlyMode, alt-R, etc, "navigate mode" ],
+	[moveUpLangLevel, alt-BACK_SPACE, cursor, "move to up level of c-like source"],
 ],
 color:{
     defaultBackgroundColor:0xffffff,
