@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import neoe.ne.util.FileIterator;
-
 /**
  * one plug-in in one jar, or in one directory
  */
@@ -26,12 +24,10 @@ public class Plugin {
 		loaded = true;
 		String libDir = U.getMyDir() + "/plugins";
 		File libDir2 = new File(libDir).getAbsoluteFile();
-		Iterable<File> it = new FileIterator(libDir);
+		File[] it = libDir2.listFiles();
 
 		int cnt = 0;
 		for (File f : it) {
-			if (f.getAbsoluteFile().equals(libDir2))
-				continue;
 			if (f.isDirectory()) {
 				if (addDirPlugin(f))
 					cnt++;
@@ -50,11 +46,11 @@ public class Plugin {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		System.out.println("add plugin in dir:" + dir.getAbsolutePath());
 		List<URL> jars = new ArrayList<URL>();
-		for (File f : new FileIterator(dir.getAbsolutePath())) {
+		for (File f : dir.listFiles()) {
 			if (f.isFile() && f.getName().endsWith(".jar")) {
 				jars.add(f.toURI().toURL());
 				System.out.println(
-						"add plugin jar: " + f.getAbsolutePath() + " \t " + sdf.format(new Date(f.lastModified())));
+						"\tadd jar: " + f.getAbsolutePath() + " \t " + sdf.format(new Date(f.lastModified())));
 			}
 		}
 		URLClassLoader cl = new URLClassLoader(jars.toArray(new URL[jars.size()]), Plugin.class.getClassLoader());
@@ -73,7 +69,7 @@ public class Plugin {
 
 	private static boolean initPlugin(URLClassLoader cl) throws Exception {
 		try {
-			Class clz = cl.loadClass("neoe.ne.PluginInit");
+			Class clz = cl.loadClass("neoe.ne.plugin.PluginInit");
 			Method run = clz.getMethod("run", new Class[] {});
 			run.invoke(null);
 			return true;
@@ -83,4 +79,34 @@ public class Plugin {
 		return false;
 
 	}
+
+	public interface PluginAction {
+		void run(PlainPage pp) throws Exception;
+	}
+
+	/**
+	 * 
+	 * @param key0 like SHIFT-CTRL-ALT-X
+	 * @param clz  action class
+	 * @return null if OK, otherwise reason
+	 */
+	public static String registerCmd(String key0, PluginAction pa) {
+		String key;
+		try {
+			key = U.getKeyNameFromTextName(key0);
+		} catch (Exception e) {
+			return String.format("Key '%s' is not correct:%s", key0, e);
+		}
+		if (U.keys.containsKey(key)) {
+			return String.format("Key '%s[%s]' is already in use by build-in function '%s'.", key0, key,
+					U.keys.get(key).name());
+		}
+		if (U.pluginKeys.containsKey(key)) {
+			return String.format("Key '%s[%s]' is already in use by other plugin '%s'.", key0, key,
+					U.pluginKeys.get(key).getClass().getName());
+		}
+		U.pluginKeys.put(key, pa);
+		return null;
+	}
+
 }

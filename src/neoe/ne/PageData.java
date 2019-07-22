@@ -62,7 +62,7 @@ public class PageData {
 	U.ReadonlyLines roLines = new U.ReadonlyLines(this);
 	private String title;// private!
 
-	String workPath;
+	public String workPath;
 
 	private PageData() {
 		history = new History(this);

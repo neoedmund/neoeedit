@@ -12,7 +12,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import javax.swing.SwingUtilities;
 
 import neoe.ne.CommandPanel.CommandPanelPaint;
 import neoe.ne.Ime.Out;
+import neoe.ne.Plugin.PluginAction;
 
 public class PlainPage {
 
@@ -233,15 +233,15 @@ public class PlainPage {
 		}
 	}
 
-	class EasyEdit {
+	public class EasyEdit {
 
-		void append(String s) {
+		public void append(String s) {
 			cy = pageData.roLines.getLinesize() - 1;
 			cx = pageData.roLines.getline(cy).length();
 			insertString(s);
 		}
 
-		private void consoleAdjustToLastLine() {
+		public void consoleAdjustToLastLine() {
 			int size = pageData.lines.size();
 			if (cy != size - 1) {
 				cy = size - 1;
@@ -263,7 +263,7 @@ public class PlainPage {
 			}
 		}
 
-		private void consoleInsertChar(char ch) {
+		public void consoleInsertChar(char ch) {
 			synchronized (console) {
 				consoleAdjustToLastLine();
 				if (ch == KeyEvent.VK_ENTER) {
@@ -291,7 +291,7 @@ public class PlainPage {
 
 		}
 
-		private void consoleSubmitLastLine() {
+		public void consoleSubmitLastLine() {
 			cy = pageData.roLines.getLinesize() - 1;
 			String sb = pageData.roLines.getline(cy).toString();
 			if (sb.trim().length() == 0) {
@@ -303,7 +303,7 @@ public class PlainPage {
 			console.submit(sb);
 		}
 
-		private void consoleUserInput(List<CharSequence> ss) {
+		public void consoleUserInput(List<CharSequence> ss) {
 			synchronized (console) {
 				consoleAdjustToLastLine();
 				int len = ss.size();
@@ -325,7 +325,7 @@ public class PlainPage {
 			focusCursor();
 		}
 
-		void deleteLine(int cy) {
+		public void deleteLine(int cy) {
 			deleteLineRange(cy, cy + 1);
 			// cx = 0;
 			// int len = pageData.roLines.getline(cy).length();
@@ -335,11 +335,11 @@ public class PlainPage {
 			// pageData.editRec.deleteEmptyLine(cy);
 		}
 
-		private void deleteLineRange(int start, int end) {
+		public void deleteLineRange(int start, int end) {
 			pageData.editRec.deleteLines(start, end);
 		}
 
-		void deleteRect(Rectangle r) {
+		public void deleteRect(Rectangle r) {
 			int x1 = r.x;
 			int y1 = r.y;
 			int x2 = r.width;
@@ -368,7 +368,7 @@ public class PlainPage {
 			focusCursor();
 		}
 
-		void deleteSpace() {
+		public void deleteSpace() {
 			// CharSequence line = pageData.roLines.getline(cy);
 			int x0 = cx, y0 = cy;
 			cursor.moveRightWord();
@@ -376,7 +376,7 @@ public class PlainPage {
 			deleteRect(new Rectangle(x0, y0, x2, y2));
 		}
 
-		void insert(char ch) {
+		public void insert(char ch) {
 			if (console != null) {
 				consoleInsertChar(ch);
 				return;
@@ -471,7 +471,7 @@ public class PlainPage {
 			uiComp.repaint();
 		}
 
-		void insertString(List<CharSequence> ss, boolean userInput) {
+		public void insertString(List<CharSequence> ss, boolean userInput) {
 			if (userInput && console != null) {
 				consoleUserInput(ss);
 				return;
@@ -531,7 +531,7 @@ public class PlainPage {
 			focusCursor();
 		}
 
-		void insertString(String s) {
+		public void insertString(String s) {
 			insertString(s, false);
 		}
 
@@ -539,7 +539,7 @@ public class PlainPage {
 			insertString(U.removeTailR(U.split(s, U.N)), userInput);
 		}
 
-		void moveLineLeft(int cy) {
+		public void moveLineLeft(int cy) {
 			String s = pageData.roLines.getline(cy).toString();
 			if (s.length() > 0 && (s.charAt(0) == '\t' || s.charAt(0) == ' ')) {
 				pageData.editRec.deleteInLine(cy, 0, 1);
@@ -550,31 +550,31 @@ public class PlainPage {
 			}
 		}
 
-		void moveLineRight(int cy) {
+		public void moveLineRight(int cy) {
 			pageData.editRec.insertInLine(cy, 0, "\t");
 			cx += 1;
 		}
 
-		void moveRectLeft(int from, int to) {
+		public void moveRectLeft(int from, int to) {
 			for (int i = from; i <= to; i++) {
 				moveLineLeft(i);
 			}
 		}
 
-		void moveRectRight(int from, int to) {
+		public void moveRectRight(int from, int to) {
 			for (int i = from; i <= to; i++) {
 				moveLineRight(i);
 			}
 		}
 
-		void setLength(int cy, int cx) {
+		public void setLength(int cy, int cx) {
 			int oldLen = pageData.roLines.getline(cy).length();
 			if (cx - oldLen > 0) {
 				pageData.editRec.insertInLine(cy, oldLen, U.spaces(cx - oldLen));
 			}
 		}
 
-		void wrapLines(int cx) throws Exception {
+		public void wrapLines(int cx) throws Exception {
 			int lineLen = 0;
 			{
 				int len = 0;
@@ -1302,33 +1302,33 @@ public class PlainPage {
 		}
 	}
 
-	class Selection {
+	public class Selection {
 
-		void cancelSelect() {
+		public void cancelSelect() {
 			selectstartx = cx;
 			selectstarty = cy;
 			selectstopx = cx;
 			selectstopy = cy;
 		}
 
-		void copySelected() {
+		public void copySelected() {
 			String s = U.exportString(getSelected(), pageData.lineSep);
 			s = U.removeAsciiZero(s);
 			U.setClipBoard(s);
 			ui.message("copied " + s.length());
 		}
 
-		void cutSelected() {
+		public void cutSelected() {
 			copySelected();
 			ptEdit.deleteRect(getSelectRect());
 			cancelSelect();
 		}
 
-		List<CharSequence> getSelected() {
+		public List<CharSequence> getSelected() {
 			return pageData.roLines.getTextInRect(getSelectRect(), rectSelectMode);
 		}
 
-		Rectangle getSelectRect() {
+		public Rectangle getSelectRect() {
 			int x1, x2, y1, y2;
 			if (rectSelectMode) {
 				y1 = selectstopy;
@@ -1365,11 +1365,11 @@ public class PlainPage {
 			return new Rectangle(x1, y1, x2, y2);
 		}
 
-		boolean isRectSelecting() {
+		public boolean isRectSelecting() {
 			return mshift && rectSelectMode;
 		}
 
-		boolean isSelected() {
+		public boolean isSelected() {
 			Rectangle r = getSelectRect();
 			int x1 = r.x;
 			int y1 = r.y;
@@ -1392,7 +1392,7 @@ public class PlainPage {
 		 * @param sb
 		 * @return mouseSelectedOnLimit, need move screen and repaint
 		 */
-		boolean mouseSelection(CharSequence sb) {
+		public boolean mouseSelection(CharSequence sb) {
 			if (mcount == 2) {
 				int x1 = cx;
 				int x2 = cx;
@@ -1434,7 +1434,7 @@ public class PlainPage {
 			return false;
 		}
 
-		void selectAll() {
+		public void selectAll() {
 			selectstartx = 0;
 			selectstarty = 0;
 			selectstopy = pageData.roLines.getLinesize() - 1;
@@ -1443,7 +1443,7 @@ public class PlainPage {
 			selectstopx = pageData.roLines.getline(selectstopy).length();
 		}
 
-		void selectLength(int x, int y, int length) {
+		public void selectLength(int x, int y, int length) {
 			cx = x;
 			cy = y;
 			selectstartx = cx;
@@ -1474,9 +1474,9 @@ public class PlainPage {
 	public PageData pageData;
 
 	private String preeditText;
-	EasyEdit ptEdit = new EasyEdit();
-	U.FindAndReplace ptFind = new U.FindAndReplace(this);
-	Selection ptSelection = new Selection();
+	public EasyEdit ptEdit = new EasyEdit();
+	public U.FindAndReplace ptFind = new U.FindAndReplace(this);
+	public Selection ptSelection = new Selection();
 
 	boolean rectSelectMode = false;
 	boolean savingFromSelectionCancel;
@@ -1602,9 +1602,16 @@ public class PlainPage {
 			Commands cmd = U.mappingToCommand(evt);
 			if (cmd == null) {
 				int kc = evt.getKeyCode();
-				if ((evt.isActionKey() || evt.isControlDown() || evt.isAltDown())
+				boolean onlyShift = evt.isShiftDown() && !evt.isControlDown() && !evt.isAltDown();
+				if (!onlyShift && (evt.isActionKey() || evt.isControlDown() || evt.isAltDown())
 						&& (kc != KeyEvent.VK_SHIFT && kc != KeyEvent.VK_CONTROL && kc != KeyEvent.VK_ALT)) {
-					unknownCommand(evt);
+					String name = U.getKeyName(evt);
+					PluginAction ac = U.pluginKeys.get(name);
+					if (ac != null) {
+						ac.run(this);
+					} else {
+						unknownCommand(evt);
+					}
 				}
 			} else {
 				processCommand(cmd);
@@ -2175,6 +2182,12 @@ public class PlainPage {
 				sb.append("-");
 			}
 			sb.append("Alt");
+		}
+		if (env.isShiftDown()) {
+			if (sb.length() > 0) {
+				sb.append("-");
+			}
+			sb.append("Shift");
 		}
 		if (sb.length() > 0) {
 			sb.append("-");
