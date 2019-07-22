@@ -2413,7 +2413,7 @@ public class U {
 			// fast pass
 			return null;
 		String name = getKeyName(env);
-		System.out.println("key name=" + name);
+//		System.out.println("key name=" + name);
 		Commands cmd = keys.get(name);
 		return cmd;
 	}
