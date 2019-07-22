@@ -137,7 +137,7 @@ java -Xmx500M -jar neoeedit.jar $1 &
     configurable custom Freetype font (in config file)
 
     Plugins: 
-    how to use: copy plugin jar into <home-dir>/.neoeedit/plugins/
+    how to use: copy plugin jar into [home-dir]/.neoeedit/plugins/
     
         ctrl-space to toggle IME (need neoeime.jar plugin)
 	ctrl-shift-F to format source (need neoeformatter.jar plugin)
