@@ -24,49 +24,17 @@ public abstract class Ime {
 	}
 
 	private static boolean enabled;
-	private static ImeInterface[] instances;
+	public static List<ImeInterface> instances= new ArrayList<ImeInterface>();
 	private static int index;
 
-	public static void loadImes() throws IOException {
-		if (instances != null) {
-			return;
-		}
-		Map config = getConfig();
-		List list = (List) config.get("ime");
-		if (list == null || list.size() == 0) {
-			return;
-		}
-		List<ImeInterface> imes = new ArrayList();
-		for (Object o : list) {
-			String cls = (String) o;
-			try {
-				Class clz = Plugin.cl.loadClass(cls);
-				if (!ImeInterface.class.isAssignableFrom(clz)) {
-					System.out.println("IME class '" + cls + "' not implements 'ImeInterface'.");
-					continue;
-				}
-				ImeInterface ime = null;
-				try {
-					imes.add(ime = (ImeInterface) clz.newInstance());
-					System.out.println("add IME:" + ime.getImeName());
-				} catch (Exception ex) {
-					System.out.println("IME class '" + cls + "' cannot be inited:" + ex);
-				}
-			} catch (ClassNotFoundException ex) {
-				System.out.println("IME class not found:" + cls);
-			}
-		}
-		instances = imes.toArray(new ImeInterface[imes.size()]);
-	}
-
 	public static void nextIme() {
-		if (instances == null || instances.length == 0) {
+		if (instances == null || instances.size() == 0) {
 			enabled = false;
 			return;
 		}
 		if (enabled) {
 			index++;
-			if (index >= instances.length) {
+			if (index >= instances.size()) {
 				index = 0;
 				enabled = false;
 			}
@@ -80,7 +48,7 @@ public abstract class Ime {
 		if (instances == null || !enabled) {
 			return null;
 		}
-		return instances[index];
+		return instances.get(index);
 	}
 
 	public interface ImeInterface {

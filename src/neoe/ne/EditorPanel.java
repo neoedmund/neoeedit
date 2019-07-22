@@ -114,7 +114,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 		U.Config.setDefaultLookAndFeel();
 		U.Config.setDefaultBKColor();
 		U.Config.initKeys();
-		Ime.loadImes();
+//		Ime.loadImes();
 		Gimp.loadFromConfig();
 	}
 

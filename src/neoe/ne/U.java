@@ -401,7 +401,7 @@ public class U {
 
 	}
 
-	static class Config {
+	public static class Config {
 
 		public static boolean configChanged() {
 			if (configFileLoadTime > 0) {
@@ -419,7 +419,6 @@ public class U {
 				return conf;
 			}
 			System.out.println("load " + Version.CONFIG_FN);
-			;
 			BufferedReader in = new BufferedReader(U.getInstalledReader(Version.CONFIG_FN));
 			Map o = null;
 			try {
