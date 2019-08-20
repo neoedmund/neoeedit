@@ -63,15 +63,16 @@ java -Xmx500M -jar neoeedit.jar $1 &
     alt-pageup, alt-pagedown, alt-mouse scroll: horizon cursor movement
     line number
 
-    alt-Z: move cursor back by history
-    alt-Y: move cursor forward by history
+    ctrl-1: go to file(:lineno) of current line.(The very first command should be known)
     ctrl-L: goto line
     ctrl-A: select all
     ctrl-D: delete current line
     ctrl-R: remove all trailing space
     alt-H:show hex for selected string
     alt-W: wrap lines.(at current X(min 10), non-English character's width calculated as two.)
-
+    alt-Z: move cursor back by history
+    alt-Y: move cursor forward by history
+    
     ctrl-S: save file
     F2 : save as...
     ctrl-O: open file in directory. It just list them, and use ctrl-G to open one of them.
@@ -79,7 +80,6 @@ java -Xmx500M -jar neoeedit.jar $1 &
     ctrl-N: new empty document in window
     ctrl-M: new one More window.
     ctrl-Q: show all opened documents in window. You can jump to one of them by press ctrl-1 over it.
-    ctrl-1: go to file(:lineno) of current line.
     ctrl-Tab: quick switch between opened documents.
     ctrl-W: close current document, and record to open file history.
     ctrl-G or ctrl-1: goto file and line on search result or file by name or document in the window by name.
