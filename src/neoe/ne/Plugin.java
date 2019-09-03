@@ -23,6 +23,7 @@ public class Plugin {
 		}
 		loaded = true;
 		String libDir = U.getMyDir() + "/plugins";
+		new File(libDir).mkdirs();
 		File libDir2 = new File(libDir).getAbsoluteFile();
 		File[] it = libDir2.listFiles();
 
