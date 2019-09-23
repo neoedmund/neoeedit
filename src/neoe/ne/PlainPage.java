@@ -1453,6 +1453,15 @@ public class PlainPage {
 			focusCursor();
 			savingFromSelectionCancel = true;
 		}
+
+		public void selectLine() {
+			selectstartx = 0;
+			selectstarty = cy;
+			selectstopy = cy;
+			if (selectstopy < 0)
+				selectstopy = 0;
+			selectstopx = pageData.roLines.getline(selectstopy).length();
+		}
 	}
 
 	boolean changedOutside = false;
@@ -1539,7 +1548,8 @@ public class PlainPage {
 	}
 
 	private void doGo(String line, boolean record) throws Exception {
-
+		if (line == null)
+			return;
 		if (line.startsWith("set-font:")) {
 			U.setFont(this, line.substring("set-font:".length()).trim());
 		} else {
@@ -2010,6 +2020,9 @@ public class PlainPage {
 			break;
 		case cut:
 			ptSelection.cutSelected();
+			break;
+		case selectLine:
+			ptSelection.selectLine();
 			break;
 		case selectAll:
 			ptSelection.selectAll();

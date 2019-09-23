@@ -17,6 +17,7 @@
 	[paste, [ctrl-V, F12], edit],
 	[cut, ctrl-X, edit],
 	[selectAll, ctrl-A, edit],
+	[selectLine, ctrl-shift-A, edit],
 	[deleteLine, ctrl-D, edit],
 	[deleteWord, ctrl-DELETE, edit],
 	[openFile, ctrl-O, file],
