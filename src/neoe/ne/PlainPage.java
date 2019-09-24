@@ -1461,6 +1461,7 @@ public class PlainPage {
 			if (selectstopy < 0)
 				selectstopy = 0;
 			selectstopx = pageData.roLines.getline(selectstopy).length();
+			copySelected();
 		}
 	}
 
