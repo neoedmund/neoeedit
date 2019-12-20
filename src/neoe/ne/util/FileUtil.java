@@ -2,6 +2,8 @@ package neoe.ne.util;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,7 +13,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class FileUtil {
@@ -26,7 +30,7 @@ public class FileUtil {
 
 	public static void copy(InputStream in, OutputStream outstream) throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(outstream);
-		byte[] buf = new byte[1024 * 10];
+		byte[] buf = new byte[1024 * 16];
 		int len;
 		while ((len = in.read(buf)) > 0) {
 			out.write(buf, 0, len);
@@ -37,7 +41,7 @@ public class FileUtil {
 
 	public static void copy2(InputStream in, OutputStream outstream) throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(outstream);
-		byte[] buf = new byte[1024 * 10];
+		byte[] buf = new byte[1024 * 16];
 		int len;
 		while ((len = in.read(buf)) > 0) {
 			out.write(buf, 0, len);
@@ -46,26 +50,31 @@ public class FileUtil {
 	}
 
 	public static BufferedReader getBufferedReader(String fn, String enc) throws IOException {
-		if (enc == null)
-			enc = "UTF-8";
 		InputStream in = getFileInputStream(fn);
 		return new BufferedReader(new InputStreamReader(in, enc));
 	}
 
 	public static InputStream getFileInputStream(String fn) {
-		return FileUtil.class.getClassLoader().getResourceAsStream(fn);
+		System.out.println("getFileInputStream:in " + FileUtil.class.getClassLoader() + ":" + fn);
+		InputStream in = FileUtil.class.getClassLoader().getResourceAsStream(fn);
+		if (in == null) {
+			if (fn.startsWith("/")) {
+				in = FileUtil.class.getClassLoader().getResourceAsStream(fn.substring(1));
+			} else {
+				in = FileUtil.class.getClassLoader().getResourceAsStream("/" + fn);
+			}
+		}
+		return in;
 	}
 
 	public static BufferedReader getRawBufferedReader(String fn, String enc)
 			throws UnsupportedEncodingException, FileNotFoundException {
-		if (enc == null)
-			enc = "UTF-8";
 		InputStream in = new FileInputStream(fn);
 		return new BufferedReader(new InputStreamReader(in, enc));
 	}
 
 	public static void pass(InputStream in, OutputStream out) throws IOException {
-		byte[] buf = new byte[1024 * 10];
+		byte[] buf = new byte[1024 * 16];
 		int len;
 		while ((len = in.read(buf)) > 0) {
 			out.write(buf, 0, len);
@@ -74,7 +83,7 @@ public class FileUtil {
 	}
 
 	public static void pass(InputStream in, OutputStream out, long total) throws IOException {
-		byte[] buf = new byte[1024 * 10];
+		byte[] buf = new byte[1024 * 16];
 		int len;
 		long sum = 0;
 		while ((len = in.read(buf)) > 0) {
@@ -88,7 +97,7 @@ public class FileUtil {
 		out.flush();
 	}
 
-	public static String readStringSmall(InputStream ins, String enc) throws IOException {
+	public static String readString(InputStream ins, String enc) throws IOException {
 		if (enc == null)
 			enc = "UTF-8";
 		BufferedReader in = new BufferedReader(new InputStreamReader(ins, enc));
@@ -119,10 +128,76 @@ public class FileUtil {
 
 	}
 
+	public static byte[] read(InputStream in) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		copy(in, baos);
+		return baos.toByteArray();
+	}
+
 	public static void save(byte[] bs, String fn) throws IOException {
-		new File(fn).getParentFile().mkdirs();
-		BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fn));
+		File f = new File(fn);
+		f.getAbsoluteFile().getParentFile().mkdirs();
+		File ftmp = new File(fn + "." + System.currentTimeMillis());
+		BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(ftmp));
 		out.write(bs);
 		out.close();
+		if (f.exists())
+			f.delete();
+		Files.move(ftmp.toPath(), f.toPath());
+	}
+
+	public static Iterable<CharSequence> split(final CharSequence src, final char sep) {
+
+		return new Iterable<CharSequence>() {
+			@Override
+			public Iterator<CharSequence> iterator() {
+				return new Iterator<CharSequence>() {
+					int p1;
+
+					@Override
+					public CharSequence next() {
+						int p2 = -1;
+						for (int i = p1; i < src.length(); i++) {
+							if (src.charAt(i) == sep) {
+								p2 = i;
+								break;
+							}
+						}
+						if (p2 == -1) {
+							CharSequence r = src.subSequence(p1, src.length());
+							p1 = src.length();
+							return r;
+						} else {
+							CharSequence r = src.subSequence(p1, p2);
+							p1 = p2 + 1;
+							return r;
+						}
+
+					}
+
+					@Override
+					public boolean hasNext() {
+						if (src == null)
+							return false;
+						if (p1 >= src.length())
+							return false;
+						return true;
+					}
+				};
+			}
+		};
+	}
+
+	public static byte[] readBs(InputStream in, int len) throws IOException {
+		byte[] b = new byte[len];
+		int off = 0;
+		int n = 0;
+		while (n < len) {
+			int count = in.read(b, off + n, len - n);
+			if (count < 0)
+				throw new EOFException();
+			n += count;
+		}
+		return b;
 	}
 }

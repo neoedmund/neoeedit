@@ -143,10 +143,6 @@ public class U {
 		}
 	}
 
-	public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y) {
-		return drawString(g2, fonts, s, x, y, false, 0);
-	}
-
 	static String suNotice() {
 		String user = System.getProperty("user.name");
 		if ("root".equals(user) || "administrator".equalsIgnoreCase(user)) {
@@ -156,78 +152,64 @@ public class U {
 		}
 	}
 
+	public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y) {
+		return drawString(g2, fonts, s, x, y, false, 0);
+	}
+
+	/** no TAB needed to care here */
 	public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y, boolean isCurrentLine,
 			int lineHeight) {
 		if (s == null || s.length() <= 0) {
 			return 0;
 		}
 
-		Font f = fonts[0];
-		int w = g2.getFontMetrics(f).stringWidth(s);
-		Color c2 = g2.getColor();
-
-		if (isCurrentLine && w > 0) {
-			Gimp.drawString(g2, x, y, lineHeight, s, c2, f, w);
-
-		} else {
-			// StringBuilder s = new StringBuilder(s0);
-			g2.setFont(f);
-			g2.drawString(s, x, y);
-			// // multi-font display disabled for performance
-			// while (true) {
-			// if (s.length() <= 0) {
-			// break;
-			// }
-			// int fp = 0;
-			// Font f = fonts[fp];
-			// int p1 = -1; // performance119: f.canDisplayUpTo(s.toString());
-			// if (p1 < 0) { // all
-			// g2.setFont(f);
-			// g2.drawString(s.toString(), x + w, y);
-			// w += g2.getFontMetrics(f).stringWidth(s.toString());
-			// s.setLength(0);
-			// } else {
-			// if (p1 != 0) {
-			// String sx = s.substring(0, p1);
-			// g2.setFont(f);
-			// g2.drawString(sx, x + w, y);
-			// w += g2.getFontMetrics(f).stringWidth(sx);
-			// s.delete(0, p1);
-			// }
-			// if (s.length() > 0) {
-			// char c0 = s.charAt(0);
-			// s.delete(0, 1);
-			// w += drawChar(g2, fonts, c0, x + w, y);
-			// }
-			//
-			// }
-			// }
-
+		// draw separated by fonts
+		int w = 0;
+		Font cf = fonts[0];
+		StringBuilder sb = new StringBuilder();
+		int w1 = 0;
+		int i = 0;
+		Font[] fo = new Font[1];
+		while (i < s.length()) {
+			char c = s.charAt(i);
+			int w0 = charWidth(g2, fonts, c, fo);
+			if (cf.equals(fo[0])) {
+				sb.append(c);
+				w1 += w0;
+			} else {
+				submitStr(g2, cf, sb.toString(), x, y, isCurrentLine, lineHeight, w1);
+				x += w1;
+				w += w1;
+				w1 = w0;
+				sb.setLength(0);
+				sb.append(c);
+				cf = fo[0];
+			}
+			i++;
 		}
+		if (sb.length() > 0) {
+			submitStr(g2, cf, sb.toString(), x, y, isCurrentLine, lineHeight, w1);
+			w += w1;
+		}
+
 		return w;
 	}
 
-	public static int drawChar(Graphics2D g2, Font[] fonts, char c, int x, int y) {
-		for (Font font : fonts) {
-			if (font.canDisplay(c)) {
-				g2.setFont(font);
-				g2.drawString("" + c, x, y);
-				return g2.getFontMetrics(font).charWidth(c);
-			}
+	private static void submitStr(Graphics2D g2, Font cf, String s, int x, int y, boolean isCurrentLine, int lineHeight,
+			int w) {
+		if (s.isEmpty())
+			return;
+		if (isCurrentLine && w > 0) {
+			Color c2 = g2.getColor();
+			Gimp.drawString(g2, x, y, lineHeight, s, c2, cf, w);
+		} else {
+			g2.setFont(cf);
+			g2.drawString(s, x, y);
 		}
-		g2.setFont(fonts[0]);
-		g2.drawString("" + c, x, y);
-		return g2.getFontMetrics(fonts[0]).charWidth(c);
 	}
 
-	public static int charWidth(Graphics2D g2, Font[] fonts, char c) {
-		for (Font font : fonts) {
-			if (font.canDisplay(c)) {
-				return g2.getFontMetrics(font).charWidth(c);
-			}
-		}
-		return g2.getFontMetrics(fonts[0]).charWidth(c);
-	}
+	static Map<Character, Object[]/* Font, Integer */> charWidthCaches = new HashMap();
+	static Object[][] charWidthCaches256 = new Object[256][];
 
 	/**
 	 * use first font, if cannot display character in that font , use second, and so
@@ -237,32 +219,50 @@ public class U {
 		if (s0 == null || s0.length() <= 0) {
 			return 0;
 		}
-		String s = s0;
-		Font f = fonts[0];
-		return g2.getFontMetrics(f).stringWidth(s);
-		// while (true) {
-		// if (s.length() <= 0) {
-		// break;
-		// }
-		// Font f = fonts[0];
-		// int p1 = f.canDisplayUpTo(s.toString());
-		// if (p1 < 0) { // all
-		// w += g2.getFontMetrics(f).stringWidth(s.toString());
-		// s.setLength(0);
-		// } else {
-		// if (p1 != 0) {
-		// w += g2.getFontMetrics(f).stringWidth(s.substring(0, p1));
-		// s.delete(0, p1);
-		// }
-		// if (s.length() > 0) {
-		// char c0 = s.charAt(0);
-		// s.delete(0, 1);
-		// w += charWidth(g2, fonts, c0);
-		// }
-		// }
-		// }
-		// return w;
+		int w = 0;
+		int len = s0.length();
+		for (int i = 0; i < len; i++) {
+			char c = s0.charAt(i);
+			if (c == '\t')
+				w += TAB_WIDTH;
+			else
+				w += charWidth(g2, fonts, c, null);
+		}
+		return w;
+	}
 
+	static int TAB_WIDTH = 20;
+
+	public static int charWidth(Graphics2D g2, Font[] fonts, char c) {
+		// for compact with IME interface
+		return charWidth(g2, fonts, c, null);
+	}
+
+	public static int charWidth(Graphics2D g2, Font[] fonts, char c, Font[] fo) {
+		Object[] row = c < 256 ? charWidthCaches256[c] : charWidthCaches.get(c);
+		if (row == null) {
+			row = genCharWidthCaches(g2, c, fonts);
+			if (c < 256) {
+				charWidthCaches256[c] = row;
+			} else {
+				charWidthCaches.put(c, row);
+			}
+		}
+		if (fo != null)
+			fo[0] = (Font) row[0];
+		return (Integer) row[1];
+	}
+
+	/** match the first font can show the char */
+	private static Object[] genCharWidthCaches(Graphics2D g2, char c, Font[] fonts) {
+		Font f = fonts[0];
+		for (Font font : fonts) {
+			if (font.canDisplay(c)) {
+				f = font;
+				break;
+			}
+		}
+		return new Object[] { f, g2.getFontMetrics(f).charWidth(c) };
 	}
 
 	static enum BasicAction {
@@ -493,7 +493,7 @@ public class U {
 				if (v == null || "null".equals(v)) {
 					return defaultIfFail;
 				} else {
-					GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+//					GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 					List<Font> fonts = new ArrayList<Font>();
 					for (Object o : (List) v) {
 						List l = (List) o;
@@ -521,11 +521,14 @@ public class U {
 
 						}
 					}
-					if (fonts.isEmpty()) {
-						System.out.println("use default fonts.");
-						return defaultIfFail;
+					for (Font f : defaultIfFail) {
+						fonts.add(f);
 					}
-					System.out.println("loaded custom fonts:" + fonts);
+////					if (fonts.isEmpty()) {
+////						System.out.println("use default fonts.");
+////						return defaultIfFail;
+////					}
+//					System.out.println("loaded custom fonts:" + fonts);
 					return fonts.toArray(new Font[fonts.size()]);
 				}
 			} catch (Exception e) {
@@ -1000,7 +1003,7 @@ public class U {
 		String fn;
 		Font[] fonts;
 
-		int lineGap = 3, lineHeight = 8, headerHeight = 20, footerHeight = 20, gutterWidth = 24, TAB_WIDTH_PRINT = 20;
+		int lineGap = 3, lineHeight = 8, headerHeight = 20, footerHeight = 20, gutterWidth = 24;// TAB_WIDTH = 20;
 
 		int linePerPage;
 		ReadonlyLines roLines;
@@ -1046,7 +1049,7 @@ public class U {
 				for (String s1 : ws) {
 					if (i++ != 0) {
 						g2.drawImage(U.tabImgPrint, x + w, y - lineHeight, null);
-						w += TAB_WIDTH_PRINT;
+						w += TAB_WIDTH;
 					}
 					g2.setColor(colorComment);
 					w += U.drawString(g2, fonts, s1, x + w, y);
@@ -1060,7 +1063,7 @@ public class U {
 					String s1 = s1c.toString();
 					if (s1.equals("\t")) {
 						g2.drawImage(U.tabImgPrint, x + w, y - lineHeight, null);
-						w += TAB_WIDTH_PRINT;
+						w += TAB_WIDTH;
 					} else {
 						// int highlightid =
 						U.getHighLightID(s1, g2, colorKeyword, colorDigit, colorNormal);
@@ -1122,10 +1125,10 @@ public class U {
 			U.drawString(g2, fonts, fn == null ? title : new File(fn).getName(), 0, lineGap + lineHeight);
 			{
 				String s = (pageIndex + 1) + "/" + totalPage;
-				U.drawString(g2, fonts, s, (int) pf.getImageableWidth() - U.strWidth(g2, fonts, s, TAB_WIDTH_PRINT) - 2,
+				U.drawString(g2, fonts, s, (int) pf.getImageableWidth() - U.stringWidth(g2, fonts, s) - 2,
 						lineGap + lineHeight);
 				s = new Date().toString() + " - NeoeEdit";
-				U.drawString(g2, fonts, s, (int) pf.getImageableWidth() - U.strWidth(g2, fonts, s, TAB_WIDTH_PRINT) - 2,
+				U.drawString(g2, fonts, s, (int) pf.getImageableWidth() - U.stringWidth(g2, fonts, s) - 2,
 						(int) pf.getImageableHeight() - 2);
 				g2.setColor(colorGutterLine);
 				g2.drawLine(gutterWidth - 4, headerHeight, gutterWidth - 4,
@@ -1534,13 +1537,13 @@ public class U {
 	 * @param g2
 	 * @return
 	 */
-	static int computeShowIndex(CharSequence s0, int width, Graphics2D g2, Font[] fonts, int TABWIDTH) {
+	static int computeShowIndex(CharSequence s0, int width, Graphics2D g2, Font[] fonts) {
 		if (s0.length() == 0) {
 			return 0;
 		}
 		String s = s0.toString();
 
-		if (U.strWidth(g2, fonts, s, TABWIDTH) <= width) {
+		if (U.stringWidth(g2, fonts, s) <= width) {
 			return s.length();
 		}
 		int i = s.length() / 2;
@@ -1548,9 +1551,9 @@ public class U {
 			if (i == 0) {
 				return 0;
 			}
-			int w = U.strWidth(g2, fonts, s.substring(0, i), TABWIDTH);
+			int w = U.stringWidth(g2, fonts, s.substring(0, i));
 			if (w <= width) {
-				return i + computeShowIndex(s.substring(i), width - w, g2, fonts, TABWIDTH);
+				return i + computeShowIndex(s.substring(i), width - w, g2, fonts);
 			} else {
 				i = i / 2;
 			}
@@ -2403,8 +2406,8 @@ public class U {
 
 	static void loadTabImage() throws Exception {
 		BufferedImage img = ImageIO.read(U.class.getResourceAsStream("/icontab.png"));
-		tabImg = img.getScaledInstance(40, 8, Image.SCALE_SMOOTH);
-		tabImgPrint = img.getScaledInstance(20, 8, Image.SCALE_SMOOTH);
+		tabImg = img.getScaledInstance(TAB_WIDTH, 8, Image.SCALE_SMOOTH);
+		tabImgPrint = img.getScaledInstance(TAB_WIDTH, 8, Image.SCALE_SMOOTH);
 	}
 
 	public static Commands mappingToCommand(KeyEvent env) {
@@ -2860,7 +2863,7 @@ public class U {
 			return;
 		String s = dir.getAbsolutePath();
 
-		String old = FileUtil.readStringSmall(new FileInputStream(getDirHistoryName()), null);
+		String old = FileUtil.readString(new FileInputStream(getDirHistoryName()), null);
 		List<String> his = Arrays.asList(old.split("\n"));
 		BufferedWriter out = new BufferedWriter(
 				new OutputStreamWriter(new FileOutputStream(getDirHistoryName()), UTF8));
@@ -2936,6 +2939,9 @@ public class U {
 		ArrayList fonts = new ArrayList(Arrays.asList(U.fontList));
 		fonts.add(0, f);
 		U.fontList = (Font[]) fonts.toArray(new Font[fonts.size()]);
+		// clear cache
+		charWidthCaches.clear();
+		charWidthCaches256 = new Object[256][];
 		// showSelfDispMessage(pp, "Deprecated! Please set font by editing
 		// data.py in <home>/.neoeedit", 3000);
 	}
@@ -3151,27 +3157,6 @@ public class U {
 				}
 			}
 		});
-	}
-
-	static int strWidth(Graphics2D g2, Font[] fonts, String s, int TABWIDTH) {
-		if (s.indexOf("\t") < 0) {
-			return U.stringWidth(g2, fonts, s);
-		} else {
-			int w = 0;
-			int p1 = 0;
-			while (true) {
-				int p2 = s.indexOf("\t", p1);
-				if (p2 < 0) {
-					w += U.stringWidth(g2, fonts, s.substring(p1));
-					break;
-				} else {
-					w += U.stringWidth(g2, fonts, s.substring(p1, p2));
-					w += TABWIDTH;
-					p1 = p2 + 1;
-				}
-			}
-			return w;
-		}
 	}
 
 	static CharSequence subs(CharSequence sb, int a, int b) {

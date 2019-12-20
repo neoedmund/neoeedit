@@ -623,9 +623,9 @@ public class PlainPage {
 			void markBox(Graphics2D g2, int x, int y) {
 				if (y >= sy && y <= sy + showLineCnt && x >= sx) {
 					CharSequence sb = pageData.roLines.getline(y);
-					int w1 = x > 0 ? U.strWidth(g2, U.fontList, sb.subSequence(sx, x).toString(), TABWIDTH) : 0;
+					int w1 = x > 0 ? U.stringWidth(g2, U.fontList, sb.subSequence(sx, x).toString()) : 0;
 					String c = sb.subSequence(x, x + 1).toString();
-					int w2 = U.strWidth(g2, U.fontList, c, TABWIDTH);
+					int w2 = U.stringWidth(g2, U.fontList, c);
 					g2.setColor(Color.WHITE);
 					g2.drawRect(w1 - 1, (y - sy) * (lineHeight + lineGap) - 1, w2, lineHeight);
 					g2.setColor(colorNormal);
@@ -724,7 +724,6 @@ public class PlainPage {
 
 		float scalev = 1;
 
-		int TABWIDTH = 40;
 		private int nextXToolBar;
 		private boolean fpsOn = false;
 		private int charCntInLine;
@@ -735,7 +734,7 @@ public class PlainPage {
 
 		Paint() {
 			try {
-				TABWIDTH = U.Config.readTabWidth();
+				U.TAB_WIDTH = U.Config.readTabWidth();
 				int cm = U.Config.getDefaultColorMode();
 				applyColorMode(cm);
 			} catch (IOException e) {
@@ -812,12 +811,11 @@ public class PlainPage {
 					x1 = s.length();
 				}
 				if (x1 == x2) {
-					int w1 = U.strWidth(g2, U.fontList, s.subSequence(0, x1).toString(), TABWIDTH);
+					int w1 = U.stringWidth(g2, U.fontList, s.subSequence(0, x1).toString());
 					g2.fillRect(w1, scry * (lineHeight + lineGap), 3, lineHeight + lineGap);
 				} else {
-					int w1 = U.strWidth(g2, U.fontList, s.subSequence(0, x1).toString(), TABWIDTH);
-					int w2 = x2 > x2a ? textAreaWidth
-							: U.strWidth(g2, U.fontList, s.subSequence(0, x2a).toString(), TABWIDTH);
+					int w1 = U.stringWidth(g2, U.fontList, s.subSequence(0, x1).toString());
+					int w2 = x2 > x2a ? textAreaWidth : U.stringWidth(g2, U.fontList, s.subSequence(0, x2a).toString());
 					g2.fillRect(w1, scry * (lineHeight + lineGap), (w2 - w1), lineHeight + lineGap);
 				}
 			}
@@ -913,7 +911,7 @@ public class PlainPage {
 				for (CharSequence s1 : ws) {
 					if (i++ != 0) {
 						g2.drawImage(U.tabImg, x + w, y - lineHeight, null);
-						w += TABWIDTH;
+						w += U.TAB_WIDTH;
 					}
 					w += U.drawTwoColor(g2, fonts, s1.toString(), x + w, y, colorComment, colorComment2, 1,
 							isCurrentLine, lineHeight);
@@ -927,9 +925,8 @@ public class PlainPage {
 					String s1 = s1c.toString();
 					if (s1.equals("\t")) {
 						g2.drawImage(U.tabImg, x + w, y - lineHeight, null);
-						w += TABWIDTH;
+						w += U.TAB_WIDTH;
 					} else {
-						// int highlightid =
 						U.getHighLightID(s1, g2, colorKeyword, colorDigit, colorNormal);
 						U.drawString(g2, U.fontList, s1, x + w, y, isCurrentLine, lineHeight);
 						w += U.stringWidth(g2, U.fontList, s1);
@@ -955,7 +952,7 @@ public class PlainPage {
 					CharSequence s = U.subs(sb, sx, chari2);
 					g2.setColor(colorNormal);
 					int w = drawStringLine(g2, fonts, s, 0, py, y == cy && !Gimp.glowDisabled || Gimp.glowAll);
-					// U.strWidth(g2,s,TABWIDTH);
+					// U.strWidth(g2,s,TAB_WIDTH);
 					drawReturn(g2, w, py);
 				} else {
 					drawReturn(g2, 0, py);
@@ -1078,14 +1075,13 @@ public class PlainPage {
 					sx = Math.max(0, cx - charCntInLine / 2);
 				} else {
 					sx = Math.max(0, Math.max(sx, cx - charCntInLine + 10));
-					if (U.strWidth(g2, U.fontList, U.subs(pageData.roLines.getline(cy), sx, cx).toString(),
-							TABWIDTH) > size.width - lineHeight * 3) {
+					if (U.stringWidth(g2, U.fontList, U.subs(pageData.roLines.getline(cy), sx, cx).toString()) > size.width
+							- lineHeight * 3) {
 						sx = Math.max(0, cx - charCntInLine / 2);
 						int xx = charCntInLine / 4;
 
-						while (xx > 0
-								&& U.strWidth(g2, U.fontList, U.subs(pageData.roLines.getline(cy), sx, cx).toString(),
-										TABWIDTH) > size.width - lineHeight * 3) {
+						while (xx > 0 && U.stringWidth(g2, U.fontList, U.subs(pageData.roLines.getline(cy), sx, cx)
+								.toString()) > size.width - lineHeight * 3) {
 							sx = Math.max(0, cx - xx - 1);
 							xx /= 2; // quick guess
 						}
@@ -1108,7 +1104,7 @@ public class PlainPage {
 						CharSequence sb = pageData.roLines.getline(cy);
 						sx = Math.min(sx, sb.length());
 						cx = sx + U.computeShowIndex(sb.subSequence(sx, sx + Math.min(sb.length() - sx, charCntInLine)),
-								mx, g2, U.fontList, TABWIDTH);
+								mx, g2, U.fontList);
 						my = 0;
 						needRepaint = ptSelection.mouseSelection(sb);
 
@@ -1169,14 +1165,14 @@ public class PlainPage {
 				if (cy >= sy && cy <= sy + showLineCnt) {
 					g2.setXORMode(new Color(0x30f0f0));
 					CharSequence s = U.subs(pageData.roLines.getline(cy), sx, cx);
-					int w = U.strWidth(g2, U.fontList, s.toString(), TABWIDTH);
+					int w = U.stringWidth(g2, U.fontList, s.toString());
 					int y0 = (cy - sy) * (lineHeight + lineGap);
 					g2.fillRect(w, y0, 2, lineHeight + 3);
 					// draw preedit
 					if (preeditText != null && preeditText.length() > 0) {
 						g2.setPaintMode();
 						g2.setColor(new Color(0xaaaa00));
-						int w0 = U.strWidth(g2, U.fontList, preeditText, TABWIDTH);
+						int w0 = U.stringWidth(g2, U.fontList, preeditText);
 						g2.fillRect(w, y0, w0 + 4, lineHeight + lineGap);
 						g2.setColor(new Color(0x0000aa));
 						U.drawString(g2, U.fontList, preeditText, w + 2, y0 + lineHeight);
