@@ -1810,10 +1810,6 @@ public class U {
 		}
 	}
 
-	private static String getLocString(String title, int lineNo) {
-		return String.format("%s|%s:", title, lineNo);
-	}
-
 	static boolean findAndShowPageListPage(EditorPanel ep, String title, int lineNo, int x, boolean recCh) {
 		boolean b = findAndShowPageListPage(ep, title, lineNo, recCh);
 		if (b) {
@@ -2096,9 +2092,10 @@ public class U {
 
 	static boolean gotoFileLine(String sb, EditorPanel ep, boolean record) throws Exception {
 		int p1, p2;
+		String fn = sb.toString();
 		if ((p1 = sb.indexOf("|")) >= 0) {
-			String fn = sb.substring(0, p1);
-			if ((p2 = sb.indexOf(":", p1)) >= 0) {
+			fn = sb.substring(0, p1);
+			if ((p2 = sb.indexOf(":", p1)) >= 0) {// search result
 				int line = -1;
 				try {
 					line = Integer.parseInt(sb.substring(p1 + 1, p2));
@@ -2109,7 +2106,18 @@ public class U {
 					return true;
 				}
 			}
+		} else if ((p1 = sb.lastIndexOf(":")) > 0) { // try filename:lineno pattern
+			int line = -1;
+			try {
+				line = Integer.parseInt(sb.substring(p1 + 1).trim());
+				fn = fn.substring(0, p1).trim();
+			} catch (Exception e) {
+			}
+			if (line >= 0) {
+				return gotoFileLinePos(ep, fn, line, -1, record);
+			}
 		}
+
 		{
 			String dir = ep.getPage().pageData.workPath;
 			if (dir == null) {
@@ -2124,6 +2132,7 @@ public class U {
 		return false;
 	}
 
+	/** goto search result */
 	public static boolean gotoFileLine2(EditorPanel ep, String sb, String title, boolean record) throws Exception {
 		int p2;
 		if ((p2 = sb.indexOf(":")) >= 0) {

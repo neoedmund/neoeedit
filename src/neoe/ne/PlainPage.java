@@ -1551,9 +1551,7 @@ public class PlainPage {
 			U.setFont(this, line.substring("set-font:".length()).trim());
 		} else {
 			if (searchResultOf == null || !U.gotoFileLine2(uiComp, line, searchResultOf, record)) {
-				if (!U.gotoFileLine(line, uiComp, record /*
-															 * , pageData.getTitle().equals(U.titleOfPages( uiComp))
-															 */)) {
+				if (!U.gotoFileLine(line, uiComp, record )) {
 					if (!U.listDir(PlainPage.this, cy)) {
 						U.launch(line);
 					}
