@@ -527,7 +527,7 @@ public class U {
 							} else if (l.size() > 2 && l.get(2).equals("ITALIC")) {
 								font = font.deriveFont(Font.ITALIC, fontsize);
 							} else {
-								// font = font.deriveFont(Font.PLAIN, fontsize);
+								font = font.deriveFont(Font.PLAIN, fontsize);
 							}
 							fonts.add(font);
 						}
