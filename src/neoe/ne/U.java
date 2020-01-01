@@ -494,31 +494,42 @@ public class U {
 					return defaultIfFail;
 				} else {
 //					GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+					List localFonts = null;
 					List<Font> fonts = new ArrayList<Font>();
 					for (Object o : (List) v) {
 						List l = (List) o;
 						String fontfn = (String) l.get(0);
 						File f = new File(fontfn);
+						Font font = null;
+						int fontsize = ((BigDecimal) l.get(1)).intValue();
 						if (f.exists() && f.isFile()) {
-							int fontsize = ((BigDecimal) l.get(1)).intValue();
-							Font font = Font.createFont(Font.TRUETYPE_FONT, f);
+							font = Font.createFont(Font.TRUETYPE_FONT, f);
 							if (font == null) {
 								System.out.println("cannot load truetype font:" + fontfn);
 								continue;
 							}
 							System.out.println("load font file:" + fontfn);
+
+						} else {
+							if (localFonts == null) {
+								localFonts = Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment()
+										.getAvailableFontFamilyNames());
+							}
+							if (localFonts.contains(fontfn)) {
+								font = new Font(fontfn, Font.PLAIN, 12);
+							} else {
+								System.out.println("font file not exists:" + fontfn);
+							}
+						}
+						if (font != null) {
 							if (l.size() > 2 && l.get(2).equals("BOLD")) {
 								font = font.deriveFont(Font.BOLD, fontsize);
 							} else if (l.size() > 2 && l.get(2).equals("ITALIC")) {
 								font = font.deriveFont(Font.ITALIC, fontsize);
-
 							} else {
-								font = font.deriveFont(Font.PLAIN, fontsize);
+								// font = font.deriveFont(Font.PLAIN, fontsize);
 							}
 							fonts.add(font);
-						} else {
-							System.out.println("font file not exists:" + fontfn);
-
 						}
 					}
 					for (Font f : defaultIfFail) {

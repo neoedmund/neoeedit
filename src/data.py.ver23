@@ -85,6 +85,8 @@ color:{
 font:{
 	font_example:["font filename"  fontsize "<empty>|BOLD|ITALIC"]
 	list:[
+		["MV Boli"  14   ]
+		["微软雅黑 Light" 14]
 		["/usr/share/fonts/truetype/liberation2/LiberationMono-Regular.ttf"  14   ]
 		["/usr/share/fonts/opentype/noto/NotoSansCJK-Thin.ttc"  14  ]
 	]
