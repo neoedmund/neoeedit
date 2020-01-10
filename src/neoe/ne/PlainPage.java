@@ -948,7 +948,8 @@ public class PlainPage {
 				}
 				CharSequence sb = pageData.roLines.getline(y);
 				if (sx < sb.length()) {
-					int chari2 = Math.min(charCntInLine + sx, sb.length());
+					// more accurate length, because strWidth is now cheaper.
+					int chari2 = U.maxShowLength(sb, sx, dim.width - gutterWidth, g2, fonts);
 					CharSequence s = U.subs(sb, sx, chari2);
 					g2.setColor(colorNormal);
 					int w = drawStringLine(g2, fonts, s, 0, py, y == cy && !Gimp.glowDisabled || Gimp.glowAll);
@@ -1075,8 +1076,8 @@ public class PlainPage {
 					sx = Math.max(0, cx - charCntInLine / 2);
 				} else {
 					sx = Math.max(0, Math.max(sx, cx - charCntInLine + 10));
-					if (U.stringWidth(g2, U.fontList, U.subs(pageData.roLines.getline(cy), sx, cx).toString()) > size.width
-							- lineHeight * 3) {
+					if (U.stringWidth(g2, U.fontList,
+							U.subs(pageData.roLines.getline(cy), sx, cx).toString()) > size.width - lineHeight * 3) {
 						sx = Math.max(0, cx - charCntInLine / 2);
 						int xx = charCntInLine / 4;
 
@@ -1551,7 +1552,7 @@ public class PlainPage {
 			U.setFont(this, line.substring("set-font:".length()).trim());
 		} else {
 			if (searchResultOf == null || !U.gotoFileLine2(uiComp, line, searchResultOf, record)) {
-				if (!U.gotoFileLine(line, uiComp, record )) {
+				if (!U.gotoFileLine(line, uiComp, record)) {
 					if (!U.listDir(PlainPage.this, cy)) {
 						U.launch(line);
 					}

@@ -3389,4 +3389,19 @@ public class U {
 		return Float.parseFloat(o.toString());
 	}
 
+	public static int maxShowLength(CharSequence sb, int sx, int W, Graphics2D g2, Font[] fonts) {
+		int w = 0;
+		for (int i = sx; i < sb.length() - 1; i++) {
+			char c = sb.charAt(i);
+			if (c == '\t')
+				w += TAB_WIDTH;
+			else
+				w += charWidth(g2, fonts, c);
+			if (w > W) {
+				return i + 1;
+			}
+		}
+		return sb.length();
+	}
+
 }
