@@ -18,7 +18,7 @@ public class MakeKeywords {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		new MakeKeywords().addTextFile("E:/neoe/kw_shader2");
+		new MakeKeywords().addTextFile("/data/2k/temp1");
 
 	}
 
