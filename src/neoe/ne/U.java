@@ -672,7 +672,7 @@ public class U {
 			Object o = get(getConfig(), path);
 			if (o == null)
 				return dv;
-			return dv;
+			return o;
 		}
 
 		/**

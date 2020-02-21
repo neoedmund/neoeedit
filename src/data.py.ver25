@@ -97,12 +97,7 @@ ime:[
     "neoe.ime.neoeedit.Jp"
 ]
 
-glow:{
-	center:100
-	range:3
-	disabled:false
-	threshold:0
-}
+glow:{center:100 range:3 disabled:true threshold:0 }
 
 tabWidthInPixel:20
 lookAndFeel:""
