@@ -717,8 +717,8 @@ public class U {
 
 		void doFind(String text, boolean ignoreCase, boolean selected2, boolean inDir, String dir, String fnFilter,
 				boolean backward) throws Exception {
-			if (!inDir) {
-				text2find = text;
+			text2find = text;
+			if (!inDir) {				
 				pp.ignoreCase = ignoreCase;
 				back = backward;
 				if (backward)
