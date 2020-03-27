@@ -148,7 +148,6 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 		try {
 			String command = ae.getActionCommand();
 			if (command.equals("find")) {
-
 				page.ptFind.doFind(jta1.getText(), jrb1.isSelected(), jrb2.isSelected(), jcb1.isSelected(),
 						jtadir.getText(), jtFnFilter.getText(), jcbDirection.isSelected());
 

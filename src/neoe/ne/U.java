@@ -1601,6 +1601,7 @@ public class U {
 	}
 
 	static void doFindInPage(PlainPage page, String text2find, boolean ignoreCase) throws Exception {
+		page.ptFind.text2find = text2find;
 		if (text2find != null && text2find.length() > 0) {
 			Point p = U.find(page, text2find, 0, 0, ignoreCase);
 			if (p == null) {
