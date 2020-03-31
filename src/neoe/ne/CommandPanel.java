@@ -14,8 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JComponent;
-
 /**
  * A help panel shows all commands. Hold down CTRL for seconds to activate it.
  */

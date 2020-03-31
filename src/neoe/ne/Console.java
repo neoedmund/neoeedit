@@ -10,18 +10,22 @@ public class Console {
 	InputStream stderr;
 	Process proc;
 	private PlainPage pp;
+	private EditorPanel parentUI;
 
-	public Console(String cmd, OutputStream out, InputStream stdout, InputStream stderr, Process proc) {
+	public Console(String cmd, OutputStream out, InputStream stdout, InputStream stderr, Process proc,
+			EditorPanel uiComp) {
 		this.cmd = cmd;
 		this.out = out;
 		this.stdout = stdout;
 		this.stderr = stderr;
 		this.proc = proc;
+		this.parentUI = uiComp;
+
 	}
 
 	public void start() throws Exception {
 		EditorPanel ep = new EditorPanel(EditorPanelConfig.DEFAULT);
-		ep.openWindow(U.e2_png);
+		ep.openWindow(U.e2_png, parentUI);
 		// ep.changeTitle();
 		PlainPage pp = ep.getPage();
 

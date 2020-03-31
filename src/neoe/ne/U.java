@@ -718,7 +718,7 @@ public class U {
 		void doFind(String text, boolean ignoreCase, boolean selected2, boolean inDir, String dir, String fnFilter,
 				boolean backward) throws Exception {
 			text2find = text;
-			if (!inDir) {				
+			if (!inDir) {
 				pp.ignoreCase = ignoreCase;
 				back = backward;
 				if (backward)
@@ -1706,7 +1706,7 @@ public class U {
 		InputStream stdout = proc.getInputStream();
 		InputStream stderr = proc.getErrorStream();
 
-		new Console(cmd, out, stdout, stderr, proc).start();
+		new Console(cmd, out, stdout, stderr, proc, pp.uiComp).start();
 		// attach(getPage(pp.uiComp, "[stderr]"), stderr);
 		// attach(getPage(pp.uiComp, "[stdout]"), stdout);
 	}
@@ -2812,7 +2812,7 @@ public class U {
 		ScriptUtil su = new ScriptUtil();
 		List<CharSequence> ret = su.runSingleScript(script, export);
 		EditorPanel ep = new EditorPanel(ppTarget.uiComp.config);
-		ep.openWindow();
+		ep.openWindow(ppTarget.uiComp);
 		ep.getPage().pageData.workPath = ppTarget.pageData.workPath;
 		ep.getPage().pageData.setLines(ret);
 	}

@@ -2041,7 +2041,7 @@ public class PlainPage {
 			break;
 		case newWindow:
 			EditorPanel ep = new EditorPanel(EditorPanelConfig.DEFAULT);
-			ep.openWindow();
+			ep.openWindow(uiComp);
 			// set default working path
 			ep.getPage().pageData.workPath = pageData.workPath;
 			break;

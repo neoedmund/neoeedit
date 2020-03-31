@@ -1,15 +1,11 @@
 package neoe.ne;
 
-import static neoe.ne.U.Config.getConfig;
-
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * All IME plugin extend this class.
@@ -24,7 +20,7 @@ public abstract class Ime {
 	}
 
 	private static boolean enabled;
-	public static List<ImeInterface> instances= new ArrayList<ImeInterface>();
+	public static List<ImeInterface> instances = new ArrayList<ImeInterface>();
 	private static int index;
 
 	public static void nextIme() {

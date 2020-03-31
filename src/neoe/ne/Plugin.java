@@ -50,8 +50,7 @@ public class Plugin {
 		for (File f : dir.listFiles()) {
 			if (f.isFile() && f.getName().endsWith(".jar")) {
 				jars.add(f.toURI().toURL());
-				System.out.println(
-						"\tadd: " + f.getName() + " \t " + sdf.format(new Date(f.lastModified())));
+				System.out.println("\tadd: " + f.getName() + " \t " + sdf.format(new Date(f.lastModified())));
 			}
 		}
 		URLClassLoader cl = new URLClassLoader(jars.toArray(new URL[jars.size()]), Plugin.class.getClassLoader());

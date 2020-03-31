@@ -12,22 +12,22 @@ public class Main {
 				new PicView(editor).show(f);
 			} else {
 				new PlainPage(editor, PageData.newFromFile(f.getCanonicalPath()));
-				editor.openWindow();
+				editor.openWindow(null);
 			}
 		} else {
-			editor.openWindow();
+			editor.openWindow(null);
 		}
 
 		SwingJniJvmPatch();
 	}
 
-	public static EditorPanel open(String title, String text) throws Exception {
-		EditorPanel editor = new EditorPanel(EditorPanelConfig.DEFAULT);
-		PlainPage pp = new PlainPage(editor, PageData.newEmpty(title, ""));
-		pp.ptEdit.append(text);
-		editor.openWindow();
-		return editor;
-	}
+//	public static EditorPanel open(String title, String text) throws Exception {
+//		EditorPanel editor = new EditorPanel(EditorPanelConfig.DEFAULT);
+//		PlainPage pp = new PlainPage(editor, PageData.newEmpty(title, ""));
+//		pp.ptEdit.append(text);
+//		editor.openWindow();
+//		return editor;
+//	}
 
 	/**
 	 * something like said in https://forums.oracle.com/thread/1542114

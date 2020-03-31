@@ -22,7 +22,7 @@ public class ScriptUtil {
 	public List<CharSequence> runSingleScript(String script, List<CharSequence> input) throws Exception {
 		// 3.1.
 		String neoeeditCP = findMyCP();
-		System.out.println("neoeeditCP="+neoeeditCP);
+		System.out.println("neoeeditCP=" + neoeeditCP);
 		String javaPath = new FindJDK().find(0, true);
 		String javac = javaPath + (FindJDK.isWindows ? "/bin/javac.exe" : "/bin/javac");
 

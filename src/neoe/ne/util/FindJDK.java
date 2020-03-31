@@ -43,10 +43,8 @@ public class FindJDK {
 
 	/**
 	 * 
-	 * @param bit
-	 *            64,32,0==any
-	 * @param jdk
-	 *            true must be JDK, false JRE is okay
+	 * @param bit 64,32,0==any
+	 * @param jdk true must be JDK, false JRE is okay
 	 * @return
 	 * @throws IOException
 	 */

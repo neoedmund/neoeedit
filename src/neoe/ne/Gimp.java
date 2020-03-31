@@ -22,7 +22,7 @@ public class Gimp {
 		center_weight = U.getFloat(U.Config.get("glow.center", 100f));
 		range = U.getInt(U.Config.get("glow.range", 3));
 		glowDisabled = U.getBool(U.Config.get("glow.disabled", false));
-		System.out.println("glowDisabled="+glowDisabled+","+U.Config.get(U.Config.getConfig(),"glow.disabled"));
+		System.out.println("glowDisabled=" + glowDisabled + "," + U.Config.get(U.Config.getConfig(), "glow.disabled"));
 		glow_threshold = U.getFloat(U.Config.get("glow.threshold", 0));
 	}
 

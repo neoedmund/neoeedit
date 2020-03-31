@@ -186,8 +186,8 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 			frame.setTitle(new File(fn).getName() + " " + new File(fn).getParent() + " - (" + pageSet.size() + ") - "
 					+ EditorPanel.WINDOW_NAME + U.suNotice());
 		} else {
-			frame.setTitle(
-					page.pageData.getTitle() + " - (" + pageSet.size() + ") - " + EditorPanel.WINDOW_NAME + U.suNotice());
+			frame.setTitle(page.pageData.getTitle() + " - (" + pageSet.size() + ") - " + EditorPanel.WINDOW_NAME
+					+ U.suNotice());
 		}
 	}
 
@@ -291,14 +291,15 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 		}
 	}
 
-	public void openWindow() throws IOException {
-		openWindow(U.e_png);
+	public void openWindow(EditorPanel parentUI) throws IOException {
+		openWindow(U.e_png, parentUI);
 	}
 
-	public void openWindow(String iconname) throws IOException {
+	public void openWindow(String iconname, EditorPanel parentUI) throws IOException {
 		openedWindows++;
 		if (frame != null)
 			return;
+
 		frame = new JFrame(EditorPanel.WINDOW_NAME);
 		frame.setIconImage(U.getAppIcon(iconname));
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -306,7 +307,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 		U.setFrameSize(frame, p.x, p.y);
 		frame.getContentPane().add(this);
 		frame.setTransferHandler(new U.TH(this));
-		frame.setLocationRelativeTo(null);
+		frame.setLocationRelativeTo(parentUI);
 		frame.setVisible(true);
 		frame.addWindowListener(new WindowAdapter() {
 			private long lastWarning;
