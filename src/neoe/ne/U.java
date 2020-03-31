@@ -2233,9 +2233,9 @@ public class U {
 		}
 		if (comment.isEmpty()) {
 			comment = null;
-			page.ui.message("no comment found");
+			// page.ui.message("no comment found");
 		} else {
-			page.ui.message("comment found:" + comment);
+			// page.ui.message("comment found:" + comment);
 		}
 		page.ui.comment = comment == null ? null : comment.toArray(new String[comment.size()]);
 		page.uiComp.repaint();
