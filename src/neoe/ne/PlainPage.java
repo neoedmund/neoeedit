@@ -23,6 +23,7 @@ import javax.swing.SwingUtilities;
 import neoe.ne.CommandPanel.CommandPanelPaint;
 import neoe.ne.Ime.Out;
 import neoe.ne.Plugin.PluginAction;
+import neoe.ne.util.FindJDK;
 
 public class PlainPage {
 
@@ -1722,7 +1723,7 @@ public class PlainPage {
 			return;
 		}
 		{
-			if (isButtonDown(4, evt) || isButtonDown(5, evt)) {
+			if (isButtonDown(4, evt) || isButtonDown(5, evt) || isButtonDown(6, evt) || isButtonDown(7, evt)) {
 				return;
 			}
 		}
@@ -1772,16 +1773,17 @@ public class PlainPage {
 	}
 
 	public void mousePressed(MouseEvent evt) {
-		{
-			if (processButton4(evt) || processButton5(evt)) {
-				return;
-			}
+		if (isButtonBack(evt)) {
+			pageBack();
+		} else if (isButtonForward(evt)) {
+			pageForward();
+		} else {
+			mx = evt.getX();
+			my = evt.getY();
+			mshift = evt.isShiftDown();
+			mcount = evt.getClickCount();
+			uiComp.repaint();
 		}
-		mx = evt.getX();
-		my = evt.getY();
-		mshift = evt.isShiftDown();
-		mcount = evt.getClickCount();
-		uiComp.repaint();
 		// System.out.println("m press");
 	}
 
@@ -1816,12 +1818,30 @@ public class PlainPage {
 		uiComp.repaint();
 	}
 
-	private boolean processButton4(MouseEvent evt) {
-		if (!isButtonDown(4, evt) && !isButtonDown(6, evt)) {
-			return false;
+	private boolean isButtonBack(MouseEvent evt) {
+		if (FindJDK.isWindows) {
+			if (isButtonDown(4, evt)) {
+				return true;
+			}
+		} else {// Linux
+			if (isButtonDown(6, evt)) {
+				return true;
+			}
 		}
-		pageBack();
-		return true;
+		return false;
+	}
+
+	private boolean isButtonForward(MouseEvent evt) {
+		if (FindJDK.isWindows) {
+			if (isButtonDown(5, evt)) {
+				return true;
+			}
+		} else {// Linux
+			if (isButtonDown(7, evt)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void pageBack() {
@@ -1834,14 +1854,6 @@ public class PlainPage {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	private boolean processButton5(MouseEvent evt) {
-		if (!isButtonDown(5, evt) && !isButtonDown(7, evt)) {
-			return false;
-		}
-		pageForward();
-		return true;
 	}
 
 	private void pageForward() {
