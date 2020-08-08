@@ -1499,7 +1499,7 @@ public class PlainPage {
 	int toolbarHeight = 25;
 
 	public Paint ui = new Paint();
-	EditorPanel uiComp;
+	public EditorPanel uiComp;
 
 	public Console console;
 
