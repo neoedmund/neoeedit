@@ -768,13 +768,27 @@ public class PlainPage {
 		}
 
 		void drawGutter(Graphics2D g2) {
-			g2.setColor(colorGutNumber);
-			for (int i = 0; i < showLineCnt; i++) {
-				if (sy + i + 1 > pageData.roLines.getLinesize()) {
-					break;
+			if (scalev < 1) {
+				Graphics2D g3 = (Graphics2D) g2.create();
+				g3.scale(scalev, scalev);
+				g3.setColor(colorGutNumber);
+				for (int i = 0; i < showLineCnt; i++) {
+					if (sy + i + 1 > pageData.roLines.getLinesize()) {
+						break;
+					}
+					U.drawStringShrink(g3, U.fontList, "" + (sy + i + 1), 0, (lineHeight + (lineHeight + lineGap) * i),
+							gutterWidth / scalev);
 				}
-				U.drawStringShrink(g2, U.fontList, "" + (sy + i + 1), 0, lineHeight + (lineHeight + lineGap) * i,
-						gutterWidth / scalev);
+				g3.dispose();
+			} else {
+				g2.setColor(colorGutNumber);
+				for (int i = 0; i < showLineCnt; i++) {
+					if (sy + i + 1 > pageData.roLines.getLinesize()) {
+						break;
+					}
+					U.drawStringShrink(g2, U.fontList, "" + (sy + i + 1), 0,
+							(int) (scalev * (lineHeight + (lineHeight + lineGap) * i)), gutterWidth);
+				}
 			}
 		}
 
@@ -1126,8 +1140,8 @@ public class PlainPage {
 				g2.setColor(colorGutLine);
 				g2.drawRect(gutterWidth, -1, dim.width - gutterWidth, dim.height - toolbarHeight);
 
-				g2.scale(scalev, scalev);
 				drawGutter(g2);
+				g2.scale(scalev, scalev);
 				// draw text
 				g2.setClip(0, 0, (int) (dim.width / scalev), (int) ((dim.height - toolbarHeight) / scalev));
 				g2.translate(gutterWidth / scalev, 0);
