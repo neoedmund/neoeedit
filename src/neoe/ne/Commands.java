@@ -12,5 +12,5 @@ public enum Commands {
 	paste, print, quickSwitchPage, rectangleMode, redo, reloadWithEncoding, removeTralingSpace, resetScale, save,
 	saveAs, selectLine, selectAll, setEncoding, ShellCommand, showHelp, switchColorMode, switchLineSeperator, toggleIME,
 	undo, wrapLines, toggleFps, changePathSep, findPrev, commandPanel, mathEval, deleteWord, pageForward, pageBack,
-	readonlyMode, moveUpLangLevel
+	readonlyMode, moveUpLangLevel, openFileSelector
 }

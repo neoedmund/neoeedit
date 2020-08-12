@@ -3405,4 +3405,25 @@ public class U {
 		return sb.length();
 	}
 
+	public static void openFileSelector(String line, PlainPage pp) {
+		File dir = new File(line);
+		if (!dir.exists()) {
+			int p1 = line.lastIndexOf("|");
+			if (p1 > 0) {
+				dir = new File(line.substring(0, p1).trim());
+			}
+			if (!dir.exists()) {
+				pp.ui.message("current line does not indicate a directory");
+				return;
+			}
+		}
+		JFileChooser c = new JFileChooser(dir);
+		int r = c.showOpenDialog(null);
+		if (r == JFileChooser.APPROVE_OPTION) {
+			String s = c.getSelectedFile().getAbsolutePath();
+			U.setClipBoard(s);
+			pp.ui.message("filename copied");
+		}
+	}
+
 }

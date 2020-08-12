@@ -43,6 +43,7 @@
 	[go  ctrl-1  Important  "goto file or page or set font, the most useful command"]
 	[fileHistory  ctrl-H  etc]
 	[dirHistory  ctrl-alt-H  etc]
+	[openFileSelector ctrl-2 etc]
 	[print  ctrl-P  etc  "print page"]
 	[pageList  ctrl-TAB  page]
 	[quickSwitchPage  ctrl-Q  page]
@@ -87,7 +88,7 @@ font:{
 	list:[
 		["MV Boli"  14   ]
 		["微软雅黑 Light" 14]
-		["Chilanka" 14 ]
+		["DejaVu Math TeX Gyre" 14 ]
 		["Noto Sans CJK SC DemiLight"  14   ]
 		["/usr/share/fonts/opentype/noto/NotoSansCJK-Thin.ttc"  14  ]
 	]

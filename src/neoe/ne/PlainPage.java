@@ -2151,6 +2151,12 @@ public class PlainPage {
 		case dirHistory:
 			U.openDirHistory(uiComp);
 			break;
+		case openFileSelector:
+			if (cy < pageData.lines.size()) {
+				String line = pageData.roLines.getline(cy).toString();
+				U.openFileSelector(line, this);
+			}
+			break;			
 		case print:
 			new U.Print(PlainPage.this).printPages();
 			break;
