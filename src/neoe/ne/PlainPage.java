@@ -2127,6 +2127,7 @@ public class PlainPage {
 			break;
 		case moveUpLangLevel:
 			cursor.doMoveUpLangLevel();
+			break;
 		case resetScale:
 			ui.scalev = 1;
 			break;
