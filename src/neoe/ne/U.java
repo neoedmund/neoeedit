@@ -2248,6 +2248,9 @@ public class U {
 		FileInputStream in = new FileInputStream(fn);
 		final int defsize = 1024 * 1024 * 2;
 		int len = Math.min(defsize, (int) new File(fn).length());
+		if (len < 0) {// a large file over 2GB
+			return null;
+		}
 		try {
 			byte[] buf = new byte[len];
 			len = in.read(buf);
