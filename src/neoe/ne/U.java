@@ -2199,9 +2199,9 @@ public class U {
 		int maxLines = Math.min(1000, page.pageData.roLines.getLinesize());
 		for (int i = 0; i < maxLines; i++) {
 			CharSequence sb = page.pageData.roLines.getline(i);
+			CharSequence tl = U.trimLeft(sb);
+			String s = tl.subSequence(0, Math.min(40, tl.length())).toString();
 			for (int j = 0; j < cnts.length; j++) {
-				CharSequence tl = sb; // U.trimLeft(sb);
-				String s = tl.subSequence(0, Math.min(40, tl.length())).toString();
 				String k = commentchars[j];
 				if (s.startsWith(k) || s.indexOf(k) >= 0) {
 					cnts[j] += k.length();
