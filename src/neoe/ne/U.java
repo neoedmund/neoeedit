@@ -2196,11 +2196,11 @@ public class U {
 		List<String> comment = new ArrayList<String>();
 		String[] commentchars = { "/*", "<!--", "#", "%", "'", "//", "!", ";", "--", };
 		int[] cnts = new int[commentchars.length];
-		int maxLines = Math.min(10000, page.pageData.roLines.getLinesize());
+		int maxLines = Math.min(1000, page.pageData.roLines.getLinesize());
 		for (int i = 0; i < maxLines; i++) {
 			CharSequence sb = page.pageData.roLines.getline(i);
 			for (int j = 0; j < cnts.length; j++) {
-				CharSequence tl = U.trimLeft(sb);
+				CharSequence tl = sb; // U.trimLeft(sb);
 				String s = tl.subSequence(0, Math.min(40, tl.length())).toString();
 				String k = commentchars[j];
 				if (s.startsWith(k) || s.indexOf(k) >= 0) {
