@@ -2131,11 +2131,7 @@ public class U {
 		}
 
 		{
-			String dir = ep.getPage().pageData.workPath;
-			if (dir == null) {
-				dir = ".";
-			}
-			File f = new File(dir, sb.toString());
+			File f = findFile(ep.getPage().pageData.workPath, sb);
 			if (f.exists() && f.isFile()) {
 				gotoFileLinePos(ep, f.getAbsolutePath(), 0, -1, record);
 				return true;
@@ -2389,14 +2385,11 @@ public class U {
 
 	static boolean listDir(PlainPage page, int atLine) throws Exception {
 		String line = page.pageData.roLines.getline(atLine).toString();
-		String fn = line.trim();
-		int p1 = fn.indexOf('|');
-		if (p1 >= 0) {
-			fn = fn.substring(0, p1).trim();
-		}
-		File f = new File(fn);
+		File f = findFile(page.pageData.workPath, line);
+		if (f == null)
+			return false;
 		if (f.isFile() && f.exists()) {
-			openFile(fn, 0, page.uiComp, true);
+			openFile(f.getAbsolutePath(), 0, page.uiComp, true);
 		} else if (f.isDirectory()) {
 			File[] fs = f.listFiles();
 			page.cx = line.length();
@@ -2413,6 +2406,50 @@ public class U {
 			return false;
 		}
 		return true;
+	}
+
+	private static File findFile(String dir, String line) {
+		if (dir == null) {
+			dir = ".";
+		}
+		String fn = line.trim();
+		{
+			int p1 = fn.indexOf('|');
+			if (p1 >= 0) {
+				fn = fn.substring(0, p1).trim();
+			}
+		}
+		{
+			int p1 = fn.indexOf('\t');
+			if (p1 >= 0) {
+				fn = fn.substring(0, p1).trim();
+			}
+		}
+		{
+			File f = new File(fn);
+			if (f.exists()) {
+				return f;
+			}
+			f = new File(dir, fn);
+			if (f.exists()) {
+				return f;
+			}
+		}
+		{
+			int p1 = fn.indexOf(' ');// more try
+			if (p1 >= 0) {
+				fn = fn.substring(0, p1).trim();
+				File f = new File(fn);
+				if (f.exists()) {
+					return f;
+				}
+				f = new File(dir, fn);
+				if (f.exists()) {
+					return f;
+				}
+			}
+		}
+		return null;
 	}
 
 	public static void listFonts(PlainPage pp) throws Exception {
@@ -3409,18 +3446,15 @@ public class U {
 	}
 
 	public static void openFileSelector(String line, PlainPage pp) {
-		File dir = new File(line);
-		if (!dir.exists()) {
-			int p1 = line.lastIndexOf("|");
-			if (p1 > 0) {
-				dir = new File(line.substring(0, p1).trim());
-			}
-			if (!dir.exists()) {
-				pp.ui.message("current line does not indicate a directory");
-				return;
-			}
+		File dir = findFile(pp.pageData.workPath, line);
+		if (dir == null) {
+			pp.ui.message("cannot find filename in current line");
+			return;
 		}
 		JFileChooser c = new JFileChooser(dir);
+		c.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		c.setDialogTitle("browse and copy file name");
+		c.setPreferredSize(new Dimension(800, 600));
 		int r = c.showOpenDialog(null);
 		if (r == JFileChooser.APPROVE_OPTION) {
 			String s = c.getSelectedFile().getAbsolutePath();
