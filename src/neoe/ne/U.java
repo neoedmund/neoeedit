@@ -2132,7 +2132,7 @@ public class U {
 
 		{
 			File f = findFile(ep.getPage().pageData.workPath, sb);
-			if (f.exists() && f.isFile()) {
+			if (f != null && f.exists() && f.isFile()) {
 				gotoFileLinePos(ep, f.getAbsolutePath(), 0, -1, record);
 				return true;
 			}
