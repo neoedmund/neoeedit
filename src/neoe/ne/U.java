@@ -2141,10 +2141,14 @@ public class U {
 	}
 
 	/** goto search result */
-	public static boolean gotoFileLine2(EditorPanel ep, String sb, String title, boolean record) throws Exception {
-		int p2;
-		if ((p2 = sb.indexOf(":")) >= 0) {
-			return U.gotoFileLine(sb.substring(p2 + 1), ep, record);
+	public static boolean gotoFileLine2(EditorPanel ep, String sb, String fn, boolean record) throws Exception {
+		int p1;
+		if ((p1 = sb.indexOf(":")) >= 0) {
+			try {
+				int line = Integer.parseInt(sb.substring(0, p1));
+				return U.gotoFileLinePos(ep, fn, line, 0, record);
+			} catch (Exception e) {
+			}
 		}
 		return false;
 	}

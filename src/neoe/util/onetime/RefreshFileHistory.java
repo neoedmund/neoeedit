@@ -1,7 +1,6 @@
 package neoe.util.onetime;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import neoe.ne.U;
-import neoe.util.FileUtil;
+import neoe.ne.util.FileUtil;
 
 /** remove filename not exists */
 public class RefreshFileHistory {
