@@ -1508,7 +1508,7 @@ public class U {
 		PageData page = pp.pageData;
 		String his = "";
 		try {
-			his = getFileHistoryName().getCanonicalPath();
+			his = getFileHistoryName().getAbsolutePath();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1672,7 +1672,7 @@ public class U {
 			try {
 				List<String> res = U.findInFile(f, text, page.ignoreCase, cnts);
 				if (!res.isEmpty()) {
-					PlainPage pi = new PlainPage(page.uiComp, PageData.newFromFile(f.getCanonicalPath()));
+					PlainPage pi = new PlainPage(page.uiComp, PageData.newFromFile(f.getAbsolutePath()));
 					if (pi != null) {
 						doReplaceAll(pi, text, ignoreCase2, false, text2, false, null, fnFilter);
 					}
@@ -2144,16 +2144,7 @@ public class U {
 	public static boolean gotoFileLine2(EditorPanel ep, String sb, String title, boolean record) throws Exception {
 		int p2;
 		if ((p2 = sb.indexOf(":")) >= 0) {
-			int line = -1;
-			try {
-				line = Integer.parseInt(sb.substring(0, p2));
-			} catch (Exception e) {
-			}
-			if (line >= 0) {
-				if (!U.findAndShowPageListPage(ep, title, line, 0, record)) {
-					return openFile(title, line, ep, record);
-				}
-			}
+			return U.gotoFileLine(sb.substring(p2 + 1), ep, record);
 		}
 		return false;
 	}
@@ -2525,10 +2516,10 @@ public class U {
 			if (ep == null) {
 				return null;// ignore
 			}
-			if (findAndShowPageListPage(ep, f.getCanonicalPath(), 0, true)) {
+			if (findAndShowPageListPage(ep, f.getAbsolutePath(), 0, true)) {
 				return ep.getPage();
 			}
-			return new PlainPage(ep, PageData.newFromFile(f.getCanonicalPath()));
+			return new PlainPage(ep, PageData.newFromFile(f.getAbsolutePath()));
 		}
 	}
 
@@ -2536,7 +2527,7 @@ public class U {
 
 		String dir = page.pageData.workPath;
 		if (dir == null) {
-			dir = new File(".").getCanonicalPath();
+			dir = new File(".").getAbsolutePath();
 		}
 		String title = "[Dir]" + dir;
 		PageData pd = PageData.dataPool.get(title);
@@ -2568,7 +2559,7 @@ public class U {
 		PageData pd = PageData.dataPool.get(title);
 		// including titles not saved
 		if (pd == null) {
-			pd = PageData.newFromFile(f.getCanonicalPath());
+			pd = PageData.newFromFile(f.getAbsolutePath());
 		}
 		final PlainPage page = new PlainPage(ep, pd);
 		if (page != null && page.pageData.lines.size() > 0) {
@@ -2588,7 +2579,7 @@ public class U {
 
 	static void openFileHistory(EditorPanel ep) throws Exception {
 		File fhn = getFileHistoryName();
-		PlainPage page = new PlainPage(ep, PageData.newFromFile(fhn.getCanonicalPath()));
+		PlainPage page = new PlainPage(ep, PageData.newFromFile(fhn.getAbsolutePath()));
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();
@@ -2597,7 +2588,7 @@ public class U {
 
 	static void openDirHistory(EditorPanel ep) throws Exception {
 		File f = getDirHistoryName();
-		PlainPage page = new PlainPage(ep, PageData.newFromFile(f.getCanonicalPath()));
+		PlainPage page = new PlainPage(ep, PageData.newFromFile(f.getAbsolutePath()));
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();
