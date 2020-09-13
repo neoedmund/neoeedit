@@ -2003,7 +2003,7 @@ public class U {
 		return s;
 	}
 
-	static File getFileHistoryName() throws IOException {
+	public static File getFileHistoryName() throws IOException {
 		File f = new File(getMyDir(), "fh.txt");
 		if (!f.exists()) {
 			new FileOutputStream(f).close();
