@@ -38,7 +38,7 @@ public class RefreshFileHistory {
 				fail = true;
 			}
 			if (fail) {
-				System.out.println("fail: " + s);				
+				System.out.println("fail: " + s);
 			} else {
 				fs2.add(s);
 			}

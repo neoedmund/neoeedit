@@ -7,7 +7,8 @@ public class CopyFullName {
 
 	public static void main(String[] args) throws Exception {
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(args[0]), null);
-		Thread.sleep(10000); //10 sec window for user to paste, for https://wiki.ubuntu.com/ClipboardPersistence 
+		Thread.sleep(10000); // 10 sec window for user to paste, for
+								// https://wiki.ubuntu.com/ClipboardPersistence
 	}
 
 }
