@@ -177,7 +177,7 @@ public class U {
 				sb.append(c);
 				w1 += w0;
 			} else {
-				submitStr(g2, cf, sb.toString(), x, y, isCurrentLine, lineHeight, w1);
+				w1 = submitStr(g2, cf, sb.toString(), x, y, isCurrentLine, lineHeight, w1);
 				x += w1;
 				w += w1;
 				w1 = w0;
@@ -188,23 +188,25 @@ public class U {
 			i++;
 		}
 		if (sb.length() > 0) {
-			submitStr(g2, cf, sb.toString(), x, y, isCurrentLine, lineHeight, w1);
+			w1 = submitStr(g2, cf, sb.toString(), x, y, isCurrentLine, lineHeight, w1);
 			w += w1;
 		}
 
 		return w;
 	}
 
-	private static void submitStr(Graphics2D g2, Font cf, String s, int x, int y, boolean isCurrentLine, int lineHeight,
+	private static int submitStr(Graphics2D g2, Font cf, String s, int x, int y, boolean isCurrentLine, int lineHeight,
 			int w) {
 		if (s.isEmpty())
-			return;
+			return 0;
 		if (isCurrentLine && w > 0) {
 			Color c2 = g2.getColor();
 			Gimp.drawString(g2, x, y, lineHeight, s, c2, cf, w);
+			return w;
 		} else {
 			g2.setFont(cf);
 			g2.drawString(s, x, y);
+			return g2.getFontMetrics().stringWidth(s);
 		}
 	}
 
@@ -215,19 +217,40 @@ public class U {
 	 * use first font, if cannot display character in that font , use second, and so
 	 * on
 	 */
-	public static int stringWidth(Graphics2D g2, Font[] fonts, String s0) {
-		if (s0 == null || s0.length() <= 0) {
+	public static int stringWidth(Graphics2D g2, Font[] fonts, String s) {
+
+		if (s == null || s.length() <= 0) {
 			return 0;
 		}
+
+		// draw separated by fonts
 		int w = 0;
-		int len = s0.length();
-		for (int i = 0; i < len; i++) {
-			char c = s0.charAt(i);
-			if (c == '\t')
-				w += TAB_WIDTH;
-			else
-				w += charWidth(g2, fonts, c, null);
+		Font cf = fonts[0];
+		StringBuilder sb = new StringBuilder();
+		int w1 = 0;
+		int i = 0;
+		Font[] fo = new Font[1];
+		while (i < s.length()) {
+			char c = s.charAt(i);
+			int w0 = charWidth(g2, fonts, c, fo);
+			if (cf.equals(fo[0])) {
+				sb.append(c);
+				w1 += w0;
+			} else {
+				w1 = g2.getFontMetrics(cf).stringWidth(sb.toString());
+				w += w1;
+				w1 = w0;
+				sb.setLength(0);
+				sb.append(c);
+				cf = fo[0];
+			}
+			i++;
 		}
+		if (sb.length() > 0) {
+			w1 = g2.getFontMetrics(cf).stringWidth(sb.toString());
+			w += w1;
+		}
+
 		return w;
 	}
 

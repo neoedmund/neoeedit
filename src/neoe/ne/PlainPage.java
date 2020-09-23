@@ -943,8 +943,7 @@ public class PlainPage {
 						w += U.TAB_WIDTH;
 					} else {
 						U.getHighLightID(s1, g2, colorKeyword, colorDigit, colorNormal);
-						U.drawString(g2, U.fontList, s1, x + w, y, isCurrentLine, lineHeight);
-						w += U.stringWidth(g2, U.fontList, s1);
+						w+=U.drawString(g2, U.fontList, s1, x + w, y, isCurrentLine, lineHeight);
 					}
 					if (w > dim.width - gutterWidth) {
 						break;
