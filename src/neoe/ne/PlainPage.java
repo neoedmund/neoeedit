@@ -624,14 +624,14 @@ public class PlainPage {
 			void markBox(Graphics2D g2, int x, int y) {
 				if (y >= sy && y <= sy + showLineCnt && x >= sx) {
 					CharSequence sb = pageData.roLines.getline(y);
-					int w1 = x > 0 ? U.stringWidth(g2, U.fontList, sb.subSequence(sx, x).toString()) : 0;
+					int w1 = x > 0 ? U.stringWidth(g2, U.fontList, sb.subSequence(sx, x).toString(), getMaxW()) : 0;
 					String c = sb.subSequence(x, x + 1).toString();
-					int w2 = U.stringWidth(g2, U.fontList, c);
+					int w2 = U.stringWidth(g2, U.fontList, c, getMaxW());
 					g2.setColor(Color.WHITE);
 					g2.drawRect(w1 - 1, (y - sy) * (lineHeight + lineGap) - 1, w2, lineHeight);
 					g2.setColor(colorNormal);
 					g2.drawRect(w1, (y - sy) * (lineHeight + lineGap), w2, lineHeight);
-					U.drawString(g2, U.fontList, c, w1, lineHeight + (y - sy) * (lineHeight + lineGap));
+					U.drawString(g2, U.fontList, c, w1, lineHeight + (y - sy) * (lineHeight + lineGap), getMaxW());
 				}
 			}
 
@@ -714,6 +714,10 @@ public class PlainPage {
 		CommandPanelPaint cp = new CommandPanelPaint(PlainPage.this);
 		Dimension dim;
 
+		int getMaxW() {
+			return dim.width - gutterWidth;
+		}
+
 		int gutterWidth = 40;
 		int lineGap = 5;
 		int lineHeight = U.fontList[0].getSize();
@@ -794,7 +798,7 @@ public class PlainPage {
 
 		void drawNextToolbarText(Graphics2D g2, String s) {
 			g2.setColor(colorGutMark2);
-			nextXToolBar += 10 + U.drawString(g2, U.fontList, s, 10 + nextXToolBar, lineHeight);
+			nextXToolBar += 10 + U.drawString(g2, U.fontList, s, 10 + nextXToolBar, lineHeight, getMaxW());
 		}
 
 		void drawReturn(Graphics2D g2, int w, int py) {
@@ -826,11 +830,12 @@ public class PlainPage {
 					x1 = s.length();
 				}
 				if (x1 == x2) {
-					int w1 = U.stringWidth(g2, U.fontList, s.subSequence(0, x1).toString());
+					int w1 = U.stringWidth(g2, U.fontList, s.subSequence(0, x1).toString(), getMaxW());
 					g2.fillRect(w1, scry * (lineHeight + lineGap), 3, lineHeight + lineGap);
 				} else {
-					int w1 = U.stringWidth(g2, U.fontList, s.subSequence(0, x1).toString());
-					int w2 = x2 > x2a ? textAreaWidth : U.stringWidth(g2, U.fontList, s.subSequence(0, x2a).toString());
+					int w1 = U.stringWidth(g2, U.fontList, s.subSequence(0, x1).toString(), getMaxW());
+					int w2 = x2 > x2a ? textAreaWidth
+							: U.stringWidth(g2, U.fontList, s.subSequence(0, x2a).toString(), getMaxW());
 					g2.fillRect(w1, scry * (lineHeight + lineGap), (w2 - w1), lineHeight + lineGap);
 				}
 			}
@@ -858,18 +863,19 @@ public class PlainPage {
 			if (!msgs.isEmpty()) {
 				// System.out.println("msgs:"+msgs.size());
 
-				int w = U.maxWidth(msgs, g, U.fontList) + 100;
+				int w = U.maxWidth(msgs, g, U.fontList, getMaxW()) + 100;
 				int h = 30 * msgs.size() + 60;
 				g.setXORMode(Color.BLACK);
 				g.setPaintMode();
 				g.setColor(Color.decode("0xFFCCFF"));
 				g.fillRoundRect((dim.width - w) / 2, (dim.height - h) / 2, w, h, 3, 3);
 				g.setColor(Color.BLACK);
+				int maxw = getMaxW();
 				for (int i = 0; i < msgs.size(); i++) {
 					Object[] row = msgs.get(i);
 					int w1 = (Integer) row[2];
 					U.drawString(g, U.fontList, row[0].toString(), (dim.width - w1) / 2,
-							(10 + dim.height / 2 + 30 * (i - msgs.size() / 2)));
+							(10 + dim.height / 2 + 30 * (i - msgs.size() / 2)), maxw);
 				}
 			}
 
@@ -920,37 +926,27 @@ public class PlainPage {
 		int drawText(Graphics2D g2, Font[] fonts, CharSequence s, int x, int y, boolean isComment,
 				boolean isCurrentLine) {
 			int w = 0;
-			if (isComment) {
-				List<String> ws = U.split(s.toString(), '\t');
-				int i = 0;
-				for (CharSequence s1 : ws) {
-					if (i++ != 0) {
-						g2.drawImage(U.tabImg, x + w, y - lineHeight, null);
-						w += U.TAB_WIDTH;
-					}
-					w += U.drawTwoColor(g2, fonts, s1.toString(), x + w, y, colorComment, colorComment2, 1,
-							isCurrentLine, lineHeight);
-					if (w > dim.width - gutterWidth) {
-						break;
-					}
-				}
-			} else {
-				List<CharSequence> s1x = U.splitToken(s);
-				for (CharSequence s1c : s1x) {
-					String s1 = s1c.toString();
-					if (s1.equals("\t")) {
-						g2.drawImage(U.tabImg, x + w, y - lineHeight, null);
-						w += U.TAB_WIDTH;
+
+			List<CharSequence> s1x = U.splitToken(s);
+			int maxw = dim.width - gutterWidth;
+			for (CharSequence s1c : s1x) {
+				String s1 = s1c.toString();
+				if (s1.equals("\t")) {
+					g2.drawImage(U.tabImg, x + w, y - lineHeight, null);
+					w += U.TAB_WIDTH;
+				} else {
+					if (isComment) {
+						w += U.drawTwoColor(g2, fonts, s1.toString(), x + w, y, colorComment, colorComment2, 1, maxw);
 					} else {
 						U.getHighLightID(s1, g2, colorKeyword, colorDigit, colorNormal);
-						U.drawString(g2, U.fontList, s1, x + w, y, isCurrentLine, lineHeight);
-						w += U.stringWidth(g2, U.fontList, s1);
-					}
-					if (w > dim.width - gutterWidth) {
-						break;
+						w += U.drawString(g2, U.fontList, s1, x + w, y, maxw);
 					}
 				}
+				if (w > maxw) {
+					break;
+				}
 			}
+
 			return w;
 		}
 
@@ -987,18 +983,18 @@ public class PlainPage {
 					+ (pageData.getFn() == null ? "-" : pageData.getFn() + (changedOutside ? " [ChangedOutside!]" : ""))
 					+ (readonly ? ", ro" : "");
 			g2.setColor(colorGutMark1);
-			U.drawString(g2, U.fontList, s1, 2, lineHeight + 2);
+			U.drawString(g2, U.fontList, s1, 2, lineHeight + 2, dim.width);
 			g2.setColor(colorGutMark2);
-			nextXToolBar = 2 + U.drawString(g2, U.fontList, s1, 1, lineHeight + 1);
+			nextXToolBar = 2 + U.drawString(g2, U.fontList, s1, 1, lineHeight + 1, dim.width);
 			if (msg != null) {
 				if (System.currentTimeMillis() - msgtime > MSG_VANISH_TIME) {
 					msg = null;
 				} else {
-					int w = U.stringWidth(g2, U.fontList, msg);
+					int w = U.stringWidth(g2, U.fontList, msg, dim.width);
 					g2.setColor(new Color(0xee6666));
 					g2.fillRect(dim.width - w, 0, dim.width, lineHeight + lineGap);
 					g2.setColor(Color.YELLOW);
-					U.drawString(g2, U.fontList, msg, dim.width - w, lineHeight);
+					U.drawString(g2, U.fontList, msg, dim.width - w, lineHeight, dim.width);
 				}
 			}
 		}
@@ -1075,7 +1071,7 @@ public class PlainPage {
 				showLineCnt = Math.round((size.height - toolbarHeight) / ((lineHeight + lineGap) * scalev));
 				charCntInLine = (int) ((size.width - gutterWidth) / (lineHeight) * 2 / scalev);
 				textAreaWidth = size.width - gutterWidth;
-
+				int maxw = dim.width - gutterWidth;
 				{ // change cy if needed
 					if (cy >= pageData.roLines.getLinesize()) {
 						cy = Math.max(0, pageData.roLines.getLinesize() - 1);
@@ -1091,13 +1087,14 @@ public class PlainPage {
 					sx = Math.max(0, cx - charCntInLine / 2);
 				} else {
 					sx = Math.max(0, Math.max(sx, cx - charCntInLine + 10));
-					if (U.stringWidth(g2, U.fontList,
-							U.subs(pageData.roLines.getline(cy), sx, cx).toString()) > size.width - lineHeight * 3) {
+					if (U.stringWidth(g2, U.fontList, U.subs(pageData.roLines.getline(cy), sx, cx).toString(),
+							maxw) > size.width - lineHeight * 3) {
 						sx = Math.max(0, cx - charCntInLine / 2);
 						int xx = charCntInLine / 4;
 
-						while (xx > 0 && U.stringWidth(g2, U.fontList, U.subs(pageData.roLines.getline(cy), sx, cx)
-								.toString()) > size.width - lineHeight * 3) {
+						while (xx > 0 && U.stringWidth(g2, U.fontList,
+								U.subs(pageData.roLines.getline(cy), sx, cx).toString(),
+								maxw) > size.width - lineHeight * 3) {
 							sx = Math.max(0, cx - xx - 1);
 							xx /= 2; // quick guess
 						}
@@ -1120,7 +1117,7 @@ public class PlainPage {
 						CharSequence sb = pageData.roLines.getline(cy);
 						sx = Math.min(sx, sb.length());
 						cx = sx + U.computeShowIndex(sb.subSequence(sx, sx + Math.min(sb.length() - sx, charCntInLine)),
-								mx, g2, U.fontList);
+								mx, g2, U.fontList, maxw);
 						my = 0;
 						needRepaint = ptSelection.mouseSelection(sb);
 
@@ -1179,9 +1176,10 @@ public class PlainPage {
 				}
 				// draw cursor
 				if (cy >= sy && cy <= sy + showLineCnt) {
+
 					g2.setXORMode(new Color(0x30f0f0));
 					CharSequence s = U.subs(pageData.roLines.getline(cy), sx, cx);
-					int w = U.stringWidth(g2, U.fontList, s.toString());
+					int w = U.stringWidth(g2, U.fontList, s.toString(), maxw);
 					int y0 = (cy - sy) * (lineHeight + lineGap);
 					g2.fillRect(w, y0, 2, lineHeight + 3);
 
@@ -1191,10 +1189,10 @@ public class PlainPage {
 					if (preeditText != null && preeditText.length() > 0 && ime != null && !ime.longTextMode()) {
 						g2.setPaintMode();
 						g2.setColor(new Color(0xaaaa00));
-						int w0 = U.stringWidth(g2, U.fontList, preeditText);
+						int w0 = U.stringWidth(g2, U.fontList, preeditText, maxw);
 						g2.fillRect(w, y0, w0 + 4, lineHeight + lineGap);
 						g2.setColor(new Color(0x0000aa));
-						U.drawString(g2, U.fontList, preeditText, w + 2, y0 + lineHeight);
+						U.drawString(g2, U.fontList, preeditText, w + 2, y0 + lineHeight, maxw);
 					}
 
 					if (ime != null) {

@@ -131,14 +131,14 @@ public class U {
 	}
 
 	static void drawStringShrink(Graphics2D g2, Font[] fontList, String s, int x, int y, float maxWidth) {
-		int width = stringWidth(g2, fontList, s);
 		int max = Math.round(maxWidth);
+		int width = stringWidth(g2, fontList, s, max);
 		if (width <= max) {
-			drawString(g2, fontList, s, x, y);
+			drawString(g2, fontList, s, x, y, max);
 		} else {
 			Graphics2D g3 = (Graphics2D) g2.create();
 			g3.scale((maxWidth - 3) / (float) width, 1);
-			drawString(g3, fontList, s, x, y);
+			drawString(g3, fontList, s, x, y, max);
 			g3.dispose();
 		}
 	}
@@ -152,13 +152,17 @@ public class U {
 		}
 	}
 
+	/** only for old plugin(like neoeime) compatible */
 	public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y) {
-		return drawString(g2, fonts, s, x, y, false, 0);
+		return drawString(g2, fonts, s, x, y, 8000);
+	}
+
+	public static int stringWidth(Graphics2D g2, Font[] fonts, String s) {
+		return stringWidth(g2, fonts, s, 8000);
 	}
 
 	/** no TAB needed to care here */
-	public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y, boolean isCurrentLine,
-			int lineHeight) {
+	public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y, int maxWidth) {
 		if (s == null || s.length() <= 0) {
 			return 0;
 		}
@@ -177,7 +181,7 @@ public class U {
 				sb.append(c);
 				w1 += w0;
 			} else {
-				submitStr(g2, cf, sb.toString(), x, y, isCurrentLine, lineHeight, w1);
+				w1 = submitStr(g2, cf, sb.toString(), x, y);
 				x += w1;
 				w += w1;
 				w1 = w0;
@@ -186,26 +190,26 @@ public class U {
 				cf = fo[0];
 			}
 			i++;
+			if (w > maxWidth) {
+				break;
+			}
 		}
 		if (sb.length() > 0) {
-			submitStr(g2, cf, sb.toString(), x, y, isCurrentLine, lineHeight, w1);
+			w1 = submitStr(g2, cf, sb.toString(), x, y);
 			w += w1;
 		}
 
 		return w;
 	}
 
-	private static void submitStr(Graphics2D g2, Font cf, String s, int x, int y, boolean isCurrentLine, int lineHeight,
-			int w) {
+	private static int submitStr(Graphics2D g2, Font cf, String s, int x, int y) {
 		if (s.isEmpty())
-			return;
-		if (isCurrentLine && w > 0) {
-			Color c2 = g2.getColor();
-			Gimp.drawString(g2, x, y, lineHeight, s, c2, cf, w);
-		} else {
-			g2.setFont(cf);
-			g2.drawString(s, x, y);
-		}
+			return 0;
+
+		g2.setFont(cf);
+		g2.drawString(s, x, y);
+		return g2.getFontMetrics().stringWidth(s);
+
 	}
 
 	static Map<Character, Object[]/* Font, Integer */> charWidthCaches = new HashMap();
@@ -215,19 +219,56 @@ public class U {
 	 * use first font, if cannot display character in that font , use second, and so
 	 * on
 	 */
-	public static int stringWidth(Graphics2D g2, Font[] fonts, String s0) {
-		if (s0 == null || s0.length() <= 0) {
+	public static int stringWidth(Graphics2D g2, Font[] fonts, String s, int maxw) {
+		int w = 0;
+		List<CharSequence> s1x = U.splitToken(s);
+		for (CharSequence s1c : s1x) {
+			String s1 = s1c.toString();
+			if (s1.equals("\t")) {
+				w += U.TAB_WIDTH;
+			} else {
+				w += stringWidthSection(g2, fonts, s1, maxw);
+			}
+			if (w > maxw) {
+				break;
+			}
+		}
+		return w;
+	}
+
+	public static int stringWidthSection(Graphics2D g2, Font[] fonts, String s, int maxw) {
+		if (s == null || s.length() <= 0) {
 			return 0;
 		}
+
+		// draw separated by fonts
 		int w = 0;
-		int len = s0.length();
-		for (int i = 0; i < len; i++) {
-			char c = s0.charAt(i);
-			if (c == '\t')
-				w += TAB_WIDTH;
-			else
-				w += charWidth(g2, fonts, c, null);
+		Font cf = fonts[0];
+		StringBuilder sb = new StringBuilder();
+		int w1 = 0;
+		int i = 0;
+		Font[] fo = new Font[1];
+		while (i < s.length()) {
+			char c = s.charAt(i);
+			int w0 = charWidth(g2, fonts, c, fo);
+			if (cf.equals(fo[0])) {
+				sb.append(c);
+				w1 += w0;
+			} else {
+				w1 = g2.getFontMetrics(cf).stringWidth(sb.toString());
+				w += w1;
+				w1 = w0;
+				sb.setLength(0);
+				sb.append(c);
+				cf = fo[0];
+			}
+			i++;
 		}
+		if (sb.length() > 0) {
+			w1 = g2.getFontMetrics(cf).stringWidth(sb.toString());
+			w += w1;
+		}
+
 		return w;
 	}
 
@@ -1054,43 +1095,32 @@ public class U {
 
 		int drawText(Graphics2D g2, Font[] fonts, String s, int x, int y, boolean isComment) {
 			int w = 0;
-			if (isComment) {
-				String[] ws = s.split("\t");
-				int i = 0;
-				for (String s1 : ws) {
-					if (i++ != 0) {
-						g2.drawImage(U.tabImgPrint, x + w, y - lineHeight, null);
-						w += TAB_WIDTH;
-					}
-					g2.setColor(colorComment);
-					w += U.drawString(g2, fonts, s1, x + w, y);
-					if (w > dim.width - gutterWidth) {
-						break;
+			int maxw = dim.width - gutterWidth;
+
+			List<CharSequence> s1x = U.splitToken(s);
+			for (CharSequence s1c : s1x) {
+				String s1 = s1c.toString();
+				if (s1.equals("\t")) {
+					g2.drawImage(U.tabImgPrint, x + w, y - lineHeight, null);
+					w += TAB_WIDTH;
+				} else {
+					if (isComment) {
+						g2.setColor(colorComment);
+						w += U.drawString(g2, fonts, s1, x + w, y, maxw);
+						if (w > dim.width - gutterWidth) {
+							break;
+						}
+					} else {
+						U.getHighLightID(s1, g2, colorKeyword, colorDigit, colorNormal);
+						w += U.drawString(g2, fonts, s1, x + w, y, maxw);
 					}
 				}
-			} else {
-				List<CharSequence> s1x = U.splitToken(s);
-				for (CharSequence s1c : s1x) {
-					String s1 = s1c.toString();
-					if (s1.equals("\t")) {
-						g2.drawImage(U.tabImgPrint, x + w, y - lineHeight, null);
-						w += TAB_WIDTH;
-					} else {
-						// int highlightid =
-						U.getHighLightID(s1, g2, colorKeyword, colorDigit, colorNormal);
-						w += U.drawString(g2, fonts, s1, x + w, y);
-					}
-					if (w > dim.width - gutterWidth) {
-						break;
-					}
+				if (w > maxw) {
+					break;
 				}
 			}
-			return w;
-		}
 
-		void drawTextLine(Graphics2D g2, Font[] fonts, String s, int x0, int y0, int charCntInLine) {
-			int w = drawStringLine(g2, fonts, s, x0, y0);
-			drawReturn(g2, w + gutterWidth + 2, y0);
+			return w;
 		}
 
 		private int getCommentPos(String s) {
@@ -1131,16 +1161,16 @@ public class U {
 			if (ui.noise) {
 				U.paintNoise(g2, new Dimension((int) pf.getImageableWidth(), (int) pf.getImageableHeight()));
 			}
-
+			int maxw = (int) pf.getImageableWidth();
 			g2.setColor(colorHeaderFooter);
-			U.drawString(g2, fonts, fn == null ? title : new File(fn).getName(), 0, lineGap + lineHeight);
+			U.drawString(g2, fonts, fn == null ? title : new File(fn).getName(), 0, lineGap + lineHeight, maxw);
 			{
 				String s = (pageIndex + 1) + "/" + totalPage;
-				U.drawString(g2, fonts, s, (int) pf.getImageableWidth() - U.stringWidth(g2, fonts, s) - 2,
-						lineGap + lineHeight);
+				U.drawString(g2, fonts, s, (int) pf.getImageableWidth() - U.stringWidth(g2, fonts, s, maxw) - 2,
+						lineGap + lineHeight, maxw);
 				s = new Date().toString() + " - NeoeEdit";
-				U.drawString(g2, fonts, s, (int) pf.getImageableWidth() - U.stringWidth(g2, fonts, s) - 2,
-						(int) pf.getImageableHeight() - 2);
+				U.drawString(g2, fonts, s, (int) pf.getImageableWidth() - U.stringWidth(g2, fonts, s, maxw) - 2,
+						(int) pf.getImageableHeight() - 2, maxw);
 				g2.setColor(colorGutterLine);
 				g2.drawLine(gutterWidth - 4, headerHeight, gutterWidth - 4,
 						(int) pf.getImageableHeight() - footerHeight);
@@ -1153,14 +1183,14 @@ public class U {
 				}
 				int y = headerHeight + (lineGap + lineHeight) * (i + 1);
 				g2.setColor(colorLineNumber);
-				U.drawString(g2, fonts, "" + (p + 1), 0, y);
+				U.drawString(g2, fonts, "" + (p + 1), 0, y, maxw);
 				g2.setColor(colorNormal);
 				String s = roLines.getline(p++).toString();
 				if (s.length() > charCntInLine) {
 					s = s.substring(0, charCntInLine);
 				}
-				drawTextLine(g2, fonts, s, gutterWidth, y, charCntInLine);
-
+				int w = drawStringLine(g2, fonts, s, gutterWidth, y);
+				drawReturn(g2, w + gutterWidth + 2, y);
 			}
 
 			return Printable.PAGE_EXISTS;
@@ -1508,7 +1538,7 @@ public class U {
 		PageData page = pp.pageData;
 		String his = "";
 		try {
-			his = getFileHistoryName().getCanonicalPath();
+			his = getFileHistoryName().getAbsolutePath();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1548,13 +1578,13 @@ public class U {
 	 * @param g2
 	 * @return
 	 */
-	static int computeShowIndex(CharSequence s0, int width, Graphics2D g2, Font[] fonts) {
+	static int computeShowIndex(CharSequence s0, int width, Graphics2D g2, Font[] fonts, int maxw) {
 		if (s0.length() == 0) {
 			return 0;
 		}
 		String s = s0.toString();
 
-		if (U.stringWidth(g2, fonts, s) <= width) {
+		if (U.stringWidth(g2, fonts, s, maxw) <= width) {
 			return s.length();
 		}
 		int i = s.length() / 2;
@@ -1562,9 +1592,9 @@ public class U {
 			if (i == 0) {
 				return 0;
 			}
-			int w = U.stringWidth(g2, fonts, s.substring(0, i));
+			int w = U.stringWidth(g2, fonts, s.substring(0, i), maxw);
 			if (w <= width) {
-				return i + computeShowIndex(s.substring(i), width - w, g2, fonts);
+				return i + computeShowIndex(s.substring(i), width - w, g2, fonts, maxw);
 			} else {
 				i = i / 2;
 			}
@@ -1672,7 +1702,7 @@ public class U {
 			try {
 				List<String> res = U.findInFile(f, text, page.ignoreCase, cnts);
 				if (!res.isEmpty()) {
-					PlainPage pi = new PlainPage(page.uiComp, PageData.newFromFile(f.getCanonicalPath()));
+					PlainPage pi = new PlainPage(page.uiComp, PageData.newFromFile(f.getAbsolutePath()));
 					if (pi != null) {
 						doReplaceAll(pi, text, ignoreCase2, false, text2, false, null, fnFilter);
 					}
@@ -1687,12 +1717,11 @@ public class U {
 		page.uiComp.repaint();
 	}
 
-	static int drawTwoColor(Graphics2D g2, Font[] fonts, String s, int x, int y, Color c1, Color c2, int d,
-			boolean isCurrentLine, int lineHeight) {
+	static int drawTwoColor(Graphics2D g2, Font[] fonts, String s, int x, int y, Color c1, Color c2, int d, int maxw) {
 		g2.setColor(c2);
-		int w = U.drawString(g2, fonts, s, x + d, y + d);
+		int w = U.drawString(g2, fonts, s, x + d, y + d, maxw);
 		g2.setColor(c1);
-		U.drawString(g2, fonts, s, x, y, isCurrentLine, lineHeight);
+		U.drawString(g2, fonts, s, x, y, maxw);
 		return w;
 
 	}
@@ -2003,7 +2032,7 @@ public class U {
 		return s;
 	}
 
-	static File getFileHistoryName() throws IOException {
+	public static File getFileHistoryName() throws IOException {
 		File f = new File(getMyDir(), "fh.txt");
 		if (!f.exists()) {
 			new FileOutputStream(f).close();
@@ -2141,18 +2170,13 @@ public class U {
 	}
 
 	/** goto search result */
-	public static boolean gotoFileLine2(EditorPanel ep, String sb, String title, boolean record) throws Exception {
-		int p2;
-		if ((p2 = sb.indexOf(":")) >= 0) {
-			int line = -1;
+	public static boolean gotoFileLine2(EditorPanel ep, String sb, String fn, boolean record) throws Exception {
+		int p1;
+		if ((p1 = sb.indexOf(":")) >= 0) {
 			try {
-				line = Integer.parseInt(sb.substring(0, p2));
+				int line = Integer.parseInt(sb.substring(0, p1));
+				return U.gotoFileLinePos(ep, fn, line, 0, record);
 			} catch (Exception e) {
-			}
-			if (line >= 0) {
-				if (!U.findAndShowPageListPage(ep, title, line, 0, record)) {
-					return openFile(title, line, ep, record);
-				}
 			}
 		}
 		return false;
@@ -2501,13 +2525,13 @@ public class U {
 		return name;
 	}
 
-	public static int maxWidth(List<Object[]> msgs, Graphics2D g, Font[] fonts) {
+	public static int maxWidth(List<Object[]> msgs, Graphics2D g, Font[] fonts, int maxw) {
 		int max = 0;
 		for (int i = 0; i < msgs.size(); i++) {
 			Object[] row = msgs.get(i);
 			int w1 = (Integer) row[2];
 			if (w1 == -1) {
-				w1 = U.stringWidth(g, fonts, row[0].toString());
+				w1 = U.stringWidth(g, fonts, row[0].toString(), maxw);
 				row[2] = w1;
 			}
 			if (w1 > max) {
@@ -2525,10 +2549,10 @@ public class U {
 			if (ep == null) {
 				return null;// ignore
 			}
-			if (findAndShowPageListPage(ep, f.getCanonicalPath(), 0, true)) {
+			if (findAndShowPageListPage(ep, f.getAbsolutePath(), 0, true)) {
 				return ep.getPage();
 			}
-			return new PlainPage(ep, PageData.newFromFile(f.getCanonicalPath()));
+			return new PlainPage(ep, PageData.newFromFile(f.getAbsolutePath()));
 		}
 	}
 
@@ -2536,7 +2560,7 @@ public class U {
 
 		String dir = page.pageData.workPath;
 		if (dir == null) {
-			dir = new File(".").getCanonicalPath();
+			dir = new File(".").getAbsolutePath();
 		}
 		String title = "[Dir]" + dir;
 		PageData pd = PageData.dataPool.get(title);
@@ -2568,7 +2592,7 @@ public class U {
 		PageData pd = PageData.dataPool.get(title);
 		// including titles not saved
 		if (pd == null) {
-			pd = PageData.newFromFile(f.getCanonicalPath());
+			pd = PageData.newFromFile(f.getAbsolutePath());
 		}
 		final PlainPage page = new PlainPage(ep, pd);
 		if (page != null && page.pageData.lines.size() > 0) {
@@ -2588,7 +2612,7 @@ public class U {
 
 	static void openFileHistory(EditorPanel ep) throws Exception {
 		File fhn = getFileHistoryName();
-		PlainPage page = new PlainPage(ep, PageData.newFromFile(fhn.getCanonicalPath()));
+		PlainPage page = new PlainPage(ep, PageData.newFromFile(fhn.getAbsolutePath()));
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();
@@ -2597,7 +2621,7 @@ public class U {
 
 	static void openDirHistory(EditorPanel ep) throws Exception {
 		File f = getDirHistoryName();
-		PlainPage page = new PlainPage(ep, PageData.newFromFile(f.getCanonicalPath()));
+		PlainPage page = new PlainPage(ep, PageData.newFromFile(f.getAbsolutePath()));
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();

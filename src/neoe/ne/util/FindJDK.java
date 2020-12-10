@@ -105,7 +105,7 @@ public class FindJDK {
 							: (fn.indexOf("jdk") >= 0 || fn.indexOf("jre") >= 0 || fn.indexOf("java") >= 0);
 					if (!isJavaDir)
 						continue;
-					debug("check java dir:" + f.getCanonicalPath());
+					debug("check java dir:" + f.getAbsolutePath());
 					boolean found = false;
 					if (jdk) {
 						if (isWindows) {
@@ -124,7 +124,7 @@ public class FindJDK {
 						String ver = getVersion(f.getName());
 						if (ver.compareTo(latestVer) > 0) {
 							latestVer = ver;
-							ret = f.getCanonicalPath();
+							ret = f.getAbsolutePath();
 						}
 
 					}

@@ -62,7 +62,7 @@ public class ScriptUtil {
 		}
 		// 4.
 		URL bin = destdir.toURI().toURL(); // "file://" +
-											// destdir.getCanonicalPath().replace("\\",
+											// destdir.getAbsolutePath().replace("\\",
 											// "/");
 		// if (!bin.endsWith("/"))
 		// bin = bin + "/";
