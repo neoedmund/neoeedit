@@ -96,6 +96,8 @@ font:{
 ime:[
     "neoe.ime.neoeedit.Pinyin"
     "neoe.ime.neoeedit.Jp"
+    "neoe.ime.neoeedit.CnEn"
+    "neoe.ime.neoeedit.En"
 ]
 
 glow:{center:100 range:3 disabled:true threshold:0 }

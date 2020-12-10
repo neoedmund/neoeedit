@@ -56,6 +56,8 @@ public abstract class Ime {
 		void setEnabled(boolean b);
 
 		String getImeName();
+		
+		boolean longTextMode();
 
 		void paint(Graphics2D g2, Font[] fonts, int cursorX, int cursorY, Rectangle clipBounds);
 

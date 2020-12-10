@@ -1184,8 +1184,11 @@ public class PlainPage {
 					int w = U.stringWidth(g2, U.fontList, s.toString());
 					int y0 = (cy - sy) * (lineHeight + lineGap);
 					g2.fillRect(w, y0, 2, lineHeight + 3);
+
+					Ime.ImeInterface ime = Ime.getCurrentIme();
+
 					// draw preedit
-					if (preeditText != null && preeditText.length() > 0) {
+					if (preeditText != null && preeditText.length() > 0 && ime != null && !ime.longTextMode()) {
 						g2.setPaintMode();
 						g2.setColor(new Color(0xaaaa00));
 						int w0 = U.stringWidth(g2, U.fontList, preeditText);
@@ -1194,8 +1197,6 @@ public class PlainPage {
 						U.drawString(g2, U.fontList, preeditText, w + 2, y0 + lineHeight);
 					}
 
-					// ime
-					Ime.ImeInterface ime = Ime.getCurrentIme();
 					if (ime != null) {
 						ime.paint(g2, U.fontList, w, y0 + lineHeight + lineGap, g2.getClipBounds());
 					}
@@ -2157,7 +2158,7 @@ public class PlainPage {
 				String line = pageData.roLines.getline(cy).toString();
 				U.openFileSelector(line, this);
 			}
-			break;			
+			break;
 		case print:
 			new U.Print(PlainPage.this).printPages();
 			break;
