@@ -2184,11 +2184,21 @@ public class U {
 
 	public static boolean gotoFileLinePos(EditorPanel ep, String fn, int line, int x, boolean recCh) throws Exception {
 		if (!U.findAndShowPageListPage(ep, fn, line, x, recCh)) {
-			return openFile(fn, line, ep, recCh);
+			File f = new File(fn);
+			if (!f.exists()) { // try base on current file instead of working dir
+				if (ep.page.pageData.workPath != null) {
+					f = new File(ep.page.pageData.workPath, fn);
+					if (f.isFile()) {
+						return openFile(f.getAbsolutePath(), line, ep, recCh);
+					}
+				}
+			} else {
+				return openFile(fn, line, ep, recCh);
+			}
 		} else {
 			return true;
 		}
-
+		return false;
 	}
 
 	private static String guessByBOM(byte[] src) {
