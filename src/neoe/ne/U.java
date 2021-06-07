@@ -2530,7 +2530,7 @@ public class U {
 			other = true;
 		}
 		if (other && kt.length() == 1 && evt.isShiftDown()) {
-			name = "S" + name;
+//			name = "S" + name;
 		}
 		return name;
 	}

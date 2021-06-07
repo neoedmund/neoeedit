@@ -17,7 +17,7 @@
 	[paste  [ctrl-V  F12]  edit]
 	[cut  ctrl-X  edit]
 	[selectAll  ctrl-A  edit]
-	[selectLine  ctrl-shift-A  edit]
+	[selectLine  alt-A  edit]
 	[deleteLine  ctrl-D  edit]
 	[deleteWord  ctrl-DELETE  edit]
 	[openFile  ctrl-O  file]
@@ -88,7 +88,7 @@ color:{
 font:{
 	font_example:["font filename"  fontsize "<empty>|BOLD|ITALIC"]
 	list:[
-		["MV Boli"  14   ]
+		["DejaVu Sans Mono"  12   ]
 		["微软雅黑 Light" 14]
 		["DejaVu Math TeX Gyre" 14 ]
 		["Noto Sans CJK SC DemiLight"  14   ]
