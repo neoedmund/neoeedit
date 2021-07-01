@@ -1,6 +1,7 @@
 package neoe.ne.util;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -30,7 +31,7 @@ public class FileIterator implements Iterable<File> {
 				File f = buf.remove(0);
 				String name = f.getName();
 				if (f.isDirectory() && !name.equals(".svn") && !name.equals(".cvs") && !name.equals(".bzr")
-						&& !name.equals(".git")) {
+						&& !name.equals(".git") && (!Files.isSymbolicLink(f.toPath()))) {
 					File[] sub = f.listFiles();
 					if (sub != null) {
 						buf.addAll(Arrays.asList(sub));
