@@ -65,7 +65,7 @@
 	[hex  alt-H  etc  "show hex code for characters"]
 	[listFonts  alt-F  ui  "after listed  use 'go' key to set font"]
 	[toggleIME  ctrl-SPACE  etc  "toggle input method"]
-	[toggleFps  ctrl-alt-F  etc  "toggle FPS"]
+	[toggleFps  ctrl-alt-R  etc  "toggle FPS"]
 	[changePathSep  alt-SLASH  edit2  "change between / and \\" ]
 	[commandPanel  F1  help  "show commands panel" ]
 	[mathEval  F6   etc  "evaluate a math expression" ]
