@@ -88,7 +88,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 
 	private static final long serialVersionUID = -1667283144475200365L;
 
-	JFrame frame;
+	public JFrame frame;
 
 	PlainPage lastPage;
 

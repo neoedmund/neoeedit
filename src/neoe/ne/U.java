@@ -2377,7 +2377,7 @@ public class U {
 		return true;
 	}
 
-	static boolean isImageFile(File f) {
+	public static boolean isImageFile(File f) {
 		String fn = f.getName().toLowerCase();
 		return (fn.endsWith(".gif") || fn.endsWith(".jpg") || fn.endsWith(".png") || fn.endsWith(".bmp")
 				|| fn.endsWith(".jpeg"));
