@@ -61,9 +61,11 @@ public class PlainPage {
 					cy = pageData.roLines.getLinesize() - 1;
 				}
 			}
+			keepX();
 		}
 
 		void moveEnd() {
+			keepx = -1;
 			CharSequence line = pageData.roLines.getline(cy);
 			int p1 = line.length();
 			while (p1 > 0 && U.isSpaceChar(line.charAt(p1 - 1)))
@@ -76,6 +78,7 @@ public class PlainPage {
 		}
 
 		void moveHome() {
+			keepx = -1;
 			CharSequence line = pageData.roLines.getline(cy);
 			int p1 = 0;
 			int len = line.length();
@@ -89,6 +92,7 @@ public class PlainPage {
 		}
 
 		void moveLeft() {
+			keepx = -1;
 			cx -= 1;
 			if (cx < 0) {
 				if (cy > 0 && !ptSelection.isRectSelecting()) {
@@ -101,6 +105,7 @@ public class PlainPage {
 		}
 
 		void moveLeftWord() {
+			keepx = -1;
 			CharSequence line = pageData.roLines.getline(cy);
 			cx = Math.max(0, cx - 1);
 			char ch1 = U.charAtWhenMove(line, cx);
@@ -143,6 +148,16 @@ public class PlainPage {
 					cy = pageData.roLines.getLinesize() - 1;
 				}
 			}
+			keepX();
+		}
+
+		void keepX() {
+			if (keepx == -1) {
+				keepx = cx;
+//				System.out.println("keepx=" + keepx);
+			} else {
+				cx = Math.min(keepx, pageData.roLines.getline(cy).length());
+			}
 		}
 
 		void movePageUp() {
@@ -150,9 +165,11 @@ public class PlainPage {
 			if (cy < 0) {
 				cy = 0;
 			}
+			keepX();
 		}
 
 		void moveRight() {
+			keepx = -1;
 			cx += 1;
 			if (ptSelection.isRectSelecting()) {
 				if (cx > pageData.roLines.getline(cy).length()) {
@@ -165,6 +182,7 @@ public class PlainPage {
 		}
 
 		void moveRightWord() {
+			keepx = -1;
 			CharSequence line = pageData.roLines.getline(cy);
 			char ch1 = U.charAtWhenMove(line, cx);
 			cx = Math.min(line.length(), cx + 1);
@@ -183,6 +201,7 @@ public class PlainPage {
 		}
 
 		void moveToPair() {
+			keepx = -1;
 			// move cursor between (){}[]<> pair
 			if (cx - 1 < pageData.roLines.getline(cy).length() && cx - 1 >= 0) {
 				char c = pageData.roLines.getline(cy).charAt(cx - 1);
@@ -203,6 +222,7 @@ public class PlainPage {
 			if (cy < 0) {
 				cy = 0;
 			}
+			keepX();
 		}
 
 		void scroll(int amount) {
@@ -1481,6 +1501,7 @@ public class PlainPage {
 	Cursor cursor = new Cursor();
 	public int cx;
 	public int cy;
+	public int keepx = -1;
 	boolean ignoreCase = true;
 	boolean isCommentChecked = false;
 	Dimension lastSize = new Dimension();
@@ -2037,6 +2058,10 @@ public class PlainPage {
 			ptSelection.copySelected();
 			break;
 		case paste:
+			if (keepx == -1) {// use-case 2: paste same thing along lines
+//				System.out.println("keepx2=" + cx);
+				keepx = cx;
+			}
 			ptEdit.insertString(U.getClipBoard(), true);
 			break;
 		case cut:
