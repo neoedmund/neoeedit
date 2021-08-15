@@ -2,8 +2,8 @@ package neoe.ne;
 
 import java.awt.AWTEvent;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.InputMethodEvent;
 import java.awt.event.InputMethodListener;
@@ -27,8 +27,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.ImageIcon;
+import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
+import javax.swing.RootPaneContainer;
 import javax.swing.WindowConstants;
 
 import neoe.ne.U.LocationHistory;
@@ -88,18 +92,6 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 
 	private static final long serialVersionUID = -1667283144475200365L;
 
-	public JFrame frame;
-
-	PlainPage lastPage;
-
-	LocationHistory<String> pageHis = new LocationHistory<String>();
-
-	public PlainPage page;
-
-	List<PlainPage> pageSet = new ArrayList<PlainPage>();
-
-	EditorPanelConfig config;
-
 	static final String WINDOW_NAME = "neoeedit " + Version.REV;
 
 	// CursorHistory ptCh = new CursorHistory();
@@ -117,6 +109,27 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 		Gimp.loadFromConfig();
 		Plugin.load();
 
+	}
+
+	public RootPaneContainer frame;
+
+	PlainPage lastPage;
+
+	LocationHistory<String> pageHis = new LocationHistory<String>();
+
+	public PlainPage page;
+
+	List<PlainPage> pageSet = new ArrayList<PlainPage>();
+
+	EditorPanelConfig config;
+
+	JDesktopPane desktopPane;
+
+	/** for handle the window events */
+	JFrame realJFrame;
+
+	public EditorPanel() throws Exception {
+		this(EditorPanelConfig.DEFAULT);
 	}
 
 	public EditorPanel(EditorPanelConfig config) throws Exception {
@@ -170,25 +183,35 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 		pp.ptSelection.selectAll();
 	}
 
-	public EditorPanel() throws Exception {
-		this(EditorPanelConfig.DEFAULT);
-	}
-
 	void changeTitle() {
 		if (frame == null)
 			return;
 		String fn = page.pageData.getFn();
+		String title = null;
 		if (page.console != null) {
-			frame.setTitle("Console - " + page.console.cmd);
+			title = ("Console - " + page.console.cmd);
 			return;
-		}
-		if (fn != null) {
-			frame.setTitle(new File(fn).getName() + " " + new File(fn).getParent() + " - (" + pageSet.size() + ") - "
-					+ EditorPanel.WINDOW_NAME + U.suNotice());
 		} else {
-			frame.setTitle(page.pageData.getTitle() + " - (" + pageSet.size() + ") - " + EditorPanel.WINDOW_NAME
-					+ U.suNotice());
+			if (fn != null) {
+				title = (new File(fn).getName() + " " + new File(fn).getParent() + " - (" + pageSet.size() + ") - "
+						+ EditorPanel.WINDOW_NAME + U.suNotice());
+			} else {
+				title = (page.pageData.getTitle() + " - (" + pageSet.size() + ") - " + EditorPanel.WINDOW_NAME
+						+ U.suNotice());
+			}
 		}
+		if (title != null) {
+			if (frame instanceof JFrame) {
+				((JFrame) frame).setTitle(title);
+			} else if (frame instanceof JInternalFrame) {
+				((JInternalFrame) frame).setTitle(title);
+			}
+		}
+	}
+
+	public String getCurrentText() {
+		PageData pd = getPage().pageData;
+		return U.exportString(pd.lines, pd.lineSep);
 	}
 
 	public PlainPage getPage() {
@@ -292,24 +315,31 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 	}
 
 	public void openWindow(EditorPanel parentUI) throws IOException {
-		openWindow(U.e_png, parentUI);
-	}
-
-	public void openWindow(String iconname, EditorPanel parentUI) throws IOException {
 		openedWindows++;
 		if (frame != null)
 			return;
+		JFrame frame = new JFrame(EditorPanel.WINDOW_NAME);
+		openWindow(U.e_png, parentUI, frame, frame, null);
+	}
 
-		frame = new JFrame(EditorPanel.WINDOW_NAME);
-		frame.setIconImage(U.getAppIcon(iconname));
-		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		Point p = U.Config.readFrameSize();
-		U.setFrameSize(frame, p.x, p.y);
-		frame.getContentPane().add(this);
-		frame.setTransferHandler(new U.TH(this));
-		frame.setLocationRelativeTo(parentUI);
-		frame.setVisible(true);
-		frame.addWindowListener(new WindowAdapter() {
+	public void openWindow(String iconname, EditorPanel parentUI, RootPaneContainer outFrame, JFrame realJFrame,
+			JDesktopPane desktopPane) throws IOException {
+		frame = outFrame;
+		this.desktopPane = desktopPane;
+		if (iconname == null)
+			iconname = U.e_png;
+		if (frame instanceof JFrame) {
+			initJFrame(iconname, parentUI, (JFrame) frame);
+		} else if (frame instanceof JInternalFrame) {
+			JInternalFrame ji = (JInternalFrame) frame;
+			Dimension p = U.Config.readFrameSize();
+			ji.add(this);
+			ji.setSize(p.width, p.height);
+			ji.setFrameIcon(new ImageIcon(U.getAppIcon(iconname).getScaledInstance(16, 16, 0)));
+		}
+		this.realJFrame = realJFrame;
+
+		realJFrame.addWindowListener(new WindowAdapter() {
 			private long lastWarning;
 
 			@Override
@@ -353,17 +383,30 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 						}
 					}
 				}
-				System.out.println("exit");
+				// System.out.println("exit");
 			}
 		});
+		changeTitle();
+		repaint();
+	}
+
+	private void initJFrame(String iconname, EditorPanel parentUI, JFrame frame) throws IOException {
+		if (iconname != null) {
+			frame.setIconImage(U.getAppIcon(iconname));
+		}
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		U.setFrameSize(frame);
+		frame.setTransferHandler(new U.TH(this));
+		frame.setLocationRelativeTo(parentUI);
+		frame.add(this);
+		frame.setVisible(true);
+
 		// frame.addWindowFocusListener(new WindowAdapter() {
 		// public void windowGainedFocus(WindowEvent e) {
 		// EditPanel.this.requestFocusInWindow();
 		// }
 		// });
 
-		changeTitle();
-		repaint();
 	}
 
 	@Override
@@ -385,11 +428,6 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 			pageHis.add(U.getLocString(pp), U.getLocString(lastPage));
 		}
 		changeTitle();
-	}
-
-	public String getCurrentText() {
-		PageData pd = getPage().pageData;
-		return U.exportString(pd.lines, pd.lineSep);
 	}
 
 }

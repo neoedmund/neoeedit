@@ -2,6 +2,7 @@ package neoe.ne;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -13,6 +14,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -650,17 +652,17 @@ public class U {
 			return modes;
 		}
 
-		public static Point readFrameSize() {
+		public static Dimension readFrameSize() {
 			try {
 				Map config = getConfig();
 				List l = (List) config.get("frameSize");
 				if (l != null) {
-					return new Point(U.parseInt(l.get(0)), U.parseInt(l.get(1)));
+					return new Dimension(U.parseInt(l.get(0)), U.parseInt(l.get(1)));
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			return new Point(800, 600);
+			return new Dimension(800, 600);
 		}
 
 		public static int readTabWidth() {
@@ -779,7 +781,6 @@ public class U {
 					pp.ui.message("string not found");
 				} else {
 					pp.ptSelection.selectLength(p.x, p.y, text2find.length());
-
 				}
 			}
 		}
@@ -793,13 +794,32 @@ public class U {
 				t = text2find;
 			}
 			if (findWindow == null) {
-				findWindow = new FindReplaceWindow(pp.uiComp.frame, pp);
+				Window f0 = null;
+				if (pp.uiComp.frame instanceof JFrame) {
+					f0 = (JFrame) pp.uiComp.frame;
+				} else {
+					f0 = findWindow(pp.uiComp.frame.getContentPane());
+				}
+				findWindow = new FindReplaceWindow(f0, pp);
 			}
 			if (t.length() > 0) {
 				findWindow.jta1.setText(t);
 			}
 			findWindow.show();
 			findWindow.jta1.grabFocus();
+		}
+
+		private Window findWindow(Container c) {
+			int safe = 100;
+			while (true) {
+				if (c == null)
+					return null;
+				if (c instanceof Window)
+					return (Window) c;
+				c = c.getParent();
+				if (--safe <= 0)
+					return null;
+			}
 		}
 
 		void findPrev() {
@@ -3041,10 +3061,10 @@ public class U {
 		// data.py in <home>/.neoeedit", 3000);
 	}
 
-	static void setFrameSize(JFrame f, int w, int h) {
+	static void setFrameSize(JFrame f) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		Point p = U.Config.readFrameSize();
-		f.setSize(Math.min(p.x, Math.min(dim.width, w)), Math.min(p.y, Math.min(dim.height, h)));
+		Dimension p = U.Config.readFrameSize();
+		f.setSize(Math.min(dim.width, p.width), Math.min(p.height, dim.height));
 	}
 
 	static void showHelp(final Paint ui, final EditorPanel uiComp) {

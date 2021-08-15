@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
@@ -996,12 +998,12 @@ public class PlainPage {
 
 		void drawToolbar(Graphics2D g2) {
 			Ime.ImeInterface ime = Ime.getCurrentIme();
-			String s1 = "<F1>:Help, " + (pageData.encoding == null ? "-" : pageData.encoding)
+			String s1 = " "+ (changedOutside ? " [ChangedOutside!]" : "")
+					+ (pageData.encoding == null ? "-" : pageData.encoding)
 					+ (pageData.lineSep.equals("\n") ? ", U" : ", W") + ", Line:" + pageData.roLines.getLinesize()
 					+ ", X:" + (cx + 1) + ", undo:" + pageData.history.size() + ", " + (rectSelectMode ? "R, " : "")
-					+ (ime == null ? "" : ime.getImeName() + ", ")
-					+ (pageData.getFn() == null ? "-" : pageData.getFn() + (changedOutside ? " [ChangedOutside!]" : ""))
-					+ (readonly ? ", ro" : "");
+					+ (ime == null ? "" : ime.getImeName() + ", ") + (pageData.getFn() == null ? "-" : pageData.getFn())
+					+ (readonly ? ", ro" : "") + ",<F1>:Help";
 			g2.setColor(colorGutMark1);
 			U.drawString(g2, U.fontList, s1, 2, lineHeight + 2, dim.width);
 			g2.setColor(colorGutMark2);
@@ -1575,8 +1577,13 @@ public class PlainPage {
 			uiComp.setPage(uiComp.pageSet.get(index), true);
 		} else {
 			// nothing to show
-			if (uiComp.frame != null)
-				uiComp.frame.dispose();
+			if (uiComp.frame != null) {
+				if (uiComp.frame instanceof JFrame) {
+					((JFrame) uiComp.frame).dispose();
+				} else if (uiComp.frame instanceof JFrame) {
+					((JInternalFrame) uiComp.frame).dispose();
+				}
+			}
 		}
 	}
 
@@ -2091,7 +2098,20 @@ public class PlainPage {
 			break;
 		case newWindow:
 			EditorPanel ep = new EditorPanel(EditorPanelConfig.DEFAULT);
-			ep.openWindow(uiComp);
+			if (uiComp.desktopPane == null) {
+				ep.openWindow(uiComp);
+			} else {
+				// U.e_png, parentUI, frame, frame, null
+				JInternalFrame neframe = new JInternalFrame("ne", true, true, true, true);
+				ep.openWindow(U.e_png, uiComp, neframe, uiComp.realJFrame, uiComp.desktopPane);
+				uiComp.desktopPane.add(neframe);
+				neframe.setVisible(true);
+				int fc = uiComp.desktopPane.getAllFrames().length;
+				JInternalFrame p1 = (JInternalFrame) uiComp.frame;
+				neframe.setLocation(p1.getLocation().x + 30, p1.getLocation().y + 30);
+				neframe.setLayer(p1.getLayer());
+				neframe.setSelected(true);
+			}
 			// set default working path
 			ep.getPage().pageData.workPath = pageData.workPath;
 			break;

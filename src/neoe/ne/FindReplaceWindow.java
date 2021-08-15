@@ -1,5 +1,6 @@
 package neoe.ne;
 
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -11,7 +12,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -40,7 +40,7 @@ public class FindReplaceWindow implements ActionListener, KeyListener {
 	private JLabel lbfnfilter;
 	private JLabel lbdir;
 
-	public FindReplaceWindow(JFrame f, PlainPage page) {
+	public FindReplaceWindow(Window f, PlainPage page) {
 		this.page = page;
 		// this.f = f;
 		dialog = new JDialog(f, "Find/Replace");
