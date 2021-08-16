@@ -332,10 +332,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 			initJFrame(iconname, parentUI, (JFrame) frame);
 		} else if (frame instanceof JInternalFrame) {
 			JInternalFrame ji = (JInternalFrame) frame;
-			Dimension p = U.Config.readFrameSize();
 			ji.add(this);
-			ji.setSize(p.width, p.height);
-			ji.setFrameIcon(new ImageIcon(U.getAppIcon(iconname).getScaledInstance(16, 16, 0)));
 		}
 		this.realJFrame = realJFrame;
 
