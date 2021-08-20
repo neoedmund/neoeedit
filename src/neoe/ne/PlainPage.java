@@ -998,7 +998,7 @@ public class PlainPage {
 
 		void drawToolbar(Graphics2D g2) {
 			Ime.ImeInterface ime = Ime.getCurrentIme();
-			String s1 = " "+ (changedOutside ? " [ChangedOutside!]" : "")
+			String s1 = " " + (changedOutside ? " [ChangedOutside!]" : "")
 					+ (pageData.encoding == null ? "-" : pageData.encoding)
 					+ (pageData.lineSep.equals("\n") ? ", U" : ", W") + ", Line:" + pageData.roLines.getLinesize()
 					+ ", X:" + (cx + 1) + ", undo:" + pageData.history.size() + ", " + (rectSelectMode ? "R, " : "")
@@ -2108,8 +2108,9 @@ public class PlainPage {
 				neframe.setVisible(true);
 				int fc = uiComp.desktopPane.getAllFrames().length;
 				JInternalFrame p1 = (JInternalFrame) uiComp.frame;
-				neframe.setLocation(p1.getLocation().x + 30, p1.getLocation().y + 30);
+				neframe.setLocation(p1.getLocation().x + 5 * fc, p1.getLocation().y + 5 * fc);
 				neframe.setLayer(p1.getLayer());
+				neframe.setSize(p1.getSize());
 				neframe.setSelected(true);
 			}
 			// set default working path
