@@ -1,2 +1,3 @@
 Starting neoeedit on Windows. 
-put `neoeedit.exe` at same dir of `neoeedit.jar`
+
+put `neoeedit.exe` at same dir with `neoeedit.jar`
