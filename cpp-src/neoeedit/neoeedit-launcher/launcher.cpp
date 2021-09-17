@@ -1,200 +1,163 @@
-#include <windows.h>
+
 #include <stdlib.h>
-#include <string>
-#include <tchar.h>
+#include <stdio.h>
+#include <string.h>
+#include <windows.h>
 #include <jni.h>
-
-#include "resource.h"
-
+#include <tchar.h>
 
 
-static char* filename1;
-static HINSTANCE _libInst=NULL;
-typedef jint (JNICALL CreateJavaVM_t)(JavaVM **pvm, void **penv, void *args);
-
-bool file_exists(const char * filename)
+#define MAX_PATH_1000 1000
+typedef jint ( JNICALL CreateJavaVM_t )( JavaVM * * vm , void * * env , void * args ) ;
+void error( const TCHAR * msg ) {
+	MessageBox( NULL , msg , TEXT( "Error" ) , MB_OK ) ;
+}
+bool prefix( const char * pre , const char * str )
 {
-	if (FILE * file = fopen(filename, "r"))
-	{
-		fclose(file);
-		return true;
+	return strncmp( pre , str , strlen( pre ) ) == 0 ;
+}
+int getVer( char * fn , const char * pre ) {
+	printf( "get ver [%s] and [%s]\n" , fn , pre ) ;
+
+	char * start = fn + strlen( pre ) ;
+	char * p1 = strstr( start , "." ) ;
+	if ( p1 == NULL ) return 0 ;
+	char sub1 [ MAX_PATH_1000 ] ;
+	strncpy_s( sub1 , sizeof( sub1 ) , start , p1 - start ) ;
+	sub1 [ p1 - start ] = 0 ;
+	printf( "ver str=[%s]\n" , sub1 ) ;
+	return strtol( sub1 , ( char * * ) NULL , 10 ) ;
+}
+char * str_clone( char * p3 , int len ) {
+	char * p4 = ( char * ) malloc( len + 1 ) ;
+	strncpy_s( p4 , len + 1 , p3 , len ) ;
+	p4 [ len ] = 0 ;
+	return p4 ;
+}
+
+char * searchPath( const char * p1 ) {
+	char * drive = NULL ;
+	size_t size10 = 0 ;
+	_dupenv_s( & drive , & size10 , "SystemDrive" ) ;
+	if ( drive == NULL ) {
+		drive =( char * ) "c:" ;
 	}
-	return false;
-}
-void error(const TCHAR* msg){
-	MessageBox(NULL, msg, TEXT("Error"), MB_OK);   
-}
-
-
-bool loadJVM(){
-	if (_libInst!=NULL)return false;
-	char* pPath = getenv("JAVA_HOME");
-	std::string jvmdll ;
-	if (pPath==NULL) jvmdll=".\\jre";
-	else jvmdll=pPath;
-	//Util::Logger::globalLog->log("java home=%s", jvmdll.c_str());
-	if (file_exists((jvmdll + "\\bin\\client\\jvm.dll").c_str())) {
-		jvmdll += "\\bin\\client\\ .dll";
-	} else if (file_exists((jvmdll + "\\jre\\bin\\client\\jvm.dll").c_str())) {
-		//prolly a JDK
-		jvmdll += "\\jre\\bin\\client\\jvm.dll";
+	char buf [ 2048 ] ;
+	sprintf( buf , "%s\\%s\\*" , drive , p1 ) ;
+	int ver = 0 ;
+	int kind = 0 ;
+	//jdk,jre
+	char p2 [ MAX_PATH_1000 ] ;
+	WIN32_FIND_DATA FindFileData ;
+	HANDLE hFind = FindFirstFile( buf , & FindFileData ) ;
+	if( hFind == INVALID_HANDLE_VALUE ) {
+		printf( "cannot list [%s]\n" , buf ) ;
 	} else {
-		//Util::Logger::globalLog->log("jvm.dll not found");
-		error( TEXT("Could not find Java, Did you set JAVA_HOME correctly?"));   
-		return false;
+		const char * preJdk = "jdk-" ;
+		const char * preJre = "jre1." ;
+		while( 1 ) {
+			printf( "[%s]\n" , FindFileData . cFileName ) ;
+			char * fn = FindFileData . cFileName ;
+			int v1 = 0 ;
+			int kind1 = 0 ;
+			if ( prefix( preJdk , fn ) ) {
+				v1 = getVer( fn , preJdk ) ;
+			} else if ( prefix( preJre , fn ) ) {
+				v1 = getVer( fn , preJre ) ;
+				kind1 = 1 ;
+			}
+			if ( v1 > ver ) {
+				ver = v1 ;
+				kind = kind1 ;
+				int len = strlen( fn ) ;
+				strncpy_s( p2 , sizeof( p2 ) , fn , len ) ;
+				p2 [ len ] = 0 ;
+			}
+			if ( ! FindNextFile( hFind , & FindFileData ) ) break ;
+		}
+		FindClose( hFind ) ;
 	}
-	//Util::Logger::globalLog->log("jvm.dll is %s", jvmdll.c_str());
-	std::wstring w1 (jvmdll.begin(), jvmdll.end());
-	if ( (_libInst = LoadLibrary(w1.c_str())) == NULL) {
-		std::wstring m = TEXT("Can't load "); m=m+w1;
-		error(m.c_str());
-		return false;
+	if ( ver > 0 ) {
+		printf( "find %s %d at [%s]\n" , kind == 0 ? "JDK" : "JRE" , ver , p2 ) ;
+		char p3 [ MAX_PATH_1000 ] ;
+		int len = sprintf( p3 , "%s\\%s\\%s\\bin\\server\\jvm.dll" , drive , p1 , p2 ) ;
+		return str_clone( p3 , len ) ;
+	}
+	return NULL ;
+}
+static HINSTANCE _libInst = NULL ;
+void find( ) {
+	char * path = searchPath( "Program Files\\Java\\" ) ;
+	printf( "Found JDK(0)[%s]\n" , path ) ;
+	//path = "C:\\Program Files\\Java\\jre1.8.0_301" ;
+	printf( "Found JDK[%s]\n" , path ) ;
+	char * jvmdll = path ;
+	// "C:\\Program Files\\Java\\jre1.8.0_301\\bin\\server\\jvm.dll" ;
+
+	TCHAR szPath [ MAX_PATH_1000 ] ;
+	GetModuleFileName( NULL , szPath , MAX_PATH_1000 ) ;
+	{
+		char * buf = szPath ;
+		int p1 = strlen( buf ) -1 ;
+		while( buf [ p1 ] != '\\' && p1 > 0 ) p1 -- ;
+		if ( p1 >= 0 ) buf [ p1 ] = 0 ;
 	}
 
-	//Util::Logger::globalLog->log("dll loaded");
-	return true;
+	if ( ( _libInst = LoadLibrary( jvmdll ) ) == NULL ) {
+		printf( "cannot load %s\n" , jvmdll ) ;
+		return ;
+	}
+	CreateJavaVM_t * createFunc = ( CreateJavaVM_t * ) GetProcAddress( _libInst , "JNI_CreateJavaVM" ) ;
+	if ( createFunc == NULL ) {
+		printf( "Can't locate JNI_CreateJavaVM\n" ) ;
+		return ;
+	}
+	JNIEnv * env ;
+	JavaVM * vm ;
+	JavaVMInitArgs vm_args ;
+	JavaVMOption options [ 2 ] ;
+	{ char buf [ MAX_PATH_1000 ] ;
+		sprintf_s( buf , MAX_PATH_1000 , "-Djava.class.path=%s\\neoeedit.jar" , szPath ) ;
+		options [ 0 ] . optionString = ( char * ) buf ;
+	}
+	options [ 1 ] . optionString = ( char * ) "-Xrs" ;
+	vm_args . version = JNI_VERSION_1_8 ;
+	vm_args . nOptions = 2 ;
+	vm_args . options = options ;
+	vm_args . ignoreUnrecognized = 1 ;
+
+	jint res = createFunc( & vm , ( void * * ) & env , & vm_args ) ;
+	if ( res < 0 ) {
+		printf( "Can't create JVM\n" ) ;
+		return ;
+	}
+	//printf( "res=%d|%X\n" , res , env ) ;
+	jclass cls = env -> FindClass( "neoe/ne/Main" ) ;
+	if ( cls == 0 ) {
+		printf( "main class not found\n" ) ;
+		exit( 1 ) ;
+	}
+	jmethodID mid = env -> GetStaticMethodID( cls , "main" , "([Ljava/lang/String;)V" ) ;
+	if ( mid == 0 ) {
+		printf( "main() method not found\n" ) ;
+		exit( 1 ) ;
+	}
+	int argCount ;
+	LPWSTR * szArgList ;
+	szArgList = CommandLineToArgvW( GetCommandLineW( ) , & argCount ) ;
+
+	jobjectArray args = env -> NewObjectArray( argCount -1 , env -> FindClass( "java/lang/String" ) , NULL ) ;
+	for( int i = 1 ;
+		i < argCount ;
+		i ++ ) {
+		jstring arg1 = env -> NewString(( jchar * ) szArgList [ i ] , lstrlenW( szArgList [ i ] ) ) ;
+		env -> SetObjectArrayElement( args , i -1 , arg1 ) ;
+	}
+	env -> CallStaticVoidMethod( cls , mid , args ) ;
 }
 
-bool runJava(){
-
-	CreateJavaVM_t* createFn = (CreateJavaVM_t *)GetProcAddress(_libInst, "JNI_CreateJavaVM");
-	if (createFn == NULL) {
-		error(TEXT("Can't locate JNI_CreateJavaVM"));
-		return false;
-	}else{
-		//Util::Logger::globalLog->log("Got JNI_CreateJavaVM @ %x", createFn);		
-	}
-
-	std::string  s1="-Djava.class.path="; s1 = s1 + filename1;
-	//MessageBoxA(NULL,s1.c_str(),"debug",MB_OK); 
-				
-	//std::string  s2="-Djava.library.path="+ChaosDir;
-	JavaVMOption options[2];
-	options[0].optionString = (char *) s1.c_str();	
-	//options[1].optionString =(char *)s2.c_str();
-	options[1].optionString ="-Xmx512M";
-	JavaVMInitArgs vm_args;
-	vm_args.version = JNI_VERSION_1_6;
-	vm_args.options = options;
-	vm_args.nOptions = 2;
-	vm_args.ignoreUnrecognized = JNI_FALSE;
-
-	JNIEnv * x_env;
-	JavaVM * x_jvm;
-	jclass x_cls;
-	
-	/* Create the Java VM */
-	jint res = createFn(&x_jvm, (void**)&x_env, &vm_args);
-
-	if (res < 0) {
-		error(TEXT("Can't create Java VM"));
-		return false;
-	}
-
-	//x_jvm->AttachCurrentThreadAsDaemon((void **)&x_env,NULL);
-
-
-	//entry class
-	x_cls =  x_env ->FindClass("neoe/ne/Main");
-	if (x_cls == 0) {
-		error(TEXT("not found: target class"));
-		goto destroy;
-	}
-
-	jmethodID mid = x_env->GetStaticMethodID(x_cls, "main", "([Ljava/lang/String;)V");
-	if (mid == 0) {
-		error(TEXT("not found: main method"));
-		goto destroy;
-	}
-	
-	// set param
-	LPWSTR *szArgList;
-    int argCount;
-    szArgList = CommandLineToArgvW(GetCommandLine(), &argCount);
-
-	jobjectArray applicationArgs;
-	jstring applicationArg0;
-	applicationArgs = x_env->NewObjectArray(argCount-1, x_env->FindClass("java/lang/String"), NULL);
-
-	for(int i = 1; i < argCount; i++){
-		std::wstring param1=szArgList[i];		
-		applicationArg0 = x_env->NewString((jchar *)param1.c_str(), param1.length());
-		x_env->SetObjectArrayElement(applicationArgs, i-1, applicationArg0);
-	}
-
-
-
-	x_env->CallStaticVoidMethod(x_cls, mid, applicationArgs);
-	//Util::Logger::globalLog->log("JVM inited %x",x_env);	
-	if (x_env->ExceptionOccurred()) {
-		x_env->ExceptionDescribe();
-	}
-	x_jvm->DestroyJavaVM();
-	return true;
-destroy:
-
-	if (x_env->ExceptionOccurred()) {
-		x_env->ExceptionDescribe();
-	}
-	x_jvm->DestroyJavaVM();
-	return false;
-}
-TCHAR* writeToTempFileName(LPVOID data, DWORD dataSize){
-	TCHAR lpTempPathBuffer[MAX_PATH];  
-    TCHAR* szTempFileName = new TCHAR[MAX_PATH];
-	GetTempPath(MAX_PATH,  lpTempPathBuffer); 
-	GetTempFileName(lpTempPathBuffer, TEXT("neoeedit"),0,szTempFileName);
-	//wcscat(szTempFileName, TEXT(".jar"));
-	HANDLE hTempFile = INVALID_HANDLE_VALUE; 
-	hTempFile = CreateFile((LPTSTR) szTempFileName, // file name 
-                           GENERIC_WRITE,        // open for write 
-                           FILE_SHARE_READ,       
-                           NULL,                 // default security 
-                           CREATE_ALWAYS,        // overwrite existing
-                           FILE_ATTRIBUTE_TEMPORARY ,
-                           NULL); 
-	if (hTempFile == INVALID_HANDLE_VALUE){
-		error(TEXT("temp file create fail"));
-		exit(10);
-	}
-	DWORD dwBytesWritten = 0; 
-	bool fSuccess = WriteFile(hTempFile, 
-                                 data, 
-                                 dataSize,
-                                 &dwBytesWritten, 
-                                 NULL); 
-    if (!fSuccess) 
-    {
-        error(TEXT("WriteFile failed"));
-        exit(11);
-    }
-	CloseHandle(hTempFile);
-	//DeleteFile(szTempFileName);
-	
-	return szTempFileName;	
-}
-static std::wstring file2delete;
-bool extractResource(){
-	HRSRC hRes = FindResource(0, MAKEINTRESOURCE(THE_JAR), MAKEINTRESOURCE(256));
-	HGLOBAL hData = LoadResource(0, hRes);
-	LPVOID data = LockResource(hData);
-	DWORD dataSize = SizeofResource(0, hRes);
-	TCHAR* filename = writeToTempFileName(data,dataSize);	
-	std::wstring w1 = filename;
-	file2delete = w1;
-	std::string s1 (w1.begin(),w1.end());	
-	int len = s1.length();
-	filename1 = (char*)malloc((len + 1) * sizeof(char));
-	strcpy_s(filename1,len+1,s1.c_str());
-	return true;
-}
-int WINAPI WinMain(HINSTANCE hInstance,
-                   HINSTANCE hPrevInstance,
-                   LPSTR lpCmdLine,
-                   int nCmdShow){
-    if (!extractResource()) return 3;
-	if (!loadJVM()) return 1;
-	if (!runJava()) return 2;
-		
-	return 0;
+int WINAPI WinMain( HINSTANCE hInstance , HINSTANCE hPrevInstance , LPSTR lpCmdLine , int nCmdShow ) {
+	//int main( ) {
+	find( ) ;
+	return 0 ;
 }
