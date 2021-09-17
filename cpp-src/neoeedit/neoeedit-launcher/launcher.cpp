@@ -17,7 +17,7 @@ bool prefix( const char * pre , const char * str )
 	return strncmp( pre , str , strlen( pre ) ) == 0 ;
 }
 int getVer( char * fn , const char * pre ) {
-	printf( "get ver [%s] and [%s]\n" , fn , pre ) ;
+	//	printf( "get ver [%s] and [%s]\n" , fn , pre ) ;
 
 	char * start = fn + strlen( pre ) ;
 	char * p1 = strstr( start , "." ) ;
@@ -25,7 +25,7 @@ int getVer( char * fn , const char * pre ) {
 	char sub1 [ MAX_PATH_1000 ] ;
 	strncpy_s( sub1 , sizeof( sub1 ) , start , p1 - start ) ;
 	sub1 [ p1 - start ] = 0 ;
-	printf( "ver str=[%s]\n" , sub1 ) ;
+	//	printf( "ver str=[%s]\n" , sub1 ) ;
 	return strtol( sub1 , ( char * * ) NULL , 10 ) ;
 }
 char * str_clone( char * p3 , int len ) {
@@ -78,7 +78,7 @@ char * searchPath( const char * p1 ) {
 		FindClose( hFind ) ;
 	}
 	if ( ver > 0 ) {
-		printf( "find %s %d at [%s]\n" , kind == 0 ? "JDK" : "JRE" , ver , p2 ) ;
+		//		printf( "find %s %d at [%s]\n" , kind == 0 ? "JDK" : "JRE" , ver , p2 ) ;
 		char p3 [ MAX_PATH_1000 ] ;
 		int len = sprintf( p3 , "%s\\%s\\%s\\bin\\server\\jvm.dll" , drive , p1 , p2 ) ;
 		return str_clone( p3 , len ) ;
@@ -88,7 +88,7 @@ char * searchPath( const char * p1 ) {
 static HINSTANCE _libInst = NULL ;
 void find( ) {
 	char * path = searchPath( "Program Files\\Java\\" ) ;
-	printf( "Found JDK(0)[%s]\n" , path ) ;
+	//	printf( "Found JDK(0)[%s]\n" , path ) ;
 	//path = "C:\\Program Files\\Java\\jre1.8.0_301" ;
 	printf( "Found JDK[%s]\n" , path ) ;
 	char * jvmdll = path ;
@@ -109,8 +109,8 @@ void find( ) {
 	}
 	CreateJavaVM_t * createFunc = ( CreateJavaVM_t * ) GetProcAddress( _libInst , "JNI_CreateJavaVM" ) ;
 	if ( createFunc == NULL ) {
-		printf( "Can't locate JNI_CreateJavaVM\n" ) ;
-		return ;
+		error( "Can't locate JNI_CreateJavaVM\n" ) ;
+		exit( 1 ) ;
 	}
 	JNIEnv * env ;
 	JavaVM * vm ;
