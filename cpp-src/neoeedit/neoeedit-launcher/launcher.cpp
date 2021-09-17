@@ -10,14 +10,14 @@
 #define MAX_PATH_1000 1000
 typedef jint ( JNICALL CreateJavaVM_t )( JavaVM * * vm , void * * env , void * args ) ;
 void error( const TCHAR * msg ) {
-	MessageBox( NULL , msg , TEXT( "Error" ) , MB_OK ) ;
+	MessageBox( NULL , msg , TEXT( "neoeedit error" ) , MB_OK ) ;
 }
 bool prefix( const char * pre , const char * str )
 {
 	return strncmp( pre , str , strlen( pre ) ) == 0 ;
 }
 int getVer( char * fn , const char * pre ) {
-//	printf( "get ver [%s] and [%s]\n" , fn , pre ) ;
+	printf( "get ver [%s] and [%s]\n" , fn , pre ) ;
 
 	char * start = fn + strlen( pre ) ;
 	char * p1 = strstr( start , "." ) ;
@@ -25,7 +25,7 @@ int getVer( char * fn , const char * pre ) {
 	char sub1 [ MAX_PATH_1000 ] ;
 	strncpy_s( sub1 , sizeof( sub1 ) , start , p1 - start ) ;
 	sub1 [ p1 - start ] = 0 ;
-//	printf( "ver str=[%s]\n" , sub1 ) ;
+	printf( "ver str=[%s]\n" , sub1 ) ;
 	return strtol( sub1 , ( char * * ) NULL , 10 ) ;
 }
 char * str_clone( char * p3 , int len ) {
@@ -56,7 +56,7 @@ char * searchPath( const char * p1 ) {
 		const char * preJdk = "jdk-" ;
 		const char * preJre = "jre1." ;
 		while( 1 ) {
-		//	printf( "[%s]\n" , FindFileData . cFileName ) ;
+			printf( "[%s]\n" , FindFileData . cFileName ) ;
 			char * fn = FindFileData . cFileName ;
 			int v1 = 0 ;
 			int kind1 = 0 ;
@@ -88,7 +88,7 @@ char * searchPath( const char * p1 ) {
 static HINSTANCE _libInst = NULL ;
 void find( ) {
 	char * path = searchPath( "Program Files\\Java\\" ) ;
-//	printf( "Found JDK(0)[%s]\n" , path ) ;
+	printf( "Found JDK(0)[%s]\n" , path ) ;
 	//path = "C:\\Program Files\\Java\\jre1.8.0_301" ;
 	printf( "Found JDK[%s]\n" , path ) ;
 	char * jvmdll = path ;
@@ -128,18 +128,18 @@ void find( ) {
 
 	jint res = createFunc( & vm , ( void * * ) & env , & vm_args ) ;
 	if ( res < 0 ) {
-		printf( "Can't create JVM\n" ) ;
-		return ;
+		error( "Can't create JVM\n" ) ;
+		exit( 1 ) ;
 	}
 	//printf( "res=%d|%X\n" , res , env ) ;
 	jclass cls = env -> FindClass( "neoe/ne/Main" ) ;
 	if ( cls == 0 ) {
-		printf( "main class not found\n" ) ;
+		error( "main class not found\n" ) ;
 		exit( 1 ) ;
 	}
 	jmethodID mid = env -> GetStaticMethodID( cls , "main" , "([Ljava/lang/String;)V" ) ;
 	if ( mid == 0 ) {
-		printf( "main() method not found\n" ) ;
+		error( "main() method not found\n" ) ;
 		exit( 1 ) ;
 	}
 	int argCount ;
