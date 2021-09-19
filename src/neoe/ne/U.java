@@ -1866,7 +1866,7 @@ public class U {
 		if (pp == null) {
 			return false;
 		} else {
-			ep.setPage(pp, rec);
+			ep.setPage(pp, true);
 			return true;
 		}
 	}
@@ -3515,6 +3515,15 @@ public class U {
 			U.setClipBoard(s);
 			pp.ui.message("filename copied");
 		}
+	}
+
+	public static PlainPage findPageByData(List<PlainPage> pageSet, PageData data) {
+		for (PlainPage pp:pageSet) {
+			if (pp.pageData.equals(data)) {
+				return pp;
+			}
+		}
+		return null;
 	}
 
 }

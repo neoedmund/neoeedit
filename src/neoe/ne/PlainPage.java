@@ -1544,6 +1544,14 @@ public class PlainPage {
 
 	public PlainPage(EditorPanel editor, PageData data) throws Exception {
 		this();
+		{
+			PlainPage pp = U.findPageByData(editor.pageSet, data);
+			if (pp!=null) {
+				editor.setPage(pp, true);
+				System.out.println("set existed page.");
+				return;
+			}
+		}
 		PlainPage cp = editor.getPage();
 		if (cp != null) {
 			this.ui.copy(cp.ui);
@@ -1552,9 +1560,8 @@ public class PlainPage {
 		this.pageData = data;
 		int index = editor.pageSet.indexOf(editor.getPage());
 		if (index >= editor.pageSet.size() || index < 0) {
-			index = 0;
+			editor.pageSet.add(this);
 		}
-		editor.pageSet.add(index, this);
 		editor.setPage(this, true);
 		editor.changeTitle();
 		// uiComp.ptCh.record(data.getTitle(), cx, cy);
