@@ -43,6 +43,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1722,7 +1723,7 @@ public class U {
 			try {
 				List<String> res = U.findInFile(f, text, page.ignoreCase, cnts);
 				if (!res.isEmpty()) {
-					PlainPage pi = new PlainPage(page.uiComp, PageData.newFromFile(f.getAbsolutePath()));
+					PlainPage pi = PlainPage.getPP(page.uiComp, PageData.newFromFile(f.getAbsolutePath()));
 					if (pi != null) {
 						doReplaceAll(pi, text, ignoreCase2, false, text2, false, null, fnFilter);
 					}
@@ -2119,7 +2120,7 @@ public class U {
 		if (pd == null) {
 			pd = PageData.newEmpty(title, "");
 		}
-		final PlainPage page = new PlainPage(ep, pd);
+		final PlainPage page = PlainPage.getPP(ep, pd);
 		return page;
 	}
 
@@ -2507,7 +2508,7 @@ public class U {
 	}
 
 	public static void listFonts(PlainPage pp) throws Exception {
-		PlainPage p2 = new PlainPage(pp.uiComp, PageData.newEmpty(String.format("<Fonts>")));
+		PlainPage p2 = PlainPage.getPP(pp.uiComp, PageData.newEmpty(String.format("<Fonts>")));
 		p2.pageData.workPath = pp.pageData.workPath;
 		p2.ui.applyColorMode(pp.ui.colorMode);
 		List<CharSequence> sbs = new ArrayList<CharSequence>();
@@ -2582,7 +2583,7 @@ public class U {
 			if (findAndShowPageListPage(ep, f.getAbsolutePath(), 0, true)) {
 				return ep.getPage();
 			}
-			return new PlainPage(ep, PageData.newFromFile(f.getAbsolutePath()));
+			return PlainPage.getPP(ep, PageData.newFromFile(f.getAbsolutePath()));
 		}
 	}
 
@@ -2597,13 +2598,13 @@ public class U {
 		if (pd == null) {
 			pd = PageData.newEmpty(title);
 			pd.setText(dir);
-			PlainPage pp = new PlainPage(page.uiComp, pd);
+			PlainPage pp = PlainPage.getPP(page.uiComp, pd);
 			U.listDir(pp, 0);
 			pp.pageData.workPath = page.pageData.workPath;
 		} else {
 			EditorPanel ep = page.uiComp;
 			if (!U.findAndShowPageListPage(ep, title, 0, true)) {
-				new PlainPage(page.uiComp, pd);
+				PlainPage.getPP(page.uiComp, pd);
 			}
 		}
 
@@ -2624,7 +2625,7 @@ public class U {
 		if (pd == null) {
 			pd = PageData.newFromFile(f.getAbsolutePath());
 		}
-		final PlainPage page = new PlainPage(ep, pd);
+		final PlainPage page = PlainPage.getPP(ep, pd);
 		if (page != null && page.pageData.lines.size() > 0) {
 			line -= 1;
 			page.cx = 0;
@@ -2642,7 +2643,15 @@ public class U {
 
 	static void openFileHistory(EditorPanel ep) throws Exception {
 		File fhn = getFileHistoryName();
-		PlainPage page = new PlainPage(ep, PageData.newFromFile(fhn.getAbsolutePath()));
+		PlainPage page = PlainPage.getPP(ep, PageData.newFromFile(fhn.getAbsolutePath()));
+		if (page.pageData == null) {
+			System.out.println("page.pageData==null");
+			return;
+		}
+		if (page.pageData.lines == null) {
+			System.out.println("page.pageData.lines==null");
+			return;
+		}
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();
@@ -2651,7 +2660,7 @@ public class U {
 
 	static void openDirHistory(EditorPanel ep) throws Exception {
 		File f = getDirHistoryName();
-		PlainPage page = new PlainPage(ep, PageData.newFromFile(f.getAbsolutePath()));
+		PlainPage page = PlainPage.getPP(ep, PageData.newFromFile(f.getAbsolutePath()));
 		page.cy = Math.max(0, page.pageData.lines.size() - 1);
 		page.sy = Math.max(0, page.cy - 5);
 		page.uiComp.repaint();
@@ -3113,7 +3122,7 @@ public class U {
 	}
 
 	public static void showHexOfString(String s, PlainPage pp) throws Exception {
-		PlainPage p2 = new PlainPage(pp.uiComp, PageData.newEmpty(String.format("Hex for String #%s", randomID())));
+		PlainPage p2 = PlainPage.getPP(pp.uiComp, PageData.newEmpty(String.format("Hex for String #%s", randomID())));
 		p2.pageData.workPath = pp.pageData.workPath;
 		p2.ui.applyColorMode(pp.ui.colorMode);
 		List<CharSequence> sbs = new ArrayList<CharSequence>();
@@ -3132,7 +3141,7 @@ public class U {
 		}
 		// boolean isFirstTime = !PageData.dataPool.containsKey(TITLE_OF_PAGES);
 		PageData pd = PageData.newEmpty(titleOfPages(ep));
-		new PlainPage(ep, pd);
+		PlainPage.getPP(ep, pd);
 		pd.setLines(getPageListStrings(ep));
 		ep.repaint();
 	}
@@ -3153,7 +3162,7 @@ public class U {
 				cntInfo += String.format(", filtered:%d", cnts[2]);
 			}
 		}
-		PlainPage p2 = new PlainPage(pp.uiComp, PageData.newEmpty(String.format("(%s)'%s' in %s '%s'%s %s #%s",
+		PlainPage p2 = PlainPage.getPP(pp.uiComp, PageData.newEmpty(String.format("(%s)'%s' in %s '%s'%s %s #%s",
 				all.size(), text, type, name, withFilter, cntInfo, randomID())));
 		p2.pageData.workPath = pp.pageData.workPath;
 		p2.ui.applyColorMode(pp.ui.colorMode);
@@ -3518,12 +3527,59 @@ public class U {
 	}
 
 	public static PlainPage findPageByData(List<PlainPage> pageSet, PageData data) {
-		for (PlainPage pp:pageSet) {
+		for (PlainPage pp : pageSet) {
 			if (pp.pageData.equals(data)) {
 				return pp;
 			}
 		}
 		return null;
+	}
+
+	public static int optimizeFileHistory(String fn0) throws IOException {
+		if (fn0 == null || fn0.isEmpty())
+			return 0;
+		File fhn = U.getFileHistoryName();
+		List<String> fs = Files.readAllLines(fhn.toPath());
+		Set<String> e = new HashSet<>();
+		List<String> fs2 = new ArrayList<>();
+		int cy = 0;
+		String keep = null;
+		for (int i = fs.size() - 1; i >= 0; i--) {
+			String s = fs.get(i);
+			int p1 = s.lastIndexOf('|');
+			String fn = s.trim();
+			if (fn.isEmpty())
+				continue;
+			if (p1 > 0) {
+				fn = s.substring(0, p1);
+			}
+			if (e.contains(fn)) {
+				continue;
+			}
+			e.add(fn);
+			if (fn.equals(fn0) && p1 > 0) {
+				String k = s.substring(p1 + 1);
+				if (k.endsWith(":")) {
+					k = k.substring(0, k.length() - 1);
+				}
+				try {
+					cy = Integer.parseInt(k);
+					keep = s;
+					continue;
+				} catch (Exception ex) {
+				}
+			}
+			fs2.add(s);
+		}
+		Collections.reverse(fs2);
+		if (keep != null) {
+			fs2.add(keep);
+		}
+		if (fs2.size() != fs.size()) {
+			FileUtil.save(String.join("\n", fs2).getBytes("utf8"), fhn.getAbsolutePath());
+			System.out.println("file history optimized");
+		}
+		return cy;
 	}
 
 }

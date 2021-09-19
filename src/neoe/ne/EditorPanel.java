@@ -2,7 +2,6 @@ package neoe.ne;
 
 import java.awt.AWTEvent;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.InputMethodEvent;
@@ -27,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.ImageIcon;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -179,7 +177,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 		setOpaque(false);
 		setCursor(new Cursor(Cursor.TEXT_CURSOR));
 		setFocusTraversalKeysEnabled(false);
-		PlainPage pp = new PlainPage(this, PageData.newEmpty("UNTITLED #" + U.randomID()));
+		PlainPage pp =  PlainPage.getPP(this, PageData.newEmpty("UNTITLED #" + U.randomID()));
 		pp.ptSelection.selectAll();
 	}
 
@@ -320,8 +318,10 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 			return;
 		JFrame frame = new JFrame(EditorPanel.WINDOW_NAME);
 		openWindow(U.e_png, parentUI, frame, frame, null);
+		installWindowListener(frame);
 	}
-
+	
+	
 	public void openWindow(String iconname, EditorPanel parentUI, RootPaneContainer outFrame, JFrame realJFrame,
 			JDesktopPane desktopPane) throws IOException {
 		frame = outFrame;
@@ -335,7 +335,11 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 			ji.add(this);
 		}
 		this.realJFrame = realJFrame;
-
+		changeTitle();
+		repaint();
+	}
+	
+	public void installWindowListener(JFrame realJFrame) {
 		realJFrame.addWindowListener(new WindowAdapter() {
 			private long lastWarning;
 
@@ -371,9 +375,12 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 
 			@Override
 			public void windowClosing(WindowEvent e) {
+				int size = pageSet.size();
+				int i=0;
 				for (PlainPage pp : pageSet) {
 					if (pp.pageData.getFn() != null) {
 						try {
+							System.out.printf("save file his[%d/%d]%s\n",++i,size,pp.pageData.getFn());
 							U.saveFileHistory(pp.pageData.getFn(), pp.cy + 1);
 						} catch (IOException e1) {
 							e1.printStackTrace();
@@ -383,8 +390,6 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 				// System.out.println("exit");
 			}
 		});
-		changeTitle();
-		repaint();
 	}
 
 	private void initJFrame(String iconname, EditorPanel parentUI, JFrame frame) throws IOException {

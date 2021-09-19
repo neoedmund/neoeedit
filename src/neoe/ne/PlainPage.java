@@ -1542,30 +1542,33 @@ public class PlainPage {
 	private PlainPage() {
 	}
 
-	public PlainPage(EditorPanel editor, PageData data) throws Exception {
-		this();
-		{
-			PlainPage pp = U.findPageByData(editor.pageSet, data);
-			if (pp!=null) {
-				editor.setPage(pp, true);
-				System.out.println("set existed page.");
-				return;
-			}
-		}
+	private PlainPage(EditorPanel editor, PageData data) throws Exception {
 		PlainPage cp = editor.getPage();
 		if (cp != null) {
 			this.ui.copy(cp.ui);
 		}
 		this.uiComp = editor;
 		this.pageData = data;
-		int index = editor.pageSet.indexOf(editor.getPage());
-		if (index >= editor.pageSet.size() || index < 0) {
-			editor.pageSet.add(this);
-		}
+//		int index = editor.pageSet.indexOf(editor.getPage());
+//		if (index >= editor.pageSet.size() || index < 0) {
+//		}
+		editor.pageSet.add(this);
 		editor.setPage(this, true);
 		editor.changeTitle();
+		cy = U.optimizeFileHistory(data.getFn());
 		// uiComp.ptCh.record(data.getTitle(), cx, cy);
 		data.ref++;
+	}
+
+	public static PlainPage getPP(EditorPanel editor, PageData data) throws Exception {
+		PlainPage pp = U.findPageByData(editor.pageSet, data);
+		if (pp != null) {
+			editor.setPage(pp, true);
+			System.out.println("set existed page.");
+			return pp;
+		}
+		return new PlainPage(editor, data);
+
 	}
 
 	public void close() {

@@ -11,7 +11,7 @@ public class Main {
 			if (U.isImageFile(f)) {
 				new PicView(editor).show(f);
 			} else {
-				new PlainPage(editor, PageData.newFromFile(f.getAbsolutePath()));
+				PlainPage.getPP(editor, PageData.newFromFile(f.getAbsolutePath()));
 				editor.openWindow(null);
 			}
 		} else {

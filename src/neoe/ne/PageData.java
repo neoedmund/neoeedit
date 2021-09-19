@@ -37,7 +37,6 @@ public class PageData {
 		pd = new PageData();
 		pd.fn = fn;
 		U.readFile(pd, fn);
-		U.saveFileHistory(fn, 1);
 		dataPool.put(fn, pd);
 		return pd;
 	}
