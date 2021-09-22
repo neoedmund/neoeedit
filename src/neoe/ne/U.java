@@ -1867,7 +1867,7 @@ public class U {
 		if (pp == null) {
 			return false;
 		} else {
-			ep.setPage(pp, true);
+			ep.setPage(pp, rec);
 			return true;
 		}
 	}

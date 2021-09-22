@@ -1549,9 +1549,9 @@ public class PlainPage {
 		}
 		this.uiComp = editor;
 		this.pageData = data;
-//		int index = editor.pageSet.indexOf(editor.getPage());
-//		if (index >= editor.pageSet.size() || index < 0) {
-//		}
+		int index = editor.pageSet.indexOf(editor.getPage());
+		if (index >= editor.pageSet.size() || index < 0) {
+		}
 		editor.pageSet.add(this);
 		editor.setPage(this, true);
 		editor.changeTitle();
@@ -1899,7 +1899,7 @@ public class PlainPage {
 		String s = uiComp.pageHis.back(U.getLocString(this));
 		if (s != null) {
 			try {
-				doGo(s, false);
+				U.gotoFileLine(s, uiComp, false);
 			} catch (Throwable e) {
 				ui.message("err:" + e);
 				e.printStackTrace();
@@ -1911,7 +1911,7 @@ public class PlainPage {
 		String s = uiComp.pageHis.forward(U.getLocString(this));
 		if (s != null) {
 			try {
-				doGo(s, false);
+				U.gotoFileLine(s, uiComp, false);
 			} catch (Throwable e) {
 				ui.message("err:" + e);
 				e.printStackTrace();
