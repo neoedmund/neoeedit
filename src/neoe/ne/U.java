@@ -3574,11 +3574,11 @@ public class U {
 		Collections.reverse(fs2);
 		if (keep != null) {
 			fs2.add(keep);
+		} else {
+			fs2.add(fn0);
 		}
-		if (fs2.size() != fs.size()) {
-			FileUtil.save(String.join("\n", fs2).getBytes("utf8"), fhn.getAbsolutePath());
-			System.out.println("file history optimized");
-		}
+		FileUtil.save(String.join("\n", fs2).getBytes("utf8"), fhn.getAbsolutePath());
+		System.out.println("file history optimized");
 		return cy;
 	}
 
