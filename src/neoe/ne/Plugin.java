@@ -81,6 +81,7 @@ public class Plugin {
 	}
 
 	public interface PluginAction {
+		/** plugin is responsible for synchronization */
 		void run(PlainPage pp) throws Exception;
 	}
 

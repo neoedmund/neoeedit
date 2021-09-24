@@ -1671,7 +1671,11 @@ public class PlainPage {
 					String name = U.getKeyName(evt);
 					PluginAction ac = U.pluginKeys.get(name);
 					if (ac != null) {
-						ac.run(this);
+						try {
+							ac.run(this);
+						} catch (Exception e) {
+							ui.message("plugin:" + e.getCause().getMessage());
+						}
 					} else {
 						unknownCommand(evt);
 					}
