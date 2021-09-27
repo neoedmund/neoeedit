@@ -1673,8 +1673,11 @@ public class PlainPage {
 					if (ac != null) {
 						try {
 							ac.run(this);
-						} catch (Exception e) {
-							ui.message("plugin:" + e.getCause().getMessage());
+						} catch (Throwable e) {
+							if (e.getCause() != null) {
+								e = e.getCause();
+							}
+							ui.message("plugin:" + e.getMessage());
 						}
 					} else {
 						unknownCommand(evt);
