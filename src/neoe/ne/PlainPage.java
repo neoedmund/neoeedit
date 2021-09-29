@@ -1674,6 +1674,7 @@ public class PlainPage {
 						try {
 							ac.run(this);
 						} catch (Throwable e) {
+							e.printStackTrace();
 							if (e.getCause() != null) {
 								e = e.getCause();
 							}
