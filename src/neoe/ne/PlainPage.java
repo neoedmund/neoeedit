@@ -154,6 +154,8 @@ public class PlainPage {
 		}
 
 		void keepX() {
+			if (rectSelectMode)
+				return;
 			if (keepx == -1) {
 				keepx = cx;
 //				System.out.println("keepx=" + keepx);
