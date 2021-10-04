@@ -31,7 +31,7 @@ public class FileIterator implements Iterable<File> {
 				File f = buf.remove(0);
 				String name = f.getName();
 				if (f.isDirectory() && !name.equals(".svn") && !name.equals(".cvs") && !name.equals(".bzr")
-						&& !name.equals(".git") && (!Files.isSymbolicLink(f.toPath()))) {
+						&& !name.equals(".git") /*&& (!Files.isSymbolicLink(f.toPath()))*/) {
 					File[] sub = f.listFiles();
 					if (sub != null) {
 						buf.addAll(Arrays.asList(sub));
