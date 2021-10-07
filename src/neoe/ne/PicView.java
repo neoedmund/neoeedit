@@ -1,5 +1,6 @@
 package neoe.ne;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,6 +8,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -17,8 +19,11 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,11 +34,14 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import neoe.ne.util.FileIterator;
+import neoe.ne.util.FileUtil;
 
 public class PicView {
 
@@ -171,6 +179,8 @@ public class PicView {
 				if (e.isControlDown()) {
 					if (kc == KeyEvent.VK_W) {
 						frame.dispose();
+					} else if (kc == KeyEvent.VK_S) {
+						saveCut();
 					}
 				} else {
 					if (kc == KeyEvent.VK_F1 || kc == KeyEvent.VK_TAB) {
@@ -235,34 +245,117 @@ public class PicView {
 			return files;
 		}
 
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			int x = e.getX(), y = e.getY();
-			if (e.getClickCount() == 2) {
-				setRate(x, y, 1);
-				repaint1();
-			} else {
-
-			}
-		}
-
 		private void setRate(int x, int y, double r2) {
 			vx = r2 / rate * (vx - x) + x;
 			vy = r2 / rate * (vy - y) + y;
 			rate = r2;
 		}
 
+		public void startCut(int x, int y) {
+			cutx2 = cutx = x;
+			cuty2 = cuty = y;
+			repaint1();
+
+		}
+
+		public void saveCut() throws IOException {
+			if (cutx == cutx2 || cuty == cuty2)
+				return;
+			savingCut = true;
+			Graphics2D g = null;
+			try {
+				BufferedImage im = new BufferedImage(picviewpanel.getWidth(), picviewpanel.getHeight(),
+						BufferedImage.TYPE_INT_RGB);
+				g = im.createGraphics();
+				paintComponent(g);
+				sortCutPoints();
+				int w = cutx2 - cutx;
+				int h = cuty2 - cuty;
+				BufferedImage imcut = im.getSubimage(cutx, cuty, w, h);
+				ByteArrayOutputStream png = new ByteArrayOutputStream();
+				ByteArrayOutputStream jpg = new ByteArrayOutputStream();
+				ImageIO.write(imcut, "JPG", jpg);
+				ImageIO.write(imcut, "PNG", png);
+				png.close();
+				jpg.close();
+				if (jpg.size() == 0 && png.size() == 0) {
+					U.dialogMsg("no JPG or PNG support in ImageIO");
+					return;
+				}
+				boolean usepng = (png.size() < jpg.size());
+				if (jpg.size() == 0) {
+					usepng = true;
+				} else {
+					usepng = (png.size() < jpg.size());
+				}
+//				System.out.printf("size %d vs %d", png.size(), jpg.size());
+				String f0 = f.getName();
+				int p1 = f0.lastIndexOf('.');
+				if (p1 > 0) {
+					f0 = f0.substring(0, p1);
+				}
+				String fn = String.format("%s_%dx%d%s", f0, w, h, usepng ? ".png" : ".jpg");
+				saveCut(fn, usepng, usepng ? png : jpg);
+			} finally {
+				savingCut = false;
+				if (g != null)
+					g.dispose();
+			}
+
+		}
+
+		private void saveCut(String fn0, boolean usepng, ByteArrayOutputStream ba) throws IOException {
+			JFileChooser chooser = new JFileChooser(f.getAbsoluteFile());
+			chooser.setSelectedFile(new File(f.getParentFile(), fn0));
+			int returnVal = chooser.showSaveDialog(this);
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				String fn = chooser.getSelectedFile().getAbsolutePath();
+				FileOutputStream out = new FileOutputStream(chooser.getSelectedFile());
+				ba.writeTo(out);
+				out.close();
+				U.saveFileHistory(fn, 0);
+				JOptionPane.showMessageDialog(this, String.format("saved %s(%,d bytes)", fn0, ba.size()));
+			}
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			int x = e.getX(), y = e.getY();
+			if (e.isControlDown()) {
+				if (!e.isShiftDown()) {
+					startCut(x, y);
+				}
+			} else {
+				if (e.getClickCount() == 2) {
+					setRate(x, y, 1);
+					repaint1();
+				} else {
+
+				}
+			}
+		}
+
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			int x = e.getX(), y = e.getY();
-			if (inSmall(x, y)) {
-				setPosSmall(x, y);
-			} else {
-				int dx = e.getX() - mx;
-				int dy = e.getY() - my;
-				vx = (int) (vx1 + dx);
-				vy = (int) (vy1 + dy);
+			if (e.isControlDown()) {
+				if (cutx == -1) {
+					startCut(x, y);
+				} else {
+					cutx2 = x;
+					cuty2 = y;
+				}
 				repaint1();
+			} else {
+				if (inSmall(x, y)) {
+					setPosSmall(x, y);
+				} else {
+					int dx = e.getX() - mx;
+					int dy = e.getY() - my;
+					vx = (int) (vx1 + dx);
+					vy = (int) (vy1 + dy);
+					repaint1();
+				}
 			}
 		}
 
@@ -398,7 +491,27 @@ public class PicView {
 				g.setColor(Color.WHITE);
 				g.drawString(spos, x2, y2);
 			}
+			drawCut((Graphics2D) g);
 			g.dispose();
+
+		}
+
+		private void drawCut(Graphics2D g) {
+			if (cutx == cutx2 || cuty == cuty2)
+				return;
+			if (savingCut)
+				return;
+			sortCutPoints();
+
+			g.setColor(Color.red);
+			float[] dashingPattern1 = { 2f, 2f };
+			Stroke stroke1 = new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.0f, dashingPattern1,
+					2.0f);
+
+			g.setStroke(stroke1);
+			g.drawRect(cutx, cuty, cutx2 - cutx, cuty2 - cuty);
+			g.drawString(String.format("%dx%d", cutx2 - cutx, cuty2 - cuty), cutx, cuty);
+			g.drawString(String.format("%dx%d", cutx2 - cutx, cuty2 - cuty), cutx2, cuty2);
 
 		}
 
@@ -473,7 +586,9 @@ public class PicView {
 		private void viewFile(File f) {
 			try {
 				img = ImageIO.read(f);
+				this.f = f;
 				setTitleWithSize(f, fi, files.size());
+				resetCut();
 				repaint1();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -554,6 +669,27 @@ public class PicView {
 
 	}
 
+	private void sortCutPoints() {
+		int t;
+		if (cutx > cutx2) {
+			t = cutx;
+			cutx = cutx2;
+			cutx2 = t;
+		}
+		if (cuty > cuty2) {
+			t = cuty;
+			cuty = cuty2;
+			cuty2 = t;
+		}
+
+	}
+
+	public void resetCut() {
+		cutx = cuty = cutx2 = cuty2 = -1;
+	}
+
+	private int cutx, cuty, cutx2, cuty2;
+	private boolean savingCut;
 	private EditorPanel ep;
 
 	Slideshow ss;
@@ -594,16 +730,19 @@ public class PicView {
 
 	}
 
+	PicViewPanel picviewpanel;
+
 	public void show(File fn) throws IOException {
 		JFrame f = new JFrame();
 		f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		f.setIconImage(U.getAppIcon(U.e3_png));
-		PicViewPanel p = new PicViewPanel(f, fn);
+		picviewpanel = new PicViewPanel(f, fn);
 		f.getContentPane().setLayout(new BorderLayout());
-		f.getContentPane().add(p);
+		f.getContentPane().add(picviewpanel);
 		f.setTransferHandler(new U.TH(ep));
 		f.setVisible(true);
 		U.saveFileHistory(fn.getAbsolutePath(), 0);
-		installSlideshow(f, p);
+		installSlideshow(f, picviewpanel);
+		resetCut();
 	}
 }
