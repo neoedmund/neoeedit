@@ -14,8 +14,10 @@ https://github.com/neoedmund/neoeedit
 - Rectangular mode
 - Integrated IME support
 - Script in Java
-- Hack, Nerd, Vim like
-- Small executable(200KB?)
+- Smart: 
+  * when encounter a problem , instead of panic and refuse to go on , it find solutions .
+  * when you don't configure , it use best option for you .
+- Small executable(200KB?), light: fast , not bloated.
 - Stable, since 2009
 
 
