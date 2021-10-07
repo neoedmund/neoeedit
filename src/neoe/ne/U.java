@@ -15,6 +15,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -69,6 +70,7 @@ import javax.swing.JPanel;
 import javax.swing.TransferHandler;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
+import javax.xml.crypto.Data;
 
 import neoe.ne.PlainPage.Paint;
 import neoe.ne.Plugin.PluginAction;
@@ -2044,13 +2046,29 @@ public class U {
 	}
 
 	static String getClipBoard() {
-		String s;
 		try {
-			s = Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor).toString();
+			Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();
+			Object o;
+			if (clip.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
+				o = clip.getData(DataFlavor.stringFlavor);
+				if (o != null)
+					return o.toString();
+			}
+			if (clip.isDataFlavorAvailable(DataFlavor.javaFileListFlavor)) {
+				o = clip.getData(DataFlavor.javaFileListFlavor);
+				if (o != null) {
+					List<File> l = (List<File>) o;
+					StringBuffer sb = new StringBuffer();
+					for (File f : l) {
+						sb.append(f.getAbsolutePath()).append('\n');
+					}
+					return sb.toString();
+				}
+			}
 		} catch (Exception e) {
-			s = "";
+			e.printStackTrace();
 		}
-		return s;
+		return "";
 	}
 
 	public static File getFileHistoryName() throws IOException {
