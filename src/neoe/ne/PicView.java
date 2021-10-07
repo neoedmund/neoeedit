@@ -288,7 +288,7 @@ public class PicView {
 				} else {
 					usepng = (png.size() < jpg.size());
 				}
-//				System.out.printf("size %d vs %d", png.size(), jpg.size());
+				System.out.printf("size png(%,d) vs jpg(%,d)\n", png.size(), jpg.size());
 				String f0 = f.getName();
 				int p1 = f0.lastIndexOf('.');
 				if (p1 > 0) {
