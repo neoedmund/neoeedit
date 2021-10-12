@@ -1682,12 +1682,14 @@ public class PlainPage {
 							}
 							ui.message("plugin:" + e.getMessage());
 						}
+						evt.consume();
 					} else {
 						unknownCommand(evt);
 					}
 				}
 			} else {
 				processCommand(cmd);
+				evt.consume();
 			}
 
 			boolean cmoved = !(ocx == cx && ocy == cy);
