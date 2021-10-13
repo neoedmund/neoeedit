@@ -38,22 +38,22 @@ public class Console {
 			if (pageData.encoding == null) {
 				pageData.encoding = "UTF-8";
 			}
-			int size = pageData.roLines.getline(pp.cy).length();
-			pageData.editRec.deleteInLine(pp.cy, 0, size);
+//			pp.ptSelection.selectAll();
+			pp.ptEdit.append(cmd+"\n");
 		}
 		U.attach(pp, stdout);
 		U.attach(pp, stderr);
 	}
 
-	public void submit(String s) {
-		try {
-			out.write(s.getBytes(pp.pageData.encoding));
-			out.flush();
-		} catch (Exception e) {
-			e.printStackTrace();
-			pp.ptEdit.consoleAppend(e.toString());
-		}
-	}
+//	public void submit(String s) {
+//		try {
+//			out.write(s.getBytes(pp.pageData.encoding));
+//			out.flush();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			pp.ptEdit.consoleAppend(e.toString());
+//		}
+//	}
 
 	public static String filterSimpleTTY(String s) {
 		while (true) {
@@ -73,15 +73,14 @@ public class Console {
 		return s;
 	}
 
-	public void submit(int i) {
-		try {
-			out.write(i);
-			out.flush();
-		} catch (Exception e) {
-			e.printStackTrace();
-			pp.ptEdit.consoleAppend(e.toString());
-		}
-
-	}
+//	public void submit(int i) {
+//		try {
+//			out.write(i);
+//			out.flush();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			pp.ptEdit.consoleAppend(e.toString());
+//		}
+//	}
 
 }

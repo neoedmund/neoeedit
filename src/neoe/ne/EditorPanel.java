@@ -188,7 +188,6 @@ public class EditorPanel extends JPanel implements MouseMotionListener, MouseLis
 		String title = null;
 		if (page.console != null) {
 			title = ("Console - " + page.console.cmd);
-			return;
 		} else {
 			if (fn != null) {
 				title = (new File(fn).getName() + " " + new File(fn).getParent() + " - (" + pageSet.size() + ") - "

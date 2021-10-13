@@ -1550,13 +1550,13 @@ public class U {
 								// page.ptEdit.deleteLine(y);
 								// }
 							}
-							page.ptEdit.consoleAppend(s + "\n");
+							page.ptEdit.append(s + "\n");
 						}
 						page.uiComp.repaint();
 					}
-					page.ptEdit.consoleAppend("<EOF>\n");
+					page.ptEdit.append("<EOF>\n");
 				} catch (Throwable e) {
-					page.ptEdit.consoleAppend("error:" + e + "\n");
+					page.ptEdit.append("error:" + e + "\n");
 				}
 			}
 		});

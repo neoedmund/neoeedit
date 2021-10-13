@@ -266,89 +266,87 @@ public class PlainPage {
 			insertString(s);
 		}
 
-		public void consoleAdjustToLastLine() {
-			int size = pageData.lines.size();
-			if (cy != size - 1) {
-				cy = size - 1;
-				cx = pageData.lines.get(size - 1).length();
-				focusCursor();
-				uiComp.repaint();
-			}
-		}
-
-		public void consoleAppend(String s) {
-			synchronized (console) {
-				int size = pageData.lines.size();
-				CharSequence lastLine = pageData.lines.get(size - 1);
-				pageData.lines.remove(size - 1);
-				cy = pageData.roLines.getLinesize() - 1;
-				cx = pageData.roLines.getline(cy).length();
-				insertString(s);
-				pageData.lines.add(lastLine);
-			}
-		}
-
-		public void consoleInsertChar(char ch) {
-			synchronized (console) {
-				consoleAdjustToLastLine();
-				if (ch == KeyEvent.VK_ENTER) {
-					consoleSubmitLastLine();
-
-				} else if (ch == KeyEvent.VK_BACK_SPACE) {
-					if (cx > 0) {
-						pageData.editRec.deleteInLine(cy, cx - 1, cx);
-						cx -= 1;
-					}
-				} else if (ch == KeyEvent.VK_DELETE) {
-					if (cx < pageData.roLines.getline(cy).length()) {
-						pageData.editRec.deleteInLine(cy, cx, cx + 1);
-					}
-				} else if (ch == KeyEvent.VK_ESCAPE) {
-					int size = pageData.roLines.getline(cy).length();
-					pageData.editRec.deleteInLine(cy, 0, size);
-				} else {
-					pageData.editRec.insertInLine(cy, cx, "" + ch);
-					cx += 1;
-				}
-			}
-			focusCursor();
-			uiComp.repaint();
-
-		}
-
-		public void consoleSubmitLastLine() {
-			cy = pageData.roLines.getLinesize() - 1;
-			String sb = pageData.roLines.getline(cy).toString();
-			if (sb.trim().length() == 0) {
-				consoleAppend("\n");
-			}
-			pageData.editRec.deleteLines(cy, cy + 1);
-			cx = 0;
-			sb += "\n";
-			console.submit(sb);
-		}
-
-		public void consoleUserInput(List<CharSequence> ss) {
-			synchronized (console) {
-				consoleAdjustToLastLine();
-				int len = ss.size();
-				if (len == 1) {
-					pageData.editRec.insertInLine(cy, cx, ss.get(0));
-					cx += ss.get(0).length();
-				} else {
-					pageData.editRec.deleteInLine(cy, cx, Integer.MAX_VALUE);
-					pageData.editRec.insertInLine(cy, cx, ss.get(0));
-					for (int i = 1; i < len; i++) {
-						consoleSubmitLastLine();
-						cy++;
-						pageData.editRec.insertEmptyLine(cy);
-						pageData.editRec.insertInLine(cy, 0, ss.get(i));
-					}
-					cx = ss.get(len - 1).length();
-				}
-			}
-			focusCursor();
-		}
+//		public void consoleAdjustToLastLine() {
+//			int size = pageData.lines.size();
+//			if (cy != size - 1) {
+//				cy = size - 1;
+//				cx = pageData.lines.get(size - 1).length();
+//				focusCursor();
+//				uiComp.repaint();
+//			}
+//		}
+//		public void consoleAppend(String s) {
+//			synchronized (console) {
+//				int size = pageData.lines.size();
+//				CharSequence lastLine = pageData.lines.get(size - 1);
+//				pageData.lines.remove(size - 1);
+//				cy = pageData.roLines.getLinesize() - 1;
+//				cx = pageData.roLines.getline(cy).length();
+//				insertString(s);
+//				pageData.lines.add(lastLine);
+//			}
+//		}
+//		public void consoleInsertChar(char ch) {
+//			synchronized (console) {
+//				consoleAdjustToLastLine();
+//				if (ch == KeyEvent.VK_ENTER) {
+//					consoleSubmitLastLine();
+//
+//				} else if (ch == KeyEvent.VK_BACK_SPACE) {
+//					if (cx > 0) {
+//						pageData.editRec.deleteInLine(cy, cx - 1, cx);
+//						cx -= 1;
+//					}
+//				} else if (ch == KeyEvent.VK_DELETE) {
+//					if (cx < pageData.roLines.getline(cy).length()) {
+//						pageData.editRec.deleteInLine(cy, cx, cx + 1);
+//					}
+//				} else if (ch == KeyEvent.VK_ESCAPE) {
+//					int size = pageData.roLines.getline(cy).length();
+//					pageData.editRec.deleteInLine(cy, 0, size);
+//				} else {
+//					pageData.editRec.insertInLine(cy, cx, "" + ch);
+//					cx += 1;
+//				}
+//			}
+//			focusCursor();
+//			uiComp.repaint();
+//
+//		}
+//
+//		public void consoleSubmitLastLine() {
+//			cy = pageData.roLines.getLinesize() - 1;
+//			String sb = pageData.roLines.getline(cy).toString();
+//			if (sb.trim().length() == 0) {
+//				consoleAppend("\n");
+//			}
+//			pageData.editRec.deleteLines(cy, cy + 1);
+//			cx = 0;
+//			sb += "\n";
+//			console.submit(sb);
+//		}
+//
+//		public void consoleUserInput(List<CharSequence> ss) {
+//			synchronized (console) {
+//				consoleAdjustToLastLine();
+//				int len = ss.size();
+//				if (len == 1) {
+//					pageData.editRec.insertInLine(cy, cx, ss.get(0));
+//					cx += ss.get(0).length();
+//				} else {
+//					pageData.editRec.deleteInLine(cy, cx, Integer.MAX_VALUE);
+//					pageData.editRec.insertInLine(cy, cx, ss.get(0));
+//					for (int i = 1; i < len; i++) {
+//						consoleSubmitLastLine();
+//						cy++;
+//						pageData.editRec.insertEmptyLine(cy);
+//						pageData.editRec.insertInLine(cy, 0, ss.get(i));
+//					}
+//					cx = ss.get(len - 1).length();
+//				}
+//			}
+//			focusCursor();
+//		}
 
 		public void deleteLine(int cy) {
 			deleteLineRange(cy, cy + 1);
@@ -402,10 +400,10 @@ public class PlainPage {
 		}
 
 		public void insert(char ch) {
-			if (console != null) {
-				consoleInsertChar(ch);
-				return;
-			}
+//			if (console != null) {
+//				consoleInsertChar(ch);
+//				return;
+//			}
 			// Fix cy here! ?
 			if (cy < 0)
 				cy = 0;
@@ -497,10 +495,10 @@ public class PlainPage {
 		}
 
 		public void insertString(List<CharSequence> ss, boolean userInput) {
-			if (userInput && console != null) {
-				consoleUserInput(ss);
-				return;
-			}
+//			if (userInput && console != null) {
+//				consoleUserInput(ss);
+//				return;
+//			}
 			// Fix cy here! ?
 			if (cy < 0)
 				cy = 0;
@@ -2084,11 +2082,11 @@ public class PlainPage {
 			U.listFonts(this);
 			break;
 		case copySelected:
-			if (console != null) {
-				if (!ptSelection.isSelected()) {
-					console.submit(3);
-				}
-			}
+//			if (console != null) {
+//				if (!ptSelection.isSelected()) {
+//					console.submit(3);
+//				}
+//			}
 			ptSelection.copySelected();
 			break;
 		case paste:
