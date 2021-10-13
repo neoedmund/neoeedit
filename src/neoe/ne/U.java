@@ -1758,7 +1758,13 @@ public class U {
 		if (cmd.trim().length() <= 0) {
 			return;
 		}
-		Process proc = Runtime.getRuntime().exec(cmd);
+		File dir;
+		if (pp.pageData.workPath != null) {
+			dir = new File(pp.pageData.workPath);
+		} else {
+			dir = new File(".");
+		}
+		Process proc = Runtime.getRuntime().exec(cmd, null, dir);
 		OutputStream out = proc.getOutputStream();
 		InputStream stdout = proc.getInputStream();
 		InputStream stderr = proc.getErrorStream();
