@@ -2,6 +2,7 @@ package neoe.ne.util;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.File;
@@ -115,6 +116,23 @@ public class FileUtil {
 		if (enc == null)
 			enc = "UTF-8";
 		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), enc));
+		String line;
+		List<String> ret = new ArrayList<String>();
+		while (true) {
+			line = in.readLine();
+			if (line == null)
+				break;
+			ret.add(line);
+		}
+		in.close();
+		return ret;
+
+	}
+
+	public static List<String> readStringBig(byte[] bs, String enc) throws IOException {
+		if (enc == null)
+			enc = "UTF-8";
+		BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bs), enc));
 		String line;
 		List<String> ret = new ArrayList<String>();
 		while (true) {

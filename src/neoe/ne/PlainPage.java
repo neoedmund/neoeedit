@@ -1005,12 +1005,12 @@ public class PlainPage {
 			if (lines > 20) {
 				curPer = 100 * cy / lines;
 			}
-			String s1 = String.format("%s %s %s%s L:%s%d X:%d undo:%d%s %s%s <F1>:Help",
+			String s1 = String.format("%s %s %s%s L:%s%d X:%d undo:%d%s %s%s%s <F1>:Help",
 					(changedOutside ? " [ChangedOutside!]" : ""), (pageData.encoding == null ? "-" : pageData.encoding)//
 					, (pageData.lineSep.equals("\n") ? "U" : "W"), (rectSelectMode ? " R " : "")//
 					, (curPer == 0 ? "" : "" + curPer + "%"), lines, (cx + 1), pageData.history.size()//
 					, (ime == null ? "" : " " + ime.getImeName()), (pageData.getFn() == null ? "-" : pageData.getFn())//
-					, (readonly ? " ro" : ""));
+					, (readonly ? " ro" : ""), pageData.gzip ? " Z" : "");
 			g2.setColor(colorGutMark1);
 			U.drawString(g2, U.fontList, s1, 2, lineHeight + 2, dim.width);
 			g2.setColor(colorGutMark2);

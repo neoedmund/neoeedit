@@ -28,10 +28,12 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +60,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipException;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -1953,20 +1958,12 @@ public class U {
 		int MAX_SHOW_CHARS_IN_LINE = 30;
 		List<String> a = new ArrayList<String>();
 		try {
-			if (f.getName().endsWith(".class")) {// some .class will be guess to UTF8
+			if (guessIsBinFile(f)) {
 				if (cnts != null)
 					cnts[1]++;
 				return a;
 			}
-			String enc = guessEncoding(f.getAbsolutePath());
-			if (enc == null) {
-				if (guessIsBinFile(f)) {
-					if (cnts != null)
-						cnts[1]++;
-					return a;
-				}
-				enc = UTF8;// avoid wrong skip
-			}
+			String enc = guessEncoding(f.getAbsolutePath(), null/* not to search in gzip file */);
 			if (enc != null) {// skip binary
 				String fn = f.getAbsolutePath();
 				if (ignoreCase2) {
@@ -1999,9 +1996,9 @@ public class U {
 		return a;
 	}
 
-	private static final String[] binExt = { ".jar", ".class", ".o", ".so", ".exe", ".dll", ".jpg", ".gif", ".png",
-			".mp3", ".mp4", ".war", ".zip", ".gz", ".rar", ".7z", ".ttc", ".ttf", ".pdf", ".xlsx", ".xls", ".mpeg",
-			".bz2", ".bin" };
+	private static final String[] binExt = { ".jar", ".class", ".o", ".so", ".out", ".ko", ".exe", ".dll", ".jpg",
+			".gif", ".png", ".mp3", ".mp4", ".war", ".zip", ".gz", ".rar", ".7z", ".ttc", ".ttf", ".pdf", ".xlsx",
+			".xls", ".mpeg", ".bz2", ".bin", ".xz", ".bz2", ".iso" };
 
 	private static boolean guessIsBinFile(File f) {
 		// first, encoding guessed is null
@@ -2010,7 +2007,7 @@ public class U {
 			return true;
 		}
 		long size = f.length();
-		if (size >= 3 * 1000 * 1000)
+		if (size >= 30 * 1000 * 1000)
 			return true;
 		return false;
 	}
@@ -2310,54 +2307,49 @@ public class U {
 		page.uiComp.repaint();
 	}
 
-	static String guessEncoding(String fn) throws Exception {
+	static String guessEncoding(String fn, PageData data) throws Exception {
 		// S/ystem.out.println("guessing encoding");
-		String[] encodings = { UTF8, "gbk", "sjis", "unicode", "euc-jp" };
-
-		FileInputStream in = new FileInputStream(fn);
-		final int defsize = 1024 * 1024 * 2;
-		int len = Math.min(defsize, (int) new File(fn).length());
-		if (len < 0) {// a large file over 2GB
-			return null;
+		String[] encodings = { UTF8, "gbk", "sjis", "unicode", "euc-jp", "big5" };
+		int maxLen;
+		if (data != null && data.gzip) {
+			maxLen = data.bs.length;
+		} else {
+			maxLen = (int) new File(fn).length();
 		}
-		try {
-			byte[] buf = new byte[len];
+		final int defsize = 1024 * 1024 * 2;
+		int len = Math.min(defsize, maxLen);
+		if (len < 0) {// a large file over 2GB
+			len = defsize;
+		}
+		byte[] buf;
+		if (data != null && data.gzip) {
+			buf = data.bs;
+		} else {
+			buf = new byte[len];
+			FileInputStream in = new FileInputStream(fn);
 			len = in.read(buf);
 			in.close();
-			if (len != defsize) {
-				byte[] b2 = new byte[len];
-				System.arraycopy(buf, 0, b2, 0, len);
-				buf = b2;
-			}
-			String encoding = guessByBOM(buf);
-			if (encoding != null) {
-				return encoding;
-			}
-			for (String enc : encodings) {
-				String s = new String(buf, enc);
-				if (s.toLowerCase().indexOf(enc.toLowerCase()) >= 0) {
-					return enc;
-				}
-			}
-			for (String enc : encodings) {
-				String s = new String(buf, enc);
-				if (s.length() > 3) {
-					// multi bytes string, so tail may be mistaken
-					s = s.substring(0, s.length() - 3);
-				} else {
-					return UTF8;// utf8 for empty file
-				}
-				byte[] bs2 = s.getBytes(enc);
-				// bs2 maybe short than buf
-				if (bsCompare(buf, bs2, bs2.length)) {
-					return enc;
-				}
-
-			}
-		} finally {
-			in.close();
 		}
-
+		String encoding = guessByBOM(buf);
+		if (encoding != null) {
+			return encoding;
+		}
+		for (String enc : encodings) {
+			String s = new String(buf, 0, len, enc);
+			if (s.toLowerCase().indexOf(enc.toLowerCase()) >= 0) {
+				return enc; // mentioned
+			}
+			if (s.length() > 3) { // multi bytes string, so tail may be mistaken
+				s = s.substring(0, s.length() - 3);
+			} else {
+				return UTF8;// utf8 for empty file
+			}
+			byte[] bs2 = s.getBytes(enc);
+			// bs2 maybe short than buf
+			if (bsCompare(buf, bs2, bs2.length)) {
+				return enc;
+			}
+		}
 		return null;
 	}
 
@@ -2369,11 +2361,11 @@ public class U {
 		return true;
 	}
 
-	static String guessEncodingForEditor(String fn) {
+	static String guessEncodingForEditor(String fn, PageData data) {
 		try {
-			String s = guessEncoding(fn);
+			String s = guessEncoding(fn, data);
 			if (s == null) {// unknow
-				s = UTF8;
+				return UTF8;
 			}
 			return s;
 		} catch (Exception e) {
@@ -2381,30 +2373,29 @@ public class U {
 		}
 	}
 
-	static String guessLineSepForEditor(String fn) {
+	static String guessLineSepForEditor(String fn, PageData data) {
 		try {
 			// S/ystem.out.println("guessing encoding");
-			FileInputStream in = new FileInputStream(fn);
-			final int defsize = 4096;
-			int len = Math.min(defsize, (int) new File(fn).length());
-			try {
-				// S/ystem.out.println("len:" + len);
-				byte[] buf = new byte[len];
+			int maxLen;
+			if (data.gzip) {
+				maxLen = data.bs.length;
+			} else {
+				maxLen = (int) new File(fn).length();
+			}
+			int len = Math.min(4096, maxLen);
+			byte[] buf;
+			if (data.gzip) {
+				buf = data.bs;
+			} else {
+				buf = new byte[len];
+				FileInputStream in = new FileInputStream(fn);
 				len = in.read(buf);
-				// S/ystem.out.println("len2:" + len);
-				if (len != defsize) {
-					byte[] b2 = new byte[len];
-					System.arraycopy(buf, 0, b2, 0, len);
-					buf = b2;
-				}
-				return new String(buf, "iso8859-1").indexOf("\r\n") >= 0 ? "\r\n" : "\n";
-			} finally {
 				in.close();
 			}
+			return new String(buf, 0, len, "iso8859-1").indexOf("\r\n") >= 0 ? "\r\n" : "\n";
 		} catch (Exception e) {
 			return "\n";
 		}
-
 	}
 
 	static boolean isAllDigital(String s) {
@@ -2723,23 +2714,50 @@ public class U {
 	}
 
 	static void readFile(PageData data, String fn) {
+		if (fn.endsWith(".gz")) {
+			data.gzip = tryGzip(fn, data);
+		}
 		data.isCommentChecked = false;
 		if (data.encoding == null) {
-			data.encoding = U.guessEncodingForEditor(fn);
+			data.encoding = U.guessEncodingForEditor(fn, data);
 		}
-		data.lineSep = U.guessLineSepForEditor(fn);
+		data.lineSep = U.guessLineSepForEditor(fn, data);
 		data.lines = null;
 		data.history.clear();
-		data.setLines(U.readFileForEditor(fn, data.encoding));
+		data.setLines(U.readFileForEditor(fn, data.encoding, data));
 		File f = new File(fn);
 		data.fileLastModified = f.lastModified();
 		data.workPath = f.getParent();
 	}
 
-	static List<CharSequence> readFileForEditor(String fn, String encoding) {
+	private static boolean tryGzip(String fn, PageData data) {
 		try {
-			System.out.println("read file:" + fn + " encoding=" + encoding);
-			return U.removeTailR(FileUtil.readStringBig(new File(fn), encoding));
+			GZIPInputStream gin = new GZIPInputStream(new FileInputStream(fn));
+			try {
+				data.bs = gin.readAllBytes();
+				gin.close();
+				return true;
+			} catch (ZipException e) {
+				System.err.println("seems not gzip:" + e);
+				return false;
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			return false;
+		}
+	}
+
+	static List<CharSequence> readFileForEditor(String fn, String encoding, PageData data) {// TODO
+		try {
+			// System.out.println("read file:" + fn + " encoding=" + encoding);
+			List<String> ls;
+			if (data.gzip) {
+				ls = FileUtil.readStringBig(data.bs, encoding);
+				data.bs = null;// can release
+			} else {
+				ls = FileUtil.readStringBig(new File(fn), encoding);
+			}
+			return U.removeTailR(ls);
 		} catch (Throwable e) {
 			e.printStackTrace();
 			List<CharSequence> lines = new ArrayList<CharSequence>();
@@ -3032,11 +3050,21 @@ public class U {
 			if (page.pageData.encoding == null) {
 				page.pageData.encoding = UTF8;
 			}
-			BufferedWriter out = new BufferedWriter(
-					new OutputStreamWriter(new FileOutputStream(page.pageData.getFn()), page.pageData.encoding));
+			OutputStream out;
+			if (page.pageData.getFn().endsWith(".gz")) {
+				page.pageData.gzip = true;
+			}
+			String encoding = page.pageData.encoding;
+			if (!page.pageData.gzip) {
+				out = new BufferedOutputStream(new FileOutputStream(page.pageData.getFn()), 8192 * 16);
+			} else {
+				out = new BufferedOutputStream(new GZIPOutputStream(new FileOutputStream(page.pageData.getFn())),
+						8192 * 16);
+			}
+			byte[] sep = page.pageData.lineSep.getBytes(encoding);
 			for (int i = 0; i < page.pageData.lines.size(); i++) {
-				out.write(page.pageData.lines.get(i).toString());
-				out.write(page.pageData.lineSep);
+				out.write(page.pageData.lines.get(i).toString().getBytes(encoding));
+				out.write(sep);
 			}
 			out.close();
 			page.pageData.fileLastModified = new File(page.pageData.getFn()).lastModified();

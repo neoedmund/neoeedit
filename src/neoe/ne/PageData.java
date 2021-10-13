@@ -63,6 +63,10 @@ public class PageData {
 
 	public String workPath;
 
+	public boolean gzip;
+
+	public byte[] bs;
+
 	private PageData() {
 		history = new History(this);
 	}
