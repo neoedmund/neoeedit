@@ -14,8 +14,10 @@ https://github.com/neoedmund/neoeedit
 - Rectangular mode
 - Integrated IME support
 - Script in Java
-- Hack, Nerd, Vim like
-- Small executable(200KB?)
+- Smart: 
+  * when encounter a problem , instead of panic and refuse to go on , it find solutions .
+  * when you don't configure , it use best option for you .
+- Small executable(200KB?), light: fast , not bloated.
 - Stable, since 2009
 
 
@@ -39,7 +41,10 @@ Windows Registry Editor Version 5.00
 @="\"C:\\Program Files\\Java\\jdk1.8.0\\bin\\javaw.exe\" -cp \"C:\\neoe\\neoeedit.jar\"  \"neoe.ne.CopyFullName\" \"%1\""
 ```
 
-- add `ne.cmd` to PATH
+- download [exe|https://github.com/neoedmund/neoeedit/raw/master/neoeedit.exe] and put same dir with neoeedit.jar
+
+
+- or add `ne.cmd` to PATH
 
 ```
 start javaw -Xmx500M -jar neoeedit.jar %* 
