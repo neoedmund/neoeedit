@@ -360,11 +360,8 @@ public class PicView {
 		}
 
 		private boolean inSmall(int x, int y) {
-			int w = getWidth();
-			int h = getHeight();
-			int sw = w / 4;
-			int sh = sw * ph / pw;
-			return x > w - sw && y > h - sh && small;
+			int[] swh = getSwh();
+			return x > swh[2] - swh[0] && y > swh[3] - swh[1] && small;
 		}
 
 		@Override
@@ -396,16 +393,17 @@ public class PicView {
 		}
 
 		private void setPosSmall(int x, int y) {
-			int w = getWidth();
-			int h = getHeight();
-			int sw = w / 4;
-			int sh = sw * ph / pw;
+			int[] s = getSwh();
+			int w = s[2];// getWidth();
+			int h = s[3];// getHeight();
+			int sw = s[0]; // w / 4;
+			int sh = s[1];// sw * ph / pw;
 
 			// x = (w - sw - vx / rate / w * sw)
-			double x1 = x - sw / rate / 2;
-			double y1 = y - sh / rate / 2;
-			vx = (w - sw - x1) * rate * w / sw;
-			vy = (h - sh - y1) * rate * h / sh;
+			double x1 = pw * (x - (w - sw)) / (double) sw;
+			double y1 = ph * (y - (h - sh)) / (double) sh;
+			vx = -(x1 - w / rate / 2) * rate;
+			vy = -(y1 - h / rate / 2) * rate;
 			repaint1();
 		}
 
@@ -443,16 +441,16 @@ public class PicView {
 
 		@Override
 		protected void paintComponent(Graphics g) {
-
-			int w = getWidth();
-			int h = getHeight();
+			int[] swh = getSwh();
+			int w = swh[2];// getWidth();
+			int h = swh[3];// getHeight();
+			int sw = swh[0];
+			int sh = swh[1];
 			{
 				g.setPaintMode();
 				g.setColor(Color.WHITE);
 				g.fillRect(0, 0, w, h);
 			}
-			int sw = w / 4;
-			int sh = sw * ph / pw;
 
 			g.drawImage(img, (int) vx, (int) vy, (int) (pw * rate), (int) (ph * rate), null);
 
@@ -461,10 +459,11 @@ public class PicView {
 				g.setColor(Color.WHITE);
 				g.drawRect(w - sw, h - sh, sw, sh);
 				g.setColor(Color.RED);
-				g.drawRect((int) (w - sw - vx / rate / w * sw), //
-						(int) (h - sh - vy / rate / w * sw), //
-						(int) (sw / rate), //
-						(int) (sh / rate));
+				int a = (int) (w - sw - sw * (vx / rate / pw));
+				int b = (int) (h - sh - sh * (vy / rate / ph));
+				int a2 = (int) (sw * w / rate / pw);
+				int b2 = (int) (sh * h / rate / ph);
+				g.drawRect(a, b, a2, b2);
 			}
 			if (drawMousePos) {
 				double x, y;
@@ -494,6 +493,19 @@ public class PicView {
 			drawCut((Graphics2D) g);
 			g.dispose();
 
+		}
+
+		private int[] getSwh() {
+			int w = getWidth();
+			int h = getHeight();
+			int sw = w / 4;
+			int sh = h / 4;
+			if (ph / pw > h / w) {
+				sw = sh * pw / ph;
+			} else {
+				sh = sw * ph / pw;
+			}
+			return new int[] { sw, sh, w, h };
 		}
 
 		private void drawCut(Graphics2D g) {

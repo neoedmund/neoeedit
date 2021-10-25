@@ -260,7 +260,7 @@ public class PlainPage {
 
 	public class EasyEdit {
 
-		public void append(String s) {
+		public synchronized void append(String s) {
 			cy = pageData.roLines.getLinesize() - 1;
 			cx = pageData.roLines.getline(cy).length();
 			insertString(s);

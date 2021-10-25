@@ -1540,18 +1540,7 @@ public class U {
 						}
 						String line = new String(buf, 0, len, enc);
 						line = Console.filterSimpleTTY(line);
-						String[] ss = line.split("\\n");
-						for (String s : ss) {
-							s = U.removeTailR(s).toString();
-							if (s.startsWith("\r")) {
-								s = s.substring(1);
-								// int y = page.pageData.roLines.getLinesize() - 2;
-								// if (y >= 0) {
-								// page.ptEdit.deleteLine(y);
-								// }
-							}
-							page.ptEdit.append(s + "\n");
-						}
+						page.ptEdit.append(line);
 						page.uiComp.repaint();
 					}
 					page.ptEdit.append("<EOF>\n");
@@ -1560,6 +1549,7 @@ public class U {
 				}
 			}
 		});
+
 	}
 
 	static boolean changedOutside(PlainPage pp) {

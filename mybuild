@@ -1,0 +1,7 @@
+{ /* build script used by neoebuild */
+	baseDir : .
+	prjs : [
+		[ neoeedit . { main : neoe.ne.Main } ]
+	]
+}
+
