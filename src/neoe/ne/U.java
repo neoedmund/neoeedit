@@ -2089,11 +2089,17 @@ public class U {
 	 * No good.
 	 */
 	static void gc() {
-		// System.out.print(km(Runtime.getRuntime().freeMemory()) + "/" +
-		// km(Runtime.getRuntime().totalMemory()) + " -> ");
-		// Runtime.getRuntime().gc();
-		// System.out.println(km(Runtime.getRuntime().freeMemory()) + "/" +
-		// km(Runtime.getRuntime().totalMemory()));
+		new Thread(() -> {
+			sleep(500);
+			System.gc();
+		}).start();
+	}
+
+	private static void sleep(int ms) {
+		try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) {
+		}
 	}
 
 	static String getClipBoard() {

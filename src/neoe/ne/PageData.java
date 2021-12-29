@@ -73,6 +73,8 @@ public class PageData {
 
 	public void close() {
 		dataPool.remove(getTitle());
+		if (fn != null)
+			dataPool.remove(fn);
 		System.out.println("released data " + getTitle());
 	}
 
@@ -89,6 +91,8 @@ public class PageData {
 	public void setFn(String fn2) {
 		String key = getTitle();
 		dataPool.remove(key);
+		if (fn != null)
+			dataPool.remove(fn);
 		title = null;
 		fn = fn2;
 		workPath = new File(fn).getParent();

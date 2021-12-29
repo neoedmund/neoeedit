@@ -1577,11 +1577,12 @@ public class PlainPage {
 	}
 
 	public void close() {
+		uiComp.page = null;
 		int index = uiComp.pageSet.indexOf(this);
 		uiComp.pageSet.remove(this);
 
 		pageData.ref--;
-		if (pageData.ref == 0) {
+		if (pageData.ref <= 0) {
 			pageData.close();
 		}
 
@@ -1600,6 +1601,7 @@ public class PlainPage {
 				}
 			}
 		}
+		U.gc();
 	}
 
 	private void doGo(String line, boolean record) throws Exception {
