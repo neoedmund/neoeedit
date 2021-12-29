@@ -1649,16 +1649,25 @@ public class U {
 	}
 
 	static void doFindInPage(PlainPage page, String text2find, boolean ignoreCase) throws Exception {
+		text2find = text2find.trim();
 		page.ptFind.text2find = text2find;
 		if (text2find != null && text2find.length() > 0) {
-			Point p = U.find(page, text2find, 0, 0, ignoreCase);
+			List tfs = null;
+			tfs = (List) PyData.parseAll("[" + text2find + "]", false, true);
+			if (ignoreCase) {
+				for (int i = 0; i < tfs.size(); i++) {
+					tfs.set(i, tfs.get(i).toString().toLowerCase());
+				}
+			}
+
+			Point p = U.find(page, tfs, 0, 0, ignoreCase);
 			if (p == null) {
 				page.ui.message("string not found");
 			} else {
 				List<String> all = new ArrayList<String>();
 				while (true) {
 					all.add(String.format("%s:%s", p.y + 1, page.pageData.roLines.getline(p.y)));
-					Point p2 = U.find(page, text2find, 0, p.y + 1, ignoreCase);
+					Point p2 = U.find(page, tfs, 0, p.y + 1, ignoreCase);
 					if (p2 == null || p2.y <= p.y) {
 						break;
 					} else {
@@ -1798,6 +1807,39 @@ public class U {
 		return null;
 	}
 
+	static Point find(PlainPage page, List<String> ss, int x, int y, boolean ignoreCase) {
+		if (ss == null || ss.size() <= 0)
+			return null;
+		if (y >= page.pageData.roLines.getLinesize()) {
+			return null;
+		}
+		x = 0;// Math.min(x, page.pageData.roLines.getline(y).length());
+		// first half row
+		int p1 = U.indexOf(page.pageData.roLines.getline(y), ignoreCase, ss, x);
+		if (p1 >= 0) {
+			return new Point(p1, y);
+		}
+		// middle rows
+		int fy = y;
+		for (int i = 0; i < page.pageData.roLines.getLinesize() - 1; i++) {
+			fy += 1;
+			if (fy >= page.pageData.roLines.getLinesize()) {
+				fy = 0;
+			}
+			p1 = U.indexOf(page.pageData.roLines.getline(fy), ignoreCase, ss, 0);
+			if (p1 >= 0) {
+				return new Point(p1, fy);
+			}
+		}
+		// last half row
+		CharSequence sb = page.pageData.roLines.getline(y);
+		p1 = U.indexOf(sb.subSequence(0, x), ignoreCase, ss, 0);
+		if (p1 >= 0) {
+			return new Point(p1, fy);
+		}
+		return null;
+	}
+
 	static Point find_prev(PlainPage page, String s, int x, int y, boolean ignoreCase) {
 		if (y >= page.pageData.roLines.getLinesize()) {
 			return null;
@@ -1854,6 +1896,27 @@ public class U {
 			return U.indexOf(t, s, x);
 		} else {
 			return t.toString().toLowerCase().indexOf(s, x);
+		}
+	}
+
+	private static int indexOf(CharSequence t, boolean ignoreCase, List<String> ss, int x) {
+		if (!ignoreCase) {
+			int p = 0;
+			for (int i = 0; i < ss.size(); i++) {
+				p = U.indexOf(t, ss.get(i), x);
+				if (p < 0)
+					return p;
+			}
+			return p;
+		} else {
+			int p = 0;
+			String t2 = t.toString().toLowerCase();
+			for (int i = 0; i < ss.size(); i++) {
+				p = t2.indexOf(ss.get(i), x);
+				if (p < 0)
+					return p;
+			}
+			return p;
 		}
 	}
 
