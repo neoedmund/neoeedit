@@ -1653,13 +1653,10 @@ public class U {
 		page.ptFind.text2find = text2find;
 		if (text2find != null && text2find.length() > 0) {
 			List tfs = null;
-			tfs = (List) PyData.parseAll("[" + text2find + "]", false, true);
 			if (ignoreCase) {
-				for (int i = 0; i < tfs.size(); i++) {
-					tfs.set(i, tfs.get(i).toString().toLowerCase());
-				}
+				text2find = text2find.toLowerCase();
 			}
-
+			tfs = (List) PyData.parseAll("[" + text2find + "]", false, true);
 			Point p = U.find(page, tfs, 0, 0, ignoreCase);
 			if (p == null) {
 				page.ui.message("string not found");
@@ -2028,17 +2025,15 @@ public class U {
 				if (ignoreCase2) {
 					text = text.toLowerCase();
 				}
+				List ts = (List) PyData.parseAll("[" + text + "]", false, true);
 				BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), enc));
 				String line;
 				int lineno = 0;
 				while ((line = in.readLine()) != null) {
 					lineno++;
 					String oline = line;
-					if (ignoreCase2) {
-						line = line.toLowerCase();
-					}
-
-					if (line.indexOf(text) >= 0) {
+					int p1 = U.indexOf(line, ignoreCase2, ts, 0);
+					if (p1 >= 0) {
 						if (line.length() > MAX_SHOW_CHARS_IN_LINE) {
 							line = line.substring(0, MAX_SHOW_CHARS_IN_LINE) + "...";
 						}
