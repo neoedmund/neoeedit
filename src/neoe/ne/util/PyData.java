@@ -10,7 +10,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -287,11 +286,11 @@ public class PyData {
 			}
 			sb.append(i);
 		}
-		try {
-			return new BigDecimal(sb.toString());
-		} catch (NumberFormatException ex) {
-			return sb.toString();
-		}
+//		try {
+//			return new BigDecimal(sb.toString());
+//		} catch (NumberFormatException ex) {
+		return sb.toString();
+//		}
 	}
 
 	void readList(Reader in, List l, char end) throws Exception {

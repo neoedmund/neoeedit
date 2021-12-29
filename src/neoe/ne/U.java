@@ -33,7 +33,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +43,6 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -75,7 +73,6 @@ import javax.swing.JPanel;
 import javax.swing.TransferHandler;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
-import javax.xml.crypto.Data;
 
 import neoe.ne.PlainPage.Paint;
 import neoe.ne.Plugin.PluginAction;
@@ -508,11 +505,11 @@ public class U {
 
 			try {
 				Map config = getConfig();
-				BigDecimal v = (BigDecimal) ((Map) config.get("color")).get("defaultMode");
+				String v = (String) ((Map) config.get("color")).get("defaultMode");
 				if (v == null) {
 					return 0;
 				} else {
-					return v.intValue();
+					return Integer.parseInt(v);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -552,7 +549,7 @@ public class U {
 						String fontfn = (String) l.get(0);
 						File f = new File(fontfn);
 						Font font = null;
-						int fontsize = ((BigDecimal) l.get(1)).intValue();
+						int fontsize = Integer.parseInt(l.get(1).toString());
 						if (f.exists() && f.isFile()) {
 							font = Font.createFont(Font.TRUETYPE_FONT, f);
 							if (font == null) {
@@ -649,11 +646,7 @@ public class U {
 				for (int j = 1; j <= colorCnt; j++) {
 					int v;
 					Object o = row.get(j);
-					if (o instanceof BigDecimal) {
-						v = ((BigDecimal) o).intValue();
-					} else {
-						v = U.parseInt(o.toString());
-					}
+					v = U.parseInt(o.toString());
 					modes[i][j - 1] = v;
 				}
 			}
@@ -676,13 +669,9 @@ public class U {
 		public static int readTabWidth() {
 			try {
 				Map config = getConfig();
-				BigDecimal d = (BigDecimal) config.get("tabWidthInPixel");
-				if (d != null) {
-					return d.intValue();
-				}
+				return Integer.parseInt(config.get("tabWidthInPixel").toString());
 			} catch (IOException e) {
 				e.printStackTrace();
-
 			}
 			return 40;
 		}
@@ -2089,7 +2078,6 @@ public class U {
 	 * No good.
 	 */
 	static void gc() {
-		System.out.println("datapool:"+PageData.dataPool.keySet());
 		new Thread(() -> {
 			sleep(500);
 			System.gc();
@@ -2754,9 +2742,6 @@ public class U {
 		int v;
 		if (o == null) {
 			throw new RuntimeException("expect int but get null");
-		}
-		if (o instanceof BigDecimal) {
-			return ((BigDecimal) o).intValue();
 		}
 		String s = o.toString();
 		if (s.startsWith("0x")) {

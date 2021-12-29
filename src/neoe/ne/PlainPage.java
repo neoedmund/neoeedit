@@ -1585,6 +1585,7 @@ public class PlainPage {
 		if (pageData.ref <= 0) {
 			pageData.close();
 		}
+		pageData = null;
 
 		if (index >= uiComp.pageSet.size()) {
 			index = uiComp.pageSet.size() - 1;
@@ -1658,7 +1659,7 @@ public class PlainPage {
 			if (ui.cp.showCommandPanel)
 				ui.cp.showCommandPanel = false;
 		}
-
+		final PageData pageData=this.pageData;
 		pageData.history.beginAtom();
 		try {
 			mshift = evt.isShiftDown();
