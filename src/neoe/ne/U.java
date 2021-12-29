@@ -2089,6 +2089,7 @@ public class U {
 	 * No good.
 	 */
 	static void gc() {
+		System.out.println("datapool:"+PageData.dataPool.keySet());
 		new Thread(() -> {
 			sleep(500);
 			System.gc();

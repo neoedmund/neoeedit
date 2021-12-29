@@ -75,6 +75,7 @@ public class PageData {
 		dataPool.remove(getTitle());
 		if (fn != null)
 			dataPool.remove(fn);
+		lines = null;
 		System.out.println("released data " + getTitle());
 	}
 
