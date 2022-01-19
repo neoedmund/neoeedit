@@ -1617,15 +1617,23 @@ public class U {
 		Iterable<File> it = new FileIterator(dir);
 		List<String> all = new ArrayList<String>();
 		fnFilter = fnFilter.trim().toLowerCase();
+		List fs = (List) PyData.parseAll("[" + fnFilter + "]", false, true);
 		// search, skip binary, filtered
 		int[] cnts = new int[3];
 		for (File f : it) {
 			if (f.isDirectory()) {
 				continue;
 			}
-			if (fnFilter.length() > 0) {
+			if (fs.size() > 0) {
 				String fn = f.getName().toLowerCase();
-				if (fn.indexOf(fnFilter) < 0) {
+				boolean match = false;
+				for (Object ft : fs) {
+					if (fn.contains(ft.toString())) {
+						match = true;
+						break;
+					}
+				}
+				if (!match) {
 					cnts[2]++;
 					continue;
 				}
