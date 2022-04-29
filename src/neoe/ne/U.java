@@ -53,9 +53,11 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
@@ -442,10 +444,15 @@ public class U {
 		}
 
 		void insertLines(int x1, List<CharSequence> s1) {
-			if (record) {
-				new RuntimeException("Bug? unpected").printStackTrace();
-			}
 			lines().addAll(x1, s1);
+		}
+
+		void appendLines(List<CharSequence> s1) {
+			lines().addAll(s1);
+		}
+
+		void appendLine(CharSequence s1) {
+			lines().add(s1);
 		}
 
 	}
@@ -556,7 +563,7 @@ public class U {
 								System.out.println("cannot load truetype font:" + fontfn);
 								continue;
 							}
-							System.out.println("load font file:" + fontfn);
+							System.out.println("load font file:" + fontfn + ",name=" + font.getFontName());
 
 						} else {
 							if (localFonts == null) {
@@ -1518,21 +1525,26 @@ public class U {
 			@Override
 			public void run() {
 				try {
-					InputStream in = std;
-					int len;
-					byte[] buf = new byte[10240];
-					// page.ptEdit.consoleAppend("encoding:" + enc + "\n");
-					while ((len = in.read(buf)) > 0) {
-						String enc = page.pageData.encoding;
-						if (enc == null) {
-							enc = "utf8";
-						}
-						String line = new String(buf, 0, len, enc);
-						line = Console.filterSimpleTTY(line);
-						page.ptEdit.append(line);
-						page.uiComp.repaint();
+					String enc = page.pageData.encoding;
+					if (enc == null) {
+						enc = "utf8";
 					}
-					page.ptEdit.append("<EOF>\n");
+					InputStream in = std;
+					BufferedReader reader = new BufferedReader(new InputStreamReader(in, enc));
+					long t1 = System.currentTimeMillis();
+					while (true) {
+						String line = reader.readLine();
+						if (line == null)
+							break;
+						page.pageData.editRec.appendLine(line);
+						long t2 = System.currentTimeMillis();
+						if (t2 - t1 > 500) {
+							t1 = t2;
+							page.uiComp.repaint();
+						}
+					}
+					page.pageData.editRec.appendLine("<EOF>\n");
+					page.uiComp.repaint();
 				} catch (Throwable e) {
 					page.ptEdit.append("error:" + e + "\n");
 				}
@@ -1561,19 +1573,29 @@ public class U {
 	static void closePage(PlainPage page) throws Exception {
 		EditorPanel editor = page.uiComp;
 		int opt = JOptionPane.NO_OPTION;
-		if (page.pageData.history.size() != 0) {
-			opt = JOptionPane.showConfirmDialog(editor, "Are you sure to SAVE and close?", "Changes made",
-					JOptionPane.YES_NO_CANCEL_OPTION);
-			System.out.println(opt);
-			if (opt == JOptionPane.CANCEL_OPTION || opt == -1) {
-				return;
+		if (page.console != null) {
+			// Custom button text
+			Object[] options = { "Yes", "No", "Cancel" };
+			opt = JOptionPane.showOptionDialog(editor, "Do you want to save?", "Closing", JOptionPane.YES_NO_OPTION,
+					JOptionPane.PLAIN_MESSAGE, null, options, options[1]);
+
+		} else {
+			if (page.pageData.history.size() != 0) {
+				opt = JOptionPane.showConfirmDialog(editor, "Are you sure to SAVE and close?", "Changes made",
+						JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 			}
 		}
-		if (opt == JOptionPane.YES_OPTION) {
-			saveFile(page);
+
+		if (opt == JOptionPane.CANCEL_OPTION || opt == -1) {
+			return;
 		}
-		if (page.pageData.getFn() != null) {
-			saveFileHistory(page.pageData.getFn(), page.cy);
+
+		if (opt == JOptionPane.YES_OPTION) {
+			if (!saveFile(page))
+				return;
+			if (page.pageData.getFn() != null) {
+				saveFileHistory(page.pageData.getFn(), page.cy);
+			}
 		}
 		page.close();
 	}
@@ -1748,7 +1770,14 @@ public class U {
 	}
 
 	public static void exec(PlainPage pp, String cmd) throws Exception {
-		if (cmd.trim().length() <= 0) {
+		cmd = cmd.trim();
+		if (cmd.length() <= 0) {
+			return;
+		}
+		if (isCmdCd(cmd, pp)) {
+			return;
+		}
+		if (isCmdExport(cmd, pp)) {
 			return;
 		}
 		File dir;
@@ -1757,14 +1786,100 @@ public class U {
 		} else {
 			dir = new File(".");
 		}
-		Process proc = Runtime.getRuntime().exec(cmd, null, dir);
+		Process proc = Runtime.getRuntime().exec(splitCommand(cmd), getEnv(pp), dir);
 		OutputStream out = proc.getOutputStream();
 		InputStream stdout = proc.getInputStream();
 		InputStream stderr = proc.getErrorStream();
 
-		new Console(cmd, out, stdout, stderr, proc, pp.uiComp).start();
-		// attach(getPage(pp.uiComp, "[stderr]"), stderr);
-		// attach(getPage(pp.uiComp, "[stdout]"), stdout);
+		new Console(cmd, out, stdout, stderr, proc, pp.uiComp, dir).start();
+	}
+
+	private static String[] getEnv(PlainPage pp) {
+		if (pp.envs != null)
+			return pp.envs;
+		if (pp.env == null)
+			return null;
+		int size = pp.env.size();
+		String[] ss = new String[size];
+		int i = 0;
+		for (Entry<String, String> en : pp.env.entrySet()) {
+			ss[i++] = en.getKey() + "=" + en.getValue();
+		}
+		pp.envs = ss;
+		return ss;
+	}
+
+	private static String[] splitCommand(String cmd) throws Exception {
+		List list = (List) PyData.parseAll("[" + cmd + "]");
+		String[] ss = new String[list.size()];
+		int len = list.size();
+		for (int i = 0; i < len; i++) {
+			ss[i] = "" + list.get(i);
+		}
+		return ss;
+	}
+
+	private static boolean isCmdCd(String cmd, PlainPage pp) {
+		if ("cd".equals(cmd))
+			cmd = "cd ";
+		if (!cmd.startsWith("cd ")) {
+			return false;
+		}
+		String path = cmd.substring(3).trim();
+		if (path.isEmpty()) {
+			path = System.getProperty("user.home");
+		} else {
+			path = dequote(path);
+			File f = new File(path);
+			if (!f.exists()) {
+				String path2 = new Xcd().run(path);
+				if (path2 == null) {
+					pp.ui.message("path not exist:" + path);
+					return true;
+				}
+				path = path2;
+			} else {
+				if (f.isFile()) {
+					path = f.getParent();
+				}
+			}
+		}
+		pp.pageData.workPath = path;
+		pp.ui.message("CWD=" + path);
+		return true;
+	}
+
+	private static String dequote(String s) {
+		if (s.startsWith("\"") && s.endsWith("\"")) {
+			s = s.substring(1, s.length() - 1);
+		}
+		return s;
+	}
+
+	private static boolean isCmdExport(String cmd, PlainPage pp) {
+
+		if (!cmd.startsWith("export ")) {
+			return false;
+		}
+		String kv = cmd.substring(7).trim();
+		int p1 = kv.indexOf('=');
+		if (p1 <= 0)
+			return false;
+		String k = kv.substring(0, p1).trim();
+		String v = kv.substring(p1 + 1).trim();
+		v = dequote(v);
+		if (pp.env == null) {
+			pp.env = new LinkedHashMap<String, String>();
+		}
+		Map m = pp.env;
+		if (v.isEmpty()) {
+			m.remove(k);
+		} else {
+			m.put(k, v);
+		}
+		pp.envs = null;// clean cache
+		pp.ui.message(String.format("ENV[%s]=%s", k, v));
+		return true;
 	}
 
 	static Point find(PlainPage page, String s, int x, int y, boolean ignoreCase) {

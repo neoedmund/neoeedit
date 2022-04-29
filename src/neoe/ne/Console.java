@@ -1,5 +1,6 @@
 package neoe.ne;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -11,21 +12,22 @@ public class Console {
 	Process proc;
 	private PlainPage pp;
 	private EditorPanel parentUI;
+	private File dir;
 
 	public Console(String cmd, OutputStream out, InputStream stdout, InputStream stderr, Process proc,
-			EditorPanel uiComp) {
+			EditorPanel uiComp, File dir) {
 		this.cmd = cmd;
 		this.out = out;
 		this.stdout = stdout;
 		this.stderr = stderr;
 		this.proc = proc;
 		this.parentUI = uiComp;
-
+		this.dir = dir;
 	}
 
 	public void start() throws Exception {
 		EditorPanel ep = new EditorPanel(EditorPanelConfig.DEFAULT);
-		ep.openWindow( parentUI);
+		ep.openWindow(parentUI);
 		// ep.changeTitle();
 		PlainPage pp = ep.getPage();
 
@@ -38,8 +40,10 @@ public class Console {
 			if (pageData.encoding == null) {
 				pageData.encoding = "UTF-8";
 			}
+			if (dir != null)
+				pageData.workPath = dir.getAbsolutePath();
 //			pp.ptSelection.selectAll();
-			pp.ptEdit.append(cmd+"\n");
+			pp.ptEdit.append(cmd + "\n");
 		}
 		U.attach(pp, stdout);
 		U.attach(pp, stderr);

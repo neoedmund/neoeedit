@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -1544,6 +1545,9 @@ public class PlainPage {
 
 	public Console console;
 
+	public Map<String, String> env;
+	public String[] envs;
+
 	private PlainPage() {
 	}
 
@@ -1659,7 +1663,7 @@ public class PlainPage {
 			if (ui.cp.showCommandPanel)
 				ui.cp.showCommandPanel = false;
 		}
-		final PageData pageData=this.pageData;
+		final PageData pageData = this.pageData;
 		pageData.history.beginAtom();
 		try {
 			mshift = evt.isShiftDown();
