@@ -26,11 +26,8 @@ public class Console {
 	}
 
 	public void start() throws Exception {
-		EditorPanel ep = new EditorPanel(EditorPanelConfig.DEFAULT);
-		ep.openWindow(parentUI);
-		// ep.changeTitle();
-		PlainPage pp = ep.getPage();
-
+		EditorPanel ep = parentUI;
+		PlainPage pp = parentUI.getPage();
 		this.pp = pp;
 		pp.console = this;
 		ep.changeTitle();
@@ -43,10 +40,19 @@ public class Console {
 			if (dir != null)
 				pageData.workPath = dir.getAbsolutePath();
 //			pp.ptSelection.selectAll();
-			pp.ptEdit.append(cmd + "\n");
+			pp.ptEdit.append(String.format("[%s] %s\n", dir.getAbsolutePath(), cmd));
 		}
 		U.attach(pp, stdout);
 		U.attach(pp, stderr);
+		new Thread(() -> {
+			try {
+				proc.waitFor();
+				pp.pageData.editRec.appendLine("ret:" + proc.exitValue());
+			} catch (InterruptedException e) {
+				pp.pageData.editRec.appendLine("Interrupted:" + e);
+			}
+		}).start();
+
 	}
 
 //	public void submit(String s) {

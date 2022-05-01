@@ -1004,12 +1004,15 @@ public class PlainPage {
 			if (lines > 20) {
 				curPer = 100 * cy / lines;
 			}
-			String s1 = String.format("%s %s %s%s L:%s%d X:%d undo:%d%s %s%s%s <F1>:Help",
+			String s1 = String.format("%s %s %s%s L:%s%d X:%d undo:%d%s %s%s%s%s <F1>:Help",
 					(changedOutside ? " [ChangedOutside!]" : ""), (pageData.encoding == null ? "-" : pageData.encoding)//
 					, (pageData.lineSep.equals("\n") ? "U" : "W"), (rectSelectMode ? " R " : "")//
 					, (curPer == 0 ? "" : "" + curPer + "%"), lines, (cx + 1), pageData.history.size()//
 					, (ime == null ? "" : " " + ime.getImeName()), (pageData.getFn() == null ? "-" : pageData.getFn())//
-					, (readonly ? " ro" : ""), pageData.gzip ? " Z" : "");
+					, (readonly ? " ro" : ""), pageData.gzip ? " Z" : "",
+					(pageData.workPath != null && (console != null || pageData.getFn() == null))
+							? " CWD:" + pageData.workPath
+							: "");
 			g2.setColor(colorGutMark1);
 			U.drawString(g2, U.fontList, s1, 2, lineHeight + 2, dim.width);
 			g2.setColor(colorGutMark2);
@@ -1580,9 +1583,10 @@ public class PlainPage {
 
 	}
 
-	public void close() {
+	public void close() throws Exception {
+		String lastPage = uiComp.pageHis.back(U.getLocString(this));
+
 		uiComp.page = null;
-		int index = uiComp.pageSet.indexOf(this);
 		uiComp.pageSet.remove(this);
 
 		pageData.ref--;
@@ -1591,12 +1595,7 @@ public class PlainPage {
 		}
 		pageData = null;
 
-		if (index >= uiComp.pageSet.size()) {
-			index = uiComp.pageSet.size() - 1;
-		}
-		if (index >= 0) {
-			uiComp.setPage(uiComp.pageSet.get(index), true);
-		} else {
+		if (uiComp.pageSet.size() <= 0) {
 			// nothing to show
 			if (uiComp.frame != null) {
 				if (uiComp.frame instanceof JFrame) {
@@ -1605,6 +1604,8 @@ public class PlainPage {
 					((JInternalFrame) uiComp.frame).dispose();
 				}
 			}
+		} else {
+			U.gotoFileLine(lastPage, uiComp, false);
 		}
 		U.gc();
 	}

@@ -1575,10 +1575,9 @@ public class U {
 		int opt = JOptionPane.NO_OPTION;
 		if (page.console != null) {
 			// Custom button text
-			Object[] options = { "Yes", "No", "Cancel" };
-			opt = JOptionPane.showOptionDialog(editor, "Do you want to save?", "Closing", JOptionPane.YES_NO_OPTION,
-					JOptionPane.PLAIN_MESSAGE, null, options, options[1]);
-
+//			Object[] options = { "Yes", "No", "Cancel" };
+//			opt = JOptionPane.showOptionDialog(editor, "Do you want to save?", "Closing", JOptionPane.YES_NO_OPTION,
+//					JOptionPane.PLAIN_MESSAGE, null, options, options[1]);
 		} else {
 			if (page.pageData.history.size() != 0) {
 				opt = JOptionPane.showConfirmDialog(editor, "Are you sure to SAVE and close?", "Changes made",
@@ -1781,17 +1780,52 @@ public class U {
 			return;
 		}
 		File dir;
-		if (pp.pageData.workPath != null) {
-			dir = new File(pp.pageData.workPath);
+		if (cmd.startsWith("[")) {
+			int p1 = cmd.indexOf("]");
+			String path = cmd.substring(1, p1).trim();
+			dir = new File(path);
+			cmd = cmd.substring(p1 + 1).trim();
 		} else {
-			dir = new File(".");
+			if (pp.pageData.workPath != null) {
+				dir = new File(pp.pageData.workPath);
+			} else {
+				dir = new File(".");
+			}
 		}
+		addCmdHistory(cmd, dir.getAbsolutePath());
 		Process proc = Runtime.getRuntime().exec(splitCommand(cmd), getEnv(pp), dir);
 		OutputStream out = proc.getOutputStream();
 		InputStream stdout = proc.getInputStream();
 		InputStream stderr = proc.getErrorStream();
 
+		PlainPage pp2 = PlainPage.getPP(pp.uiComp, PageData.newEmpty("cmd[" + cmd + "]" + U.randomID()));
+		pp2.pageData.workPath = dir.getAbsolutePath();
+		pp2.ptSelection.selectAll();
+
 		new Console(cmd, out, stdout, stderr, proc, pp.uiComp, dir).start();
+	}
+
+	private static void addCmdHistory(String cmd, String path) throws IOException {
+		String s = String.format("[%s] %s", path, cmd);
+		File ch = getCmdHistoryName();
+		String old = FileUtil.readString(new FileInputStream(ch), null);
+		List<String> his = Arrays.asList(old.split("\n"));
+		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(ch), UTF8));
+		if (!his.contains(s)) {
+			out.write(s);
+			out.write("\n");
+			out.write(old);
+		} else {
+			out.write(s);
+			out.write("\n");
+			List<String> his2 = new ArrayList(his);
+			his2.remove(s);
+			for (String line : his2) {
+				out.write(line);
+				out.write("\n");
+			}
+		}
+		out.close();
 	}
 
 	private static String[] getEnv(PlainPage pp) {
@@ -1810,7 +1844,7 @@ public class U {
 	}
 
 	private static String[] splitCommand(String cmd) throws Exception {
-		List list = (List) PyData.parseAll("[" + cmd + "]");
+		List list = (List) PyData.parseAll("[" + cmd + "]", false, true);
 		String[] ss = new String[list.size()];
 		int len = list.size();
 		for (int i = 0; i < len; i++) {
@@ -2250,6 +2284,14 @@ public class U {
 
 	static File getDirHistoryName() throws IOException {
 		File f = new File(getMyDir(), "dh.txt");
+		if (!f.exists()) {
+			new FileOutputStream(f).close();
+		}
+		return f;
+	}
+
+	static File getCmdHistoryName() throws IOException {
+		File f = new File(getMyDir(), "ch.txt");
 		if (!f.exists()) {
 			new FileOutputStream(f).close();
 		}
