@@ -31,6 +31,9 @@ public class Console {
         EditorPanel ep = parentUI;
         PlainPage pp = parentUI.getPage();
         this.pp = pp;
+        if (pp.fontList == null || pp.fontList == U.defaultFontList) {
+            pp.fontList = U.defaultConsoleFonts;
+        }
         pp.console = this;
         ep.changeTitle();
         final String id = String.format("[%s] %s\n", dir.getAbsolutePath(), cmd);
@@ -50,7 +53,8 @@ public class Console {
         new Thread(() -> {
             try {
                 proc.waitFor();
-                pp.ptEdit.append(String.format("\nret:%s in about %,d ms for\n%s", proc.exitValue(), System.currentTimeMillis() - t1, id));
+                pp.ptEdit.append(String.format("\nExit(%s) in about %,d ms for\n%s", proc.exitValue(), System.currentTimeMillis() - t1, id));
+                pp.uiComp.repaint();
             } catch (InterruptedException e) {
                 pp.pageData.editRec.appendLine("Interrupted:" + e);
             }

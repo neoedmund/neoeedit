@@ -88,6 +88,17 @@ import neoe.ne.util.PyData;
  */
 public class U {
 
+    private static Font getFont(String font, float size) throws Exception {
+        Font f;
+        if (new File(font).isFile()) {
+            f = Font.createFont(Font.TRUETYPE_FONT, new File(font));
+            f = f.deriveFont(12f);
+        } else {
+            f = new Font(font, Font.PLAIN, 12);
+        }
+        return f;
+    }
+
     public static class LocationHistory<E> {
 
         LinkedList<E> his = new LinkedList<E>();
@@ -141,7 +152,7 @@ public class U {
 
     }
 
-    static void drawStringShrink(Graphics2D g2, Font[] fontList, String s, int x, int y, float maxWidth) {
+    static void drawStringShrink(Graphics2D g2, FontList fontList, String s, int x, int y, float maxWidth) {
         int max = Math.round(maxWidth);
         int width = stringWidth(g2, fontList, s, max);
         if (width <= max) {
@@ -166,25 +177,25 @@ public class U {
     /**
      * only for old plugin(like neoeime) compatible
      */
-    public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y) {
+    public static int drawString(Graphics2D g2, FontList fonts, String s, int x, int y) {
         return drawString(g2, fonts, s, x, y, 8000);
     }
 
-    public static int stringWidth(Graphics2D g2, Font[] fonts, String s) {
+    public static int stringWidth(Graphics2D g2, FontList fonts, String s) {
         return stringWidth(g2, fonts, s, 8000);
     }
 
     /**
      * no TAB needed to care here
      */
-    public static int drawString(Graphics2D g2, Font[] fonts, String s, int x, int y, int maxWidth) {
+    public static int drawString(Graphics2D g2, FontList fonts, String s, int x, int y, int maxWidth) {
         if (s == null || s.length() <= 0) {
             return 0;
         }
 
         // draw separated by fonts
         int w = 0;
-        Font cf = fonts[0];
+        Font cf = fonts.font[0];
         StringBuilder sb = new StringBuilder();
         int w1 = 0;
         int i = 0;
@@ -228,14 +239,11 @@ public class U {
 
     }
 
-    static Map<Character, Object[]/* Font, Integer */> charWidthCaches = new HashMap();
-    static Object[][] charWidthCaches256 = new Object[256][];
-
     /**
      * use first font, if cannot display character in that font , use second,
      * and so on
      */
-    public static int stringWidth(Graphics2D g2, Font[] fonts, String s, int maxw) {
+    public static int stringWidth(Graphics2D g2, FontList fonts, String s, int maxw) {
         int w = 0;
         List<CharSequence> s1x = U.splitToken(s);
         for (CharSequence s1c : s1x) {
@@ -252,14 +260,14 @@ public class U {
         return w;
     }
 
-    public static int stringWidthSection(Graphics2D g2, Font[] fonts, String s, int maxw) {
+    public static int stringWidthSection(Graphics2D g2, FontList fonts, String s, int maxw) {
         if (s == null || s.length() <= 0) {
             return 0;
         }
 
         // draw separated by fonts
         int w = 0;
-        Font cf = fonts[0];
+        Font cf = fonts.font[0];
         StringBuilder sb = new StringBuilder();
         int w1 = 0;
         int i = 0;
@@ -290,19 +298,19 @@ public class U {
 
     static int TAB_WIDTH = 20;
 
-    public static int charWidth(Graphics2D g2, Font[] fonts, char c) {
+    public static int charWidth(Graphics2D g2, FontList fonts, char c) {
         // for compact with IME interface
         return charWidth(g2, fonts, c, null);
     }
 
-    public static int charWidth(Graphics2D g2, Font[] fonts, char c, Font[] fo) {
-        Object[] row = c < 256 ? charWidthCaches256[c] : charWidthCaches.get(c);
+    public static int charWidth(Graphics2D g2, FontList fonts, char c, Font[] fo) {
+        Object[] row = c < 256 ? fonts.charWidthCaches256[c] : fonts.charWidthCaches.get(c);
         if (row == null) {
             row = genCharWidthCaches(g2, c, fonts);
             if (c < 256) {
-                charWidthCaches256[c] = row;
+                fonts.charWidthCaches256[c] = row;
             } else {
-                charWidthCaches.put(c, row);
+                fonts.charWidthCaches.put(c, row);
             }
         }
         if (fo != null) {
@@ -314,7 +322,8 @@ public class U {
     /**
      * match the first font can show the char
      */
-    private static Object[] genCharWidthCaches(Graphics2D g2, char c, Font[] fonts) {
+    private static Object[] genCharWidthCaches(Graphics2D g2, char c, FontList fontList) {
+        Font[] fonts = fontList.font;
         Font f = fonts[0];
         for (Font font : fonts) {
             if (font.canDisplay(c)) {
@@ -554,51 +563,32 @@ public class U {
                 System.out.println("cannot find in RenderingHints:" + v);
             }
         }
+        static List<String> localFonts;
 
-        public static Font[] getFont(Font[] defaultIfFail) {
+        public static FontList getFont(Font[] defaultIfFail) {
             try {
                 Map config = getConfig();
                 Map m = (Map) config.get("font");
+                Font defaultConsoleFont = null;
+                {
+                    List console = (List) m.get("console");
+                    if (console != null) {
+                        defaultConsoleFont = getFontFromDesc(console);
+                    }
+                }
                 Object v = m.get("list");
                 if (v == null || "null".equals(v)) {
-                    return defaultIfFail;
+                    return new FontList(defaultIfFail);
                 } else {
-//					GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                    List localFonts = null;
+                    if (localFonts == null) {
+                        localFonts = Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment()
+                                .getAvailableFontFamilyNames());
+                    }
                     List<Font> fonts = new ArrayList<Font>();
                     for (Object o : (List) v) {
                         List l = (List) o;
-                        String fontfn = (String) l.get(0);
-                        File f = new File(fontfn);
-                        Font font = null;
-                        int fontsize = Integer.parseInt(l.get(1).toString());
-                        if (f.exists() && f.isFile()) {
-                            font = Font.createFont(Font.TRUETYPE_FONT, f);
-                            if (font == null) {
-                                System.out.println("cannot load truetype font:" + fontfn);
-                                continue;
-                            }
-                            System.out.println("load font file:" + fontfn + ",name=" + font.getFontName());
-
-                        } else {
-                            if (localFonts == null) {
-                                localFonts = Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment()
-                                        .getAvailableFontFamilyNames());
-                            }
-                            if (localFonts.contains(fontfn)) {
-                                font = new Font(fontfn, Font.PLAIN, 12);
-                            } else {
-                                System.out.println("font file not exists:" + fontfn);
-                            }
-                        }
+                        Font font = getFontFromDesc(l);
                         if (font != null) {
-                            if (l.size() > 2 && l.get(2).equals("BOLD")) {
-                                font = font.deriveFont(Font.BOLD, fontsize);
-                            } else if (l.size() > 2 && l.get(2).equals("ITALIC")) {
-                                font = font.deriveFont(Font.ITALIC, fontsize);
-                            } else {
-                                font = font.deriveFont(Font.PLAIN, fontsize);
-                            }
                             fonts.add(font);
                         }
                     }
@@ -610,11 +600,18 @@ public class U {
 ////						return defaultIfFail;
 ////					}
 //					System.out.println("loaded custom fonts:" + fonts);
-                    return fonts.toArray(new Font[fonts.size()]);
+                    FontList ret = new FontList(fonts.toArray(new Font[fonts.size()]));
+                    if (defaultConsoleFont == null) {
+                        defaultConsoleFonts = ret;
+                    } else {
+                        fonts.add(0, defaultConsoleFont);
+                        defaultConsoleFonts = new FontList(fonts.toArray(new Font[fonts.size()]));
+                    }
+                    return ret;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                return defaultIfFail;
+                return new FontList(defaultIfFail);
             }
         }
 
@@ -764,6 +761,42 @@ public class U {
             }
             // Log.log("config["+name+"]="+o);
             return o;
+        }
+
+        private static Font getFontFromDesc(List l) throws Exception {
+            String fontfn = (String) l.get(0);
+            File f = new File(fontfn);
+            Font font = null;
+            int fontsize = Integer.parseInt(l.get(1).toString());
+            if (f.exists() && f.isFile()) {
+                font = Font.createFont(Font.TRUETYPE_FONT, f);
+                if (font == null) {
+                    System.out.println("cannot load truetype font:" + fontfn);
+                    return null;
+                }
+                System.out.println("load font file:" + fontfn + ",name=" + font.getFontName());
+
+            } else {
+                if (localFonts == null) {
+                    localFonts = Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment()
+                            .getAvailableFontFamilyNames());
+                }
+                if (localFonts.contains(fontfn)) {
+                    font = new Font(fontfn, Font.PLAIN, 12);
+                } else {
+                    System.out.println("font file not exists:" + fontfn);
+                }
+            }
+            if (font != null) {
+                if (l.size() > 2 && l.get(2).equals("BOLD")) {
+                    font = font.deriveFont(Font.BOLD, fontsize);
+                } else if (l.size() > 2 && l.get(2).equals("ITALIC")) {
+                    font = font.deriveFont(Font.ITALIC, fontsize);
+                } else {
+                    font = font.deriveFont(Font.PLAIN, fontsize);
+                }
+            }
+            return font;
         }
 
     }
@@ -1100,7 +1133,7 @@ public class U {
                 colorHeaderFooter = new Color(0x8A00B8), colorComment = new Color(200, 80, 50);
         Dimension dim;
         String fn;
-        Font[] fonts;
+        FontList fonts;
 
         int lineGap = 3, lineHeight = 8, headerHeight = 20, footerHeight = 20, gutterWidth = 24;// TAB_WIDTH = 20;
 
@@ -1117,16 +1150,16 @@ public class U {
             this.roLines = pp.pageData.roLines;
             this.fn = pp.pageData.getFn();
             this.title = pp.pageData.getTitle();
-            this.fonts = U.fontList;
-            lineHeight = fonts[0].getSize();
+            this.fonts = pp.fontList;
+            lineHeight = fonts.getlineHeight();
         }
 
         void drawReturn(Graphics2D g2, int w, int py) {
             g2.setColor(Color.red);
-            g2.drawLine(w, py - lineHeight + fonts[0].getSize(), w + 3, py - lineHeight + fonts[0].getSize());
+            g2.drawLine(w, py - lineHeight + fonts.getlineHeight(), w + 3, py - lineHeight + fonts.getlineHeight());
         }
 
-        int drawStringLine(Graphics2D g2, Font[] fonts, String s, int x, int y) {
+        int drawStringLine(Graphics2D g2, FontList fonts, String s, int x, int y) {
             int w = 0;
             int commentPos = getCommentPos(s);
             if (commentPos >= 0) {
@@ -1140,7 +1173,7 @@ public class U {
             return w;
         }
 
-        int drawText(Graphics2D g2, Font[] fonts, String s, int x, int y, boolean isComment) {
+        int drawText(Graphics2D g2, FontList fonts, String s, int x, int y, boolean isComment) {
             int w = 0;
             int maxw = dim.width - gutterWidth;
 
@@ -1635,7 +1668,7 @@ public class U {
      * @param g2
      * @return
      */
-    static int computeShowIndex(CharSequence s0, int width, Graphics2D g2, Font[] fonts, int maxw) {
+    static int computeShowIndex(CharSequence s0, int width, Graphics2D g2, FontList fonts, int maxw) {
         if (s0.length() == 0) {
             return 0;
         }
@@ -1788,7 +1821,7 @@ public class U {
         page.uiComp.repaint();
     }
 
-    static int drawTwoColor(Graphics2D g2, Font[] fonts, String s, int x, int y, Color c1, Color c2, int d, int maxw) {
+    static int drawTwoColor(Graphics2D g2, FontList fonts, String s, int x, int y, Color c1, Color c2, int d, int maxw) {
         g2.setColor(c2);
         int w = U.drawString(g2, fonts, s, x + d, y + d, maxw);
         g2.setColor(c1);
@@ -2828,7 +2861,7 @@ public class U {
         return name;
     }
 
-    public static int maxWidth(List<Object[]> msgs, Graphics2D g, Font[] fonts, int maxw) {
+    public static int maxWidth(List<Object[]> msgs, Graphics2D g, FontList fonts, int maxw) {
         int max = 0;
         for (int i = 0; i < msgs.size(); i++) {
             Object[] row = msgs.get(i);
@@ -3367,22 +3400,14 @@ public class U {
         return true;
     }
 
-    public static void setFont(PlainPage pp, String font) throws Exception {
-        Font f;
-        if (new File(font).isFile()) {
-            f = Font.createFont(Font.TRUETYPE_FONT, new File(font));
-            f = f.deriveFont(12f);
-        } else {
-            f = new Font(font, Font.PLAIN, 12);
-        }
-        ArrayList fonts = new ArrayList(Arrays.asList(U.fontList));
+    public static void setFont(PlainPage pp, Font f) throws Exception {
+        ArrayList fonts = new ArrayList(Arrays.asList(U.defaultFontList.font));
         fonts.add(0, f);
-        U.fontList = (Font[]) fonts.toArray(new Font[fonts.size()]);
-        // clear cache
-        charWidthCaches.clear();
-        charWidthCaches256 = new Object[256][];
-        // showSelfDispMessage(pp, "Deprecated! Please set font by editing
-        // data.py in <home>/.neoeedit", 3000);
+        pp.fontList = new FontList((Font[]) fonts.toArray(new Font[fonts.size()]));
+    }
+
+    public static void setFont(PlainPage pp, String font) throws Exception {
+        setFont(pp, getFont(font, 12f));
     }
 
     static void setFrameSize(JFrame f) {
@@ -3672,8 +3697,8 @@ public class U {
         }
         return sb.toString();
     }
-
-    static Font[] fontList = Config
+    static FontList defaultConsoleFonts;
+    static FontList defaultFontList = Config
             .getFont(new Font[]{new Font("Monospaced", Font.PLAIN, 12), new Font("Simsun", Font.PLAIN, 12)});
 
     public static List<CharSequence> removeTailR(List<String> split) {
@@ -3822,7 +3847,7 @@ public class U {
         return Float.parseFloat(o.toString());
     }
 
-    public static int maxShowLength(CharSequence sb, int sx, int W, Graphics2D g2, Font[] fonts) {
+    public static int maxShowLength(CharSequence sb, int sx, int W, Graphics2D g2, FontList fonts) {
         int w = 0;
         for (int i = sx; i < sb.length() - 1; i++) {
             char c = sb.charAt(i);

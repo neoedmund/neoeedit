@@ -59,7 +59,7 @@ public abstract class Ime {
 		
 		boolean longTextMode();
 
-		void paint(Graphics2D g2, Font[] fonts, int cursorX, int cursorY, Rectangle clipBounds);
+		void paint(Graphics2D g2, FontList fonts, int cursorX, int cursorY, Rectangle clipBounds);
 
 	}
 
