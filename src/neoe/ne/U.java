@@ -7,6 +7,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
@@ -88,15 +89,33 @@ import neoe.ne.util.PyData;
  */
 public class U {
 
-    private static Font getFont(String font, float size) throws Exception {
+    static Font getFont(String font, float size) throws Exception {
         Font f;
         if (new File(font).isFile()) {
             f = Font.createFont(Font.TRUETYPE_FONT, new File(font));
-            f = f.deriveFont(12f);
+            f = f.deriveFont(size);
         } else {
-            f = new Font(font, Font.PLAIN, 12);
+            f = new Font(font, Font.PLAIN, (int) size);
         }
         return f;
+    }
+
+    static void checkChangedOutside(PlainPage pp) {
+        if (U.changedOutside(pp)) {
+            // long t = new File(pp.pageData.getFn()).lastModified();
+            if (!pp.changedOutside) {
+                pp.changedOutside = true;
+                if (pp.pageData.history.size() == 0) {
+                    U.readFile(pp.pageData, pp.pageData.getFn());// reload
+                    U.showSelfDispMessage(pp, "File changed outside.(reloaded)", 4000);
+                    pp.changedOutside = false;
+                } else {
+                    U.showSelfDispMessage(pp, "File changed outside.", 4000);
+                }
+                // break;
+            }
+
+        }
     }
 
     public static class LocationHistory<E> {
@@ -228,6 +247,84 @@ public class U {
         return w;
     }
 
+    public static int exactRemainChar(Graphics2D g2, FontList fonts, String s, int maxWidth) {
+        if (s == null || s.length() <= 0) {
+            return 0;
+        }
+        int[] wc = new int[1];
+        // draw separated by fonts
+        int w = 0;
+        Font cf = fonts.font[0];
+        StringBuilder sb = new StringBuilder();
+        int w1 = 0;
+        int i = 0;
+        int x = 0;
+        Font[] fo = new Font[1];
+        while (i < s.length()) {
+            char c = s.charAt(i);
+            int w0 = charWidth(g2, fonts, c, fo);
+            if (cf.equals(fo[0])) {
+                sb.append(c);
+                w1 += w0;
+            } else {
+                w1 = submitStrNoDraw(g2, cf, sb.toString(), maxWidth - x, wc);
+                x += w1;
+                w += w1;
+                w1 = w0;
+                sb.setLength(0);
+                sb.append(c);
+                cf = fo[0];
+            }
+            i++;
+            if (w > maxWidth) {
+                break;
+            }
+        }
+        if (sb.length() > 0) {
+            w1 = submitStrNoDraw(g2, cf, sb.toString(), maxWidth - x, wc);
+            w += w1;
+        }
+
+        return wc[0];
+    }
+
+    private static int submitStrNoDraw(Graphics2D g2, Font cf, String s, int width, int[] wc) {
+        if (s.isEmpty()) {
+            return 0;
+        }
+        g2.setFont(cf);
+        // g2.drawString(s, x, y);
+        FontMetrics fm = g2.getFontMetrics();
+        int w = fm.stringWidth(s);
+        if (w <= width) {
+            wc[0] += s.length();
+        } else {
+            wc[0] += tryStrWidth(fm, s, width, s.length() / 2, 0, s.length(), 0);
+        }
+        return w;
+    }
+
+    static int tryStrWidth(FontMetrics fm, String s, int width, int n, int a, int b, int safe) {
+        if (n <= a) {
+            return a;
+        }
+        if (n >= b) {
+            return b;
+        }
+        if (safe > 32) {
+            System.out.println("bug in tryStrWidth()!");
+            return n;
+        }
+        int w = fm.stringWidth(s.substring(0, n));
+        if (w < width) {
+            return tryStrWidth(fm, s, width, (n + b) / 2, n, b, safe + 1);
+        } else if (w > width) {
+            return tryStrWidth(fm, s, width, (n + a) / 2, a, n, safe + 1);
+        } else {
+            return n;
+        }
+    }
+
     private static int submitStr(Graphics2D g2, Font cf, String s, int x, int y) {
         if (s.isEmpty()) {
             return 0;
@@ -239,7 +336,7 @@ public class U {
 
     }
 
-    /**
+    /*
      * use first font, if cannot display character in that font , use second,
      * and so on
      */
@@ -1661,36 +1758,6 @@ public class U {
         page.close();
     }
 
-    /**
-     * quick find how much char can be shown in width
-     *
-     * @param width
-     * @param g2
-     * @return
-     */
-    static int computeShowIndex(CharSequence s0, int width, Graphics2D g2, FontList fonts, int maxw) {
-        if (s0.length() == 0) {
-            return 0;
-        }
-        String s = s0.toString();
-
-        if (U.stringWidth(g2, fonts, s, maxw) <= width) {
-            return s.length();
-        }
-        int i = s.length() / 2;
-        while (true) {
-            if (i == 0) {
-                return 0;
-            }
-            int w = U.stringWidth(g2, fonts, s.substring(0, i), maxw);
-            if (w <= width) {
-                return i + computeShowIndex(s.substring(i), width - w, g2, fonts, maxw);
-            } else {
-                i = i / 2;
-            }
-        }
-    }
-
     static void dialogMsg(String s) {
         JOptionPane.showMessageDialog(null, s);
     }
@@ -2156,8 +2223,10 @@ public class U {
     static boolean findAndShowPageListPage(EditorPanel ep, String title, int lineNo, int x, boolean recCh) {
         boolean b = findAndShowPageListPage(ep, title, lineNo, recCh);
         if (b) {
-            ep.getPage().cursor.setSafePos(x, lineNo - 1, recCh);
-            ep.getPage().focusCursor();
+            PlainPage pp = ep.getPage();
+            pp.cursor.setSafePos(x, lineNo - 1, recCh);
+            pp.focusCursor();
+            U.checkChangedOutside(pp);
             ep.repaint();
         }
         return b;
@@ -2460,13 +2529,14 @@ public class U {
 
     static boolean gotoFileLine(String sb, EditorPanel ep, boolean record) throws Exception {
         int p1, p2;
-        String fn = sb.toString();
+        String fn = sb;
         if ((p1 = sb.indexOf("|")) >= 0) {
             fn = sb.substring(0, p1);
             if ((p2 = sb.indexOf(":", p1)) >= 0) {// search result
                 int line = -1;
                 try {
-                    line = Integer.parseInt(sb.substring(p1 + 1, p2));
+                    String v = sb.substring(p1 + 1, p2);
+                    line = Integer.parseInt(v);
                 } catch (Exception e) {
                 }
                 if (line >= 0) {
@@ -2477,7 +2547,12 @@ public class U {
         } else if ((p1 = sb.lastIndexOf(":")) > 0) { // try filename:lineno pattern
             int line = -1;
             try {
-                line = Integer.parseInt(sb.substring(p1 + 1).trim());
+                String v = sb.substring(p1 + 1).trim();
+                int p3 = v.indexOf(':');
+                if (p3 > 0) {// fn:line:xxx in some format(like gcc?)
+                    v = v.substring(0, p3).trim();
+                }
+                line = Integer.parseInt(v);
                 fn = fn.substring(0, p1).trim();
             } catch (Exception e) {
             }
@@ -2930,6 +3005,7 @@ public class U {
         if (pd == null) {
             pd = PageData.newFromFile(f.getAbsolutePath());
         }
+   
         final PlainPage page = PlainPage.getPP(ep, pd);
         if (page != null && page.pageData.lines.size() > 0) {
             line -= 1;
@@ -3021,6 +3097,7 @@ public class U {
         File f = new File(fn);
         data.fileLastModified = f.lastModified();
         data.workPath = f.getParent();
+       // System.out.println("data.workPath1="+data.workPath);
     }
 
     private static boolean tryGzip(String fn, PageData data) {
@@ -3040,7 +3117,7 @@ public class U {
         }
     }
 
-    static List<CharSequence> readFileForEditor(String fn, String encoding, PageData data) {// TODO
+    static List<CharSequence> readFileForEditor(String fn, String encoding, PageData data) {
         try {
             // System.out.println("read file:" + fn + " encoding=" + encoding);
             List<String> ls;
@@ -3400,14 +3477,13 @@ public class U {
         return true;
     }
 
-    public static void setFont(PlainPage pp, Font f) throws Exception {
+    public static void setFont(EditorPanel ep, Font f) throws Exception {
         ArrayList fonts = new ArrayList(Arrays.asList(U.defaultFontList.font));
         fonts.add(0, f);
-        pp.fontList = new FontList((Font[]) fonts.toArray(new Font[fonts.size()]));
-    }
-
-    public static void setFont(PlainPage pp, String font) throws Exception {
-        setFont(pp, getFont(font, 12f));
+        FontList font2 = new FontList((Font[]) fonts.toArray(new Font[fonts.size()]));
+        for (PlainPage pp : ep.pageSet) {
+            pp.fontList = font2;
+        }
     }
 
     static void setFrameSize(JFrame f) {
@@ -3847,7 +3923,12 @@ public class U {
         return Float.parseFloat(o.toString());
     }
 
-    public static int maxShowLength(CharSequence sb, int sx, int W, Graphics2D g2, FontList fonts) {
+    /*
+     * show str will short then show char by char in font, so ret is shorted
+     * and approximately and a pre-cut. the purpose is just avoid show a string
+     * like 10000 chars in later draw
+     */
+    public static int maxShowIndexApproximate(CharSequence sb, int sx, int W, Graphics2D g2, FontList fonts) {
         int w = 0;
         for (int i = sx; i < sb.length() - 1; i++) {
             char c = sb.charAt(i);
