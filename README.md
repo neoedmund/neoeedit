@@ -8,58 +8,28 @@ https://github.com/neoedmund/neoeedit
 
 - BSD LICENSE
 - Written in Java
-- Java Swing for GUI, highly customized components.
+- Java Swing for GUI, highly customized components
 - Good performance
-- Good Unicode, CJK support
+- Good Unicode, CJK support, Good font handling
 - Rectangular mode
 - Integrated IME support
-- Script in Java
-- Smart: 
-  * when encounter a problem , instead of panic and refuse to go on , it find solutions .
-  * when you don't configure , it use best option for you .
-- Small executable(200KB?), light: fast , not bloated.
+- Also an image viewer
+- Also a command line console (no tty no input support)
+- Script ( in Java )
+- Smart philosophy: 
+  * when encounter a problem , instead of panic, it find solutions to go on.
+  * when you don't configure , it find best option for you .
+- Small executable(200KB?), no bloatware. drop features that not often used but need lots code. 
+- No online data transmission or any telemetry, means privacy protected.
 - Stable, since 2009
 
 
-### How to use
-
-Just download a single jar to start: https://github.com/neoedmund/neoeedit/raw/master/dist/neoeedit.jar
-
-Windows:
-
-- add to content-menu using `neoeedit.reg`
-
-```
-Windows Registry Editor Version 5.00
-
-[HKEY_CLASSES_ROOT\*\Shell\Open with neoeedit]
-
-[HKEY_CLASSES_ROOT\*\Shell\Open with neoeedit\Command]
-@="\"C:\\Program Files\\Java\\jdk1.8.0\\bin\\javaw.exe\" -Xmx1000M -jar \"C:\\neoe\\neoeedit.jar\" \"%1\""
-
-[HKEY_CLASSES_ROOT\*\Shell\Copy full name\Command]
-@="\"C:\\Program Files\\Java\\jdk1.8.0\\bin\\javaw.exe\" -cp \"C:\\neoe\\neoeedit.jar\"  \"neoe.ne.CopyFullName\" \"%1\""
-```
-
-- download [exe|https://github.com/neoedmund/neoeedit/raw/master/neoeedit.exe] and put same dir with neoeedit.jar
-
-
-- or add `ne.cmd` to PATH
-
-```
-start javaw -Xmx500M -jar neoeedit.jar %* 
-```
-    
-Linux:
-	add `ne.sh` to PATH
-``` 
-java -Xmx500M -jar neoeedit.jar $1 &  
-```
 
 
 
 
-### Default key-bindings:
+
+### Default key-bindings:(can be configured in file)
 <pre>    
     
     ctrl-C/V/X for copy/paste/cut
@@ -90,7 +60,7 @@ java -Xmx500M -jar neoeedit.jar $1 &
     ctrl-W: close current document, and record to open file history.
     ctrl-G or ctrl-1: goto file and line on search result or file by name or document in the window by name.
     Alt-L: launch current line using system default launcher(for file, executable, text, or URL).
-    Alt-E: execute current line in system command line(eg. for windows, try "cmd /c dir").
+    Alt-E( or F9): execute current line in system command line(eg. for windows, try "cmd /c dir").
     ctrl-H: open file history
     ctrl-P: print (beautifully)
 
@@ -125,9 +95,9 @@ java -Xmx500M -jar neoeedit.jar $1 &
     ctrl-mouse scroll: zoom in/out
     ctrl-0: zoom reset
 
-    alt-f:list fonts, then ctrl-1 on it to change font
+    alt-f:list fonts, then ctrl-1 on it to set font
 
-    alt-j: script
+    alt-j: script to process on the text
 
     alt-c: switch between preset color modes, there are 3 now: White, Black, Blue.
 
@@ -138,20 +108,59 @@ java -Xmx500M -jar neoeedit.jar $1 &
         Ctrl-W / H / O: functions like what it did in text editor mode
         F1: toggle thumbnail
         `[` `]`:slide show speed
+	Ctrl-click, ctrl-drag to select an area, then ctrl-s to save.
         
 
-    configurable custom Freetype font (in config file)
+    configurable custom Freetype font List (in config file)
 
     Plugins: 
     how to use: copy plugin jar into [home-dir]/.neoeedit/plugins/
     
-        ctrl-space to toggle IME (need neoeime.jar plugin)
+        ctrl-space to toggle IME (need neoeime.jar plugin, support Chinese,Japanese,English etc.)
 	ctrl-shift-F to format source (need neoeformatter.jar plugin)
 
     F1: show commands panel.
     (more...not listed or not added)
 
 </pre>
+
+
+### How to use
+
+Just download a single jar to start: https://github.com/neoedmund/neoeedit/raw/master/dist/neoeedit.jar
+
+    
+#### Linux:
+
+``` 
+java -Xmx2G -jar neoeedit.jar $1 &  
+```
+
+
+#### Windows:
+
+- add to content-menu using `neoeedit.reg`
+
+```
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\Shell\Open with neoeedit]
+
+[HKEY_CLASSES_ROOT\*\Shell\Open with neoeedit\Command]
+@="\"C:\\Program Files\\Java\\jdk9\\bin\\javaw.exe\" -Xmx1000M -jar \"C:\\neoe\\neoeedit.jar\" \"%1\""
+
+[HKEY_CLASSES_ROOT\*\Shell\Copy full name\Command]
+@="\"C:\\Program Files\\Java\\jdk9\\bin\\javaw.exe\" -cp \"C:\\neoe\\neoeedit.jar\"  \"neoe.ne.CopyFullName\" \"%1\""
+```
+
+- (optional) download [exe|https://github.com/neoedmund/neoeedit/raw/master/neoeedit.exe] and put same dir with neoeedit.jar
+
+
+
+```
+start javaw -Xmx2G -jar neoeedit.jar %* 
+```
+
 
 
 !['Work Like Magic'](https://github.com/neoedmund/neoeedit/raw/master/worklikemagic.png)
