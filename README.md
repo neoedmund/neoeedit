@@ -155,7 +155,7 @@ Windows Registry Editor Version 5.00
 
 - (optional) download [exe|https://github.com/neoedmund/neoeedit/raw/master/neoeedit.exe] and put same dir with neoeedit.jar
 
-
+- or without `neoeedit.exe`:
 
 ```
 start javaw -Xmx2G -jar neoeedit.jar %* 
