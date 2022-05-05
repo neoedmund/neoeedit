@@ -17,10 +17,10 @@ https://github.com/neoedmund/neoeedit
 - Also a command line console (no tty no input support)
 - Script ( in Java )
 - Smart philosophy: 
-  * when encounter a problem , instead of panic, it find solutions to go on.
-  * when you don't configure , it find best option for you .
-- Small executable(200KB?), no bloatware. drop features that not often used but need lots code. 
-- No online data transmission or any telemetry, means privacy protected.
+  * when encounter a problem , instead of panic, it find solutions to go on
+  * when you don't configure , it find best option for you 
+- Small executable(200KB?), no bloatware. drop features that not often used but need lots code
+- No online data transmission or any telemetry, means privacy protected
 - Stable, since 2009
 
 
