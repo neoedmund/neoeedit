@@ -6,7 +6,6 @@ import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -116,6 +115,34 @@ public class U {
             }
 
         }
+    }
+
+    private static void checkAllString(List tfs, PlainPage page) {
+        for (Object o : tfs) {
+            if (!(o instanceof String)) {
+                String msg = "bad search word, it should be in special format";
+                JOptionPane.showMessageDialog(page.uiComp, msg);
+                throw new RuntimeException(msg);
+            }
+        }
+    }
+
+    private static boolean isIdChar(char c) {
+        return c == '_' || c == '$' || Character.isAlphabetic(c) || Character.isDigit(c);
+    }
+
+    private static int isWordMatch(CharSequence t, String s, int p, boolean word) {
+        if (!word || p < 0) {
+            return p;
+        }
+        if (p > 0 && isIdChar(t.charAt(p - 1))) {
+            return -1;
+        }
+        int q = p + s.length();
+        if (q < t.length() && isIdChar(t.charAt(q))) {
+            return -1;
+        }
+        return p;
     }
 
     public static class LocationHistory<E> {
@@ -904,31 +931,33 @@ public class U {
         final private PlainPage pp;
         String text2find;
         boolean back;
+        boolean word;
 
         public FindAndReplace(PlainPage plainPage) {
             this.pp = plainPage;
         }
 
         void doFind(String text, boolean ignoreCase, boolean selected2, boolean inDir, String dir, String fnFilter,
-                boolean backward) throws Exception {
+                boolean backward, boolean word) throws Exception {
             text2find = text;
+            this.word = word;
             if (!inDir) {
                 pp.ignoreCase = ignoreCase;
                 back = backward;
                 if (backward) {
-                    findPrev();
+                    findPrev(word);
                 } else {
-                    findNext();
+                    findNext(word);
                 }
                 pp.uiComp.repaint();
             } else {
-                doFindInDir(pp, text, ignoreCase, selected2, inDir, dir, fnFilter);
+                doFindInDir(pp, text, ignoreCase, selected2, inDir, dir, fnFilter, word);
             }
         }
 
-        void findNext() {
+        void findNext(boolean word) {
             if (text2find != null && text2find.length() > 0) {
-                Point p = find(pp, text2find, pp.cx + 1, pp.cy, pp.ignoreCase);
+                Point p = find(pp, text2find, pp.cx + 1, pp.cy, pp.ignoreCase, word);
                 if (p == null) {
                     pp.ui.message("string not found");
                 } else {
@@ -977,9 +1006,9 @@ public class U {
             }
         }
 
-        void findPrev() {
+        void findPrev(boolean word) {
             if (text2find != null && text2find.length() > 0) {
-                Point p = find_prev(pp, text2find, pp.cx - 1, pp.cy, pp.ignoreCase);
+                Point p = find_prev(pp, text2find, pp.cx - 1, pp.cy, pp.ignoreCase, word);
                 if (p == null) {
                     pp.ui.message("string not found");
                 } else {
@@ -1649,32 +1678,28 @@ public class U {
             String text = (String) input;
             return text.indexOf(needle);
         }
-        // if (input instanceof String) {
-        // String text = (String) input;
-        // return text.indexOf(needle);
-        // }
         if (input instanceof StringBuilder) {
             StringBuilder text = (StringBuilder) input;
             return text.indexOf("" + needle);
         }
-        System.out.println("input=" + input);
+        System.out.println("indexOf char for type=" + input.getClass());
         return input.toString().indexOf(needle);
     }
 
-    public static int indexOf(CharSequence input, String needle, int start) {
+    public static int indexOf(CharSequence input, String needle, int start, boolean word) {
         if (input instanceof StringBuilder) {
             StringBuilder text = (StringBuilder) input;
-            return text.indexOf(needle, start);
+            return isWordMatch(text, needle, text.indexOf(needle, start), word);
         }
-        return input.toString().indexOf(needle, start);
+        return isWordMatch(input, needle, input.toString().indexOf(needle, start), word);
     }
 
-    public static int indexOfLast(CharSequence input, String needle, int start) {
+    public static int indexOfLast(CharSequence input, String needle, int start, boolean word) {
         if (input instanceof StringBuilder) {
             StringBuilder text = (StringBuilder) input;
-            return text.lastIndexOf(needle, start);
+            return isWordMatch(text, needle, text.lastIndexOf(needle, start), word);
         }
-        return input.toString().lastIndexOf(needle, start);
+        return isWordMatch(input, needle, input.toString().lastIndexOf(needle, start), word);
     }
 
     static void attach(final PlainPage page, final InputStream std) {
@@ -1763,7 +1788,7 @@ public class U {
     }
 
     static void doFindInDir(PlainPage page, String text, boolean ignoreCase, boolean selected2, boolean inDir,
-            String dir, String fnFilter) throws Exception {
+            String dir, String fnFilter, boolean word) throws Exception {
         Iterable<File> it = new FileIterator(dir);
         List<String> all = new ArrayList<String>();
         fnFilter = fnFilter.trim().toLowerCase();
@@ -1788,14 +1813,14 @@ public class U {
                     continue;
                 }
             }
-            List<String> res = U.findInFile(f, text, ignoreCase, cnts);
+            List<String> res = U.findInFile(f, text, ignoreCase, cnts, word);
             all.addAll(res);
         }
-        showResult(page, all, "dir", dir, text, fnFilter, cnts);
+        showResult(page, all, "dir", dir, text, fnFilter, cnts, word);
         page.uiComp.repaint();
     }
 
-    static void doFindInPage(PlainPage page, String text2find, boolean ignoreCase) throws Exception {
+    static void doFindInPage(PlainPage page, String text2find, boolean ignoreCase, boolean word) throws Exception {
         text2find = text2find.trim();
         page.ptFind.text2find = text2find;
         if (text2find != null && text2find.length() > 0) {
@@ -1804,21 +1829,22 @@ public class U {
                 text2find = text2find.toLowerCase();
             }
             tfs = (List) PyData.parseAll("[" + text2find + "]", false, true);
-            Point p = U.find(page, tfs, 0, 0, ignoreCase);
+            checkAllString(tfs, page);
+            Point p = U.find(page, tfs, 0, 0, ignoreCase, word);
             if (p == null) {
                 page.ui.message("string not found");
             } else {
                 List<String> all = new ArrayList<String>();
                 while (true) {
                     all.add(String.format("%s:%s", p.y + 1, page.pageData.roLines.getline(p.y)));
-                    Point p2 = U.find(page, tfs, 0, p.y + 1, ignoreCase);
+                    Point p2 = U.find(page, tfs, 0, p.y + 1, ignoreCase, word);
                     if (p2 == null || p2.y <= p.y) {
                         break;
                     } else {
                         p = p2;
                     }
                 }
-                showResult(page, all, "file", page.pageData.getTitle(), text2find, null, null);
+                showResult(page, all, "file", page.pageData.getTitle(), text2find, null, null, word);
                 page.uiComp.repaint();
             }
         }
@@ -1871,7 +1897,7 @@ public class U {
                 }
             }
             try {
-                List<String> res = U.findInFile(f, text, page.ignoreCase, cnts);
+                List<String> res = U.findInFilePlain(f, text, page.ignoreCase, cnts);
                 if (!res.isEmpty()) {
                     PlainPage pi = PlainPage.getPP(page.uiComp, PageData.newFromFile(f.getAbsolutePath()));
                     if (pi != null) {
@@ -1884,7 +1910,7 @@ public class U {
             }
 
         }
-        showResult(page, all, "dir", dir, text, fnFilter, cnts);
+        showResult(page, all, "dir", dir, text, fnFilter, cnts, false);
         page.uiComp.repaint();
     }
 
@@ -2049,7 +2075,7 @@ public class U {
         return true;
     }
 
-    static Point find(PlainPage page, String s, int x, int y, boolean ignoreCase) {
+    static Point find(PlainPage page, String s, int x, int y, boolean ignoreCase, boolean word) {
         if (y >= page.pageData.roLines.getLinesize()) {
             return null;
         }
@@ -2058,7 +2084,7 @@ public class U {
         }
         x = Math.min(x, page.pageData.roLines.getline(y).length());
         // first half row
-        int p1 = U.indexOf(page.pageData.roLines.getline(y), ignoreCase, s, x);
+        int p1 = U.indexOf(page.pageData.roLines.getline(y), ignoreCase, s, x, word);
         if (p1 >= 0) {
             return new Point(p1, y);
         }
@@ -2069,21 +2095,21 @@ public class U {
             if (fy >= page.pageData.roLines.getLinesize()) {
                 fy = 0;
             }
-            p1 = U.indexOf(page.pageData.roLines.getline(fy), ignoreCase, s, 0);
+            p1 = U.indexOf(page.pageData.roLines.getline(fy), ignoreCase, s, 0, word);
             if (p1 >= 0) {
                 return new Point(p1, fy);
             }
         }
         // last half row
         CharSequence sb = page.pageData.roLines.getline(y);
-        p1 = U.indexOf(sb.subSequence(0, x), ignoreCase, s, 0);
+        p1 = U.indexOf(sb.subSequence(0, x), ignoreCase, s, 0, word);
         if (p1 >= 0) {
             return new Point(p1, fy);
         }
         return null;
     }
 
-    static Point find(PlainPage page, List<String> ss, int x, int y, boolean ignoreCase) {
+    static Point find(PlainPage page, List<String> ss, int x, int y, boolean ignoreCase, boolean word) {
         if (ss == null || ss.size() <= 0) {
             return null;
         }
@@ -2092,7 +2118,7 @@ public class U {
         }
         x = 0;// Math.min(x, page.pageData.roLines.getline(y).length());
         // first half row
-        int p1 = U.indexOf(page.pageData.roLines.getline(y), ignoreCase, ss, x);
+        int p1 = U.indexOf(page.pageData.roLines.getline(y), ignoreCase, ss, x, word);
         if (p1 >= 0) {
             return new Point(p1, y);
         }
@@ -2103,21 +2129,21 @@ public class U {
             if (fy >= page.pageData.roLines.getLinesize()) {
                 fy = 0;
             }
-            p1 = U.indexOf(page.pageData.roLines.getline(fy), ignoreCase, ss, 0);
+            p1 = U.indexOf(page.pageData.roLines.getline(fy), ignoreCase, ss, 0, word);
             if (p1 >= 0) {
                 return new Point(p1, fy);
             }
         }
         // last half row
         CharSequence sb = page.pageData.roLines.getline(y);
-        p1 = U.indexOf(sb.subSequence(0, x), ignoreCase, ss, 0);
+        p1 = U.indexOf(sb.subSequence(0, x), ignoreCase, ss, 0, word);
         if (p1 >= 0) {
             return new Point(p1, fy);
         }
         return null;
     }
 
-    static Point find_prev(PlainPage page, String s, int x, int y, boolean ignoreCase) {
+    static Point find_prev(PlainPage page, String s, int x, int y, boolean ignoreCase, boolean word) {
         if (y >= page.pageData.roLines.getLinesize()) {
             return null;
         }
@@ -2139,7 +2165,7 @@ public class U {
 
         x = Math.min(x, page.pageData.roLines.getline(y).length());
         // first half row
-        int p1 = U.indexOfLast(page.pageData.roLines.getline(y), ignoreCase, s, x);
+        int p1 = U.indexOfLast(page.pageData.roLines.getline(y), ignoreCase, s, x, word);
         if (p1 >= 0) {
             return new Point(p1, y);
         }
@@ -2151,7 +2177,7 @@ public class U {
                 fy = page.pageData.roLines.getLinesize() - 1;
             }
             CharSequence line = page.pageData.roLines.getline(fy);
-            p1 = U.indexOfLast(line, ignoreCase, s, line.length());
+            p1 = U.indexOfLast(line, ignoreCase, s, line.length(), word);
             if (p1 >= 0) {
                 return new Point(p1, fy);
             }
@@ -2163,7 +2189,7 @@ public class U {
                 return null;
             }
             CharSequence tail = sb.subSequence(x, sb.length());
-            p1 = U.indexOfLast(tail, ignoreCase, s, tail.length());
+            p1 = U.indexOfLast(tail, ignoreCase, s, tail.length(), word);
             if (p1 >= 0) {
                 return new Point(p1 + x, fy);
             }
@@ -2171,42 +2197,34 @@ public class U {
         return null;
     }
 
-    private static int indexOf(CharSequence t, boolean ignoreCase, String s, int x) {
+    private static int indexOf(CharSequence t, boolean ignoreCase, String s, int x, boolean word) {
         if (!ignoreCase) {
-            return U.indexOf(t, s, x);
+            return U.indexOf(t, s, x, word);
         } else {
-            return t.toString().toLowerCase().indexOf(s, x);
-        }
-    }
-
-    private static int indexOf(CharSequence t, boolean ignoreCase, List<String> ss, int x) {
-        if (!ignoreCase) {
-            int p = 0;
-            for (int i = 0; i < ss.size(); i++) {
-                p = U.indexOf(t, ss.get(i), x);
-                if (p < 0) {
-                    return p;
-                }
-            }
-            return p;
-        } else {
-            int p = 0;
             String t2 = t.toString().toLowerCase();
-            for (int i = 0; i < ss.size(); i++) {
-                p = t2.indexOf(ss.get(i), x);
-                if (p < 0) {
-                    return p;
-                }
-            }
-            return p;
+            return U.indexOf(t2, s, x, word);
         }
     }
 
-    private static int indexOfLast(CharSequence t, boolean ignoreCase, String s, int x) {
+    private static int indexOf(CharSequence t, boolean ignoreCase, List<String> ss, int x, boolean word) {
+        if (ignoreCase) {
+            t = t.toString().toLowerCase();
+        }
+        int p = 0;
+        for (int i = 0; i < ss.size(); i++) {
+            p = U.indexOf(t, ss.get(i), x, word);
+            if (p < 0) {
+                return p;
+            }
+        }
+        return p;
+    }
+
+    private static int indexOfLast(CharSequence t, boolean ignoreCase, String s, int x, boolean word) {
         if (!ignoreCase) {
-            return U.indexOfLast(t, s, x);
+            return U.indexOfLast(t, s, x, word);
         } else {
-            return t.toString().toLowerCase().lastIndexOf(s, x);
+            return U.indexOfLast(t.toString().toLowerCase(), s, x, word);
         }
     }
 
@@ -2296,7 +2314,7 @@ public class U {
         }
     }
 
-    static List<String> findInFile(File f, String text, boolean ignoreCase2, int[] cnts) {
+    static List<String> findInFile(File f, String text, boolean ignoreCase2, int[] cnts, boolean word) {
         // System.out.println("find in "+f.getName());
         int MAX_SHOW_CHARS_IN_LINE = 30;
         List<String> a = new ArrayList<String>();
@@ -2320,7 +2338,49 @@ public class U {
                 while ((line = in.readLine()) != null) {
                     lineno++;
                     String oline = line;
-                    int p1 = U.indexOf(line, ignoreCase2, ts, 0);
+                    int p1 = U.indexOf(line, ignoreCase2, ts, 0, word);
+                    if (p1 >= 0) {
+                        if (line.length() > MAX_SHOW_CHARS_IN_LINE) {
+                            line = line.substring(0, MAX_SHOW_CHARS_IN_LINE) + "...";
+                        }
+                        a.add(String.format("%s|%s:%s", fn, lineno, oline));
+                    }
+                }
+                in.close();
+                if (cnts != null) {
+                    cnts[0]++;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return a;
+    }
+
+    static List<String> findInFilePlain(File f, String text, boolean ignoreCase2, int[] cnts) {
+        // System.out.println("find in "+f.getName());
+        int MAX_SHOW_CHARS_IN_LINE = 30;
+        List<String> a = new ArrayList<String>();
+        try {
+            if (guessIsBinFile(f)) {
+                if (cnts != null) {
+                    cnts[1]++;
+                }
+                return a;
+            }
+            String enc = guessEncoding(f.getAbsolutePath(), null/* not to search in gzip file */);
+            if (enc != null) {// skip binary
+                String fn = f.getAbsolutePath();
+                if (ignoreCase2) {
+                    text = text.toLowerCase();
+                }
+                BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), enc));
+                String line;
+                int lineno = 0;
+                while ((line = in.readLine()) != null) {
+                    lineno++;
+                    String oline = line;
+                    int p1 = U.indexOf(line, ignoreCase2, text, 0, false);
                     if (p1 >= 0) {
                         if (line.length() > MAX_SHOW_CHARS_IN_LINE) {
                             line = line.substring(0, MAX_SHOW_CHARS_IN_LINE) + "...";
@@ -2530,9 +2590,9 @@ public class U {
     static boolean gotoFileLine(String sb, EditorPanel ep, boolean record) throws Exception {
         int p1, p2;
         String fn = sb;
-        if ((p1 = sb.indexOf("|")) >= 0) {
-            fn = sb.substring(0, p1);
-            if ((p2 = sb.indexOf(":", p1)) >= 0) {// search result
+        if ((p1 = sb.indexOf('|')) >= 0) {
+            fn = sb.substring(0, p1).trim();
+            if ((p2 = sb.indexOf(':', p1)) >= 0) {// search result
                 int line = -1;
                 try {
                     String v = sb.substring(p1 + 1, p2);
@@ -2544,21 +2604,21 @@ public class U {
                     return true;
                 }
             }
-        } else if ((p1 = sb.lastIndexOf(":")) > 0) { // try filename:lineno pattern
-            int line = -1;
+        } else if ((p1 = sb.indexOf(':', 2)) > 0) { // try filename:lineno pattern
+            int line = 0;
             try {
-                String v = sb.substring(p1 + 1).trim();
-                int p3 = v.indexOf(':');
-                if (p3 > 0) {// fn:line:xxx in some format(like gcc?)
-                    v = v.substring(0, p3).trim();
+                fn = sb.substring(0, p1).trim();
+                p2 = sb.indexOf(':', p1 + 1);
+                String v;
+                if (p2 > 0) {// fn:line:xxx in some format(like javac output)
+                    v = sb.substring(p1 + 1, p2).trim();
+                } else {
+                    v = sb.substring(p1 + 1).trim();
                 }
                 line = Integer.parseInt(v);
-                fn = fn.substring(0, p1).trim();
             } catch (Exception e) {
             }
-            if (line >= 0) {
-                return gotoFileLinePos(ep, fn, line, -1, record);
-            }
+            return gotoFileLinePos(ep, fn, line, -1, record);
         }
 
         {
@@ -2828,6 +2888,7 @@ public class U {
             File[] fs = f.listFiles();
             page.cx = line.length();
             page.ptEdit.insertString("\n{-----");
+            Arrays.sort(fs);//for god's sake
             for (File f1 : fs) {
                 if (f1.isDirectory()) {
                     page.ptEdit.insertString("\n" + f1.getAbsolutePath() + " | <DIR>");
@@ -2999,23 +3060,31 @@ public class U {
         if (findAndShowPageListPage(ep, title, line, recCh)) {
             return true;
         }
-
+        PlainPage oldPage = ep.getPage();
         PageData pd = PageData.dataPool.get(title);
         // including titles not saved
         if (pd == null) {
             pd = PageData.newFromFile(f.getAbsolutePath());
         }
-   
+
         final PlainPage page = PlainPage.getPP(ep, pd);
-        if (page != null && page.pageData.lines.size() > 0) {
+        int totalLine = page.pageData.lines.size();
+        if (totalLine > 0) {
             line -= 1;
             page.cx = 0;
-            page.cy = Math.max(0, Math.min(line, page.pageData.lines.size() - 1));
+            page.cy = Math.max(0, Math.min(line, totalLine - 1));
             page.selectstartx = 0;
             page.selectstarty = page.cy;
             page.selectstopx = 0;
             page.selectstopy = page.cy;
-            page.sy = Math.max(0, page.cy - 3);
+            page.sy = Math.max(0, page.cy - (oldPage == null ? 3 : Math.max(oldPage.showLineCnt / 2, 3)));
+            if (oldPage != null) {
+                int emptyLines = oldPage.showLineCnt - (totalLine - page.sy);
+                if (emptyLines > 0) {
+                    page.sy -= emptyLines;
+                }
+                page.sy = Math.max(0, page.sy);
+            }
             page.uiComp.repaint();
         }
 
@@ -3078,8 +3147,7 @@ public class U {
     static int idIndex;
 
     public static String randomID() {
-        return Integer.toString((int) (System.currentTimeMillis() % 0xfffffff), 36) + "_"
-                + Integer.toString(idIndex++, 36);
+        return Integer.toString((int) (System.currentTimeMillis() % 0xfffffff), 36) + "_" + (idIndex++);
     }
 
     static void readFile(PageData data, String fn) {
@@ -3097,7 +3165,7 @@ public class U {
         File f = new File(fn);
         data.fileLastModified = f.lastModified();
         data.workPath = f.getParent();
-       // System.out.println("data.workPath1="+data.workPath);
+        // System.out.println("data.workPath1="+data.workPath);
     }
 
     private static boolean tryGzip(String fn, PageData data) {
@@ -3211,7 +3279,7 @@ public class U {
         // first half row
         int p1 = x;
         while (true) {
-            p1 = U.indexOf(page.pageData.roLines.getline(y), ignoreCase, s, p1);
+            p1 = U.indexOf(page.pageData.roLines.getline(y), ignoreCase, s, p1, false);
             if (p1 >= 0) {
                 cnt++;
                 editRec.deleteInLine(y, p1, p1 + s.length());
@@ -3233,7 +3301,7 @@ public class U {
             }
             p1 = 0;
             while (true) {
-                p1 = U.indexOf(page.pageData.roLines.getline(fy), ignoreCase, s, p1);
+                p1 = U.indexOf(page.pageData.roLines.getline(fy), ignoreCase, s, p1, false);
                 if (p1 >= 0) {
                     cnt++;
                     editRec.deleteInLine(fy, p1, p1 + s.length());
@@ -3255,7 +3323,7 @@ public class U {
         p1 = 0;
         CharSequence sb = page.pageData.roLines.getline(fy);
         while (true) {
-            p1 = U.indexOf(sb.subSequence(0, x), ignoreCase, s, p1);
+            p1 = U.indexOf(sb.subSequence(0, x), ignoreCase, s, p1, false);
             if (p1 >= 0) {
                 cnt++;
                 editRec.deleteInLine(fy, p1, p1 + s.length());
@@ -3299,7 +3367,7 @@ public class U {
                     System.out.println(e1);
                     StringWriter errors = new StringWriter();
                     e1.printStackTrace(new PrintWriter(errors));
-                    ep1.page.ptEdit.append("/*\n" + errors.toString() + "\n*/\n");
+                    ep1.page.ptEdit.append("\n/*\n" + errors.toString() + "\n*/\n");
                 }
 
             }
@@ -3313,19 +3381,14 @@ public class U {
 
     static void runScript(final PlainPage ppTarget, String script) throws Exception {
         ReadonlyLines lines = ppTarget.pageData.roLines;
-        List<CharSequence> export = new ArrayList<CharSequence>();
+        List<CharSequence> export = new ArrayList<>();
         {
             int size = lines.getLinesize();
             for (int i = 0; i < size; i++) {
-                export.add(lines.getline(i));
+                export.add(lines.getline(i));//hmmm...
             }
         }
-        ScriptUtil su = new ScriptUtil();
-        List<CharSequence> ret = su.runSingleScript(script, export);
-        EditorPanel ep = new EditorPanel(ppTarget.uiComp.config);
-        ep.openWindow(ppTarget.uiComp);
-        ep.getPage().pageData.workPath = ppTarget.pageData.workPath;
-        ep.getPage().pageData.setLines(ret);
+        new ScriptUtil().runSingleScript(ppTarget, script, export);
     }
 
     static void saveAs(PlainPage page) throws Exception {
@@ -3348,6 +3411,12 @@ public class U {
     }
 
     static boolean saveFile(PlainPage page) throws Exception {
+        String fn0 = page.pageData.getFn();
+        if (!page.changedOutside && fn0 != null) {//update
+            if (new File(fn0).lastModified() > page.pageData.fileLastModified) {
+                page.changedOutside = true;
+            }
+        }
         if (page.changedOutside && JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(page.uiComp,
                 "File Changed Outside!! Do you really want to overwrite it?", "File Changed Outside!!",
                 JOptionPane.YES_NO_OPTION)) {
@@ -3355,7 +3424,7 @@ public class U {
             return false;
         }
 
-        if (page.pageData.getFn() == null) {
+        if (fn0 == null) {
             JFileChooser chooser = new JFileChooser(page.pageData.workPath);
             int returnVal = chooser.showSaveDialog(page.uiComp);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -3565,7 +3634,7 @@ public class U {
     }
 
     static void showResult(PlainPage pp, List<String> all, String type, String name, String text, String fnFilter,
-            int[] cnts) throws Exception {
+            int[] cnts, boolean word) throws Exception {
         String withFilter = "";
         if (fnFilter != null && fnFilter.length() > 0) {
             withFilter = String.format(" with filter '" + fnFilter + "'");
@@ -3580,11 +3649,14 @@ public class U {
                 cntInfo += String.format(", filtered:%d", cnts[2]);
             }
         }
+        if (word) {
+            cntInfo += " in word mode";
+        }
         PlainPage p2 = PlainPage.getPP(pp.uiComp, PageData.newEmpty(String.format("(%s)'%s' in %s '%s'%s %s #%s",
                 all.size(), text, type, name, withFilter, cntInfo, randomID())));
-        p2.pageData.workPath = pp.pageData.workPath;
-        p2.ui.applyColorMode(pp.ui.colorMode);
-        List<CharSequence> sbs = new ArrayList<CharSequence>();
+//    dup?    p2.pageData.workPath = pp.pageData.workPath;
+//        p2.ui.applyColorMode(pp.ui.colorMode);
+        List<CharSequence> sbs = new ArrayList<>();
         sbs.add(new StringBuilder(
                 String.format("find %s results in '%s'%s for '%s' %s", all.size(), name, withFilter, text, cntInfo)));
         for (Object o : all) {

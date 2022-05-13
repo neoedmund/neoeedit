@@ -7,6 +7,7 @@ import java.io.OutputStream;
 public class Console {
 
     public String cmd;
+    private boolean finished;
     OutputStream out;
     InputStream stdout;
     InputStream stderr;
@@ -28,6 +29,7 @@ public class Console {
 
     public void start() throws Exception {
         final long t1 = System.currentTimeMillis();
+        finished = false;
         EditorPanel ep = parentUI;
         PlainPage pp = parentUI.getPage();
         this.pp = pp;
@@ -54,6 +56,7 @@ public class Console {
             try {
                 proc.waitFor();
                 pp.ptEdit.append(String.format("\nExit(%s) in about %,d ms for\n%s", proc.exitValue(), System.currentTimeMillis() - t1, id));
+                finished = true;
                 pp.uiComp.repaint();
             } catch (InterruptedException e) {
                 pp.pageData.editRec.appendLine("Interrupted:" + e);

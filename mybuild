@@ -2,5 +2,6 @@
 	prjs : [
 		[ neoeedit . { main : neoe.ne.Main } ]
 	]
+	release:9
 }
 

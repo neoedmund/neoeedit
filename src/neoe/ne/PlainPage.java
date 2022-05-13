@@ -910,7 +910,7 @@ public class PlainPage {
                 boolean isCurrentLine, int[] outDrawCharCnt, boolean isRealDraw, int maxw) {
             int w;
             if (inComment) {
-                int p1 = U.indexOf(s, commentClose, 0);
+                int p1 = U.indexOf(s, commentClose, 0, false);
                 if (p1 >= 0) {
                     inComment = false;
                     CharSequence s1 = s.subSequence(0, p1 + commentClose.length());
@@ -926,7 +926,7 @@ public class PlainPage {
                     CharSequence s1 = s.subSequence(0, commentPos);
                     CharSequence s2 = s.subSequence(commentPos, s.length());
                     if (inComment) {
-                        int p1 = U.indexOf(s2, commentClose, commentStart.length());
+                        int p1 = U.indexOf(s2, commentClose, commentStart.length(), false);
                         if (p1 >= 0) {
                             CharSequence s2a = s2.subSequence(0, p1 + commentClose.length());
                             CharSequence s2b = s2.subSequence(p1 + commentClose.length(), s2.length());
@@ -1030,19 +1030,16 @@ public class PlainPage {
             if (lines > 20) {
                 curPer = 100 * cy / lines;
             }
-            String s1 = String.format("%s %s %s%s L:%s%d X:%d undo:%d%s %s%s%s%s <F1>:Help",
-                    (changedOutside ? " [ChangedOutside!]" : ""), (pageData.encoding == null ? "-" : pageData.encoding)//
-                    ,
-                     (pageData.lineSep.equals("\n") ? "U" : "W"), (rectSelectMode ? " R " : "")//
-                    ,
-                     (curPer == 0 ? "" : "" + curPer + "%"), lines, (cx + 1), pageData.history.size()//
-                    ,
-                     (ime == null ? "" : " " + ime.getImeName()), (pageData.getFn() == null ? "-" : pageData.getFn())//
-                    ,
-                     (readonly ? " ro" : ""), pageData.gzip ? " Z" : "",
+            String s1 = String.format("%s %s %s%s L:%s%d X:%d undo:%d%s %s%s%s%s <F1>:Help%s",
+                    (changedOutside ? " [ChangedOutside!]" : ""), (pageData.encoding == null ? "-" : pageData.encoding),//
+                    (pageData.lineSep.equals("\n") ? "U" : "W"), (rectSelectMode ? " R " : ""),//
+                    (curPer == 0 ? "" : "" + curPer + "%"), lines, (cx + 1), pageData.history.size(),//
+                    (ime == null ? "" : " " + ime.getImeName()), (pageData.getFn() == null ? "-" : pageData.getFn()),//
+                    (readonly ? " ro" : ""), pageData.gzip ? " Z" : "",
                     (pageData.workPath != null && (console != null || pageData.getFn() == null))
-                    ? " CWD:" + pageData.workPath
-                    : "");
+                    ? " CWD:" + pageData.workPath : "",
+                    console == null ? "" : " " + pageData.roLines.getline(pageData.roLines.getLinesize() - 1)//console live
+            );
             g2.setColor(colorGutMark1);
             U.drawString(g2, fontList, s1, 2, lineHeight + 2, dim.width);
             g2.setColor(colorGutMark2);
@@ -1066,7 +1063,7 @@ public class PlainPage {
                 return -1;
             }
             for (String c : comment) {
-                int p = U.indexOf(s, c, 0);
+                int p = U.indexOf(s, c, 0, false);
                 if (p >= 0) {
                     if ("/*".equals(c)) {
                         inComment = true;
@@ -1600,7 +1597,7 @@ public class PlainPage {
             if (pageData.workPath == null) {
                 pageData.workPath = cp.pageData.workPath;
             }
-            System.out.println("workPath=" + pageData.workPath);
+//            System.out.println("workPath=" + pageData.workPath);
         } else {
             fontList = U.defaultFontList;
         }
@@ -2007,16 +2004,16 @@ public class PlainPage {
                 break;
             case findNext:
                 if (ptFind.back) {
-                    ptFind.findPrev();
+                    ptFind.findPrev(ptFind.word);
                 } else {
-                    ptFind.findNext();
+                    ptFind.findNext(ptFind.word);
                 }
                 break;
             case findPrev:
                 if (!ptFind.back) {
-                    ptFind.findPrev();
+                    ptFind.findPrev(ptFind.word);
                 } else {
-                    ptFind.findNext();
+                    ptFind.findNext(ptFind.word);
                 }
                 break;
             case commandPanel:
