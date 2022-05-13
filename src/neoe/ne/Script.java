@@ -1,6 +1,6 @@
-package neoe.ne;
+package neoe . ne ;
 
-import java.util.List;
+import java . util . List ;
 
 /**
  * Script Notes:
@@ -19,5 +19,5 @@ import java.util.List;
  *
  */
 public interface Script {
-  List<CharSequence> run(List<CharSequence> lines);
+	List < CharSequence > run ( List < CharSequence > lines ) ;
 }
