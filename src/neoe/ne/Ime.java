@@ -12,55 +12,54 @@ import java.util.List;
  */
 public abstract class Ime {
 
-	public static class Out {
+  public static class Out {
 
-		public boolean consumed;
-		public String yield;
-		public String preedit;
-	}
+    public boolean consumed;
+    public String yield;
+    public String preedit;
+  }
 
-	private static boolean enabled;
-	public static List<ImeInterface> instances = new ArrayList<ImeInterface>();
-	private static int index;
+  private static boolean enabled;
+  public static List<ImeInterface> instances = new ArrayList<ImeInterface>();
+  private static int index;
 
-	public static void nextIme() {
-		if (instances == null || instances.size() == 0) {
-			enabled = false;
-			return;
-		}
-		if (enabled) {
-			index++;
-			if (index >= instances.size()) {
-				index = 0;
-				enabled = false;
-			}
-		} else {
-			enabled = true;
-			index = 0;
-		}
-	}
+  public static void nextIme() {
+    if (instances == null || instances.size() == 0) {
+      enabled = false;
+      return;
+    }
+    if (enabled) {
+      index++;
+      if (index >= instances.size()) {
+        index = 0;
+        enabled = false;
+      }
+    } else {
+      enabled = true;
+      index = 0;
+    }
+  }
 
-	public static ImeInterface getCurrentIme() {
-		if (instances == null || !enabled) {
-			return null;
-		}
-		return instances.get(index);
-	}
+  public static ImeInterface getCurrentIme() {
+    if (instances == null || !enabled) {
+      return null;
+    }
+    return instances.get(index);
+  }
 
-	public interface ImeInterface {
+  public interface ImeInterface {
 
-		void keyPressed(KeyEvent env, Out param);
+    void keyPressed(KeyEvent env, Out param);
 
-		void keyTyped(KeyEvent env, Out param);
+    void keyTyped(KeyEvent env, Out param);
 
-		void setEnabled(boolean b);
+    void setEnabled(boolean b);
 
-		String getImeName();
-		
-		boolean longTextMode();
+    String getImeName();
 
-		void paint(Graphics2D g2, FontList fonts, int cursorX, int cursorY, Rectangle clipBounds);
+    boolean longTextMode();
 
-	}
-
+    void paint(Graphics2D g2, FontList fonts, int cursorX, int cursorY,
+               Rectangle clipBounds);
+  }
 }
