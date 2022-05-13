@@ -8,7 +8,7 @@ https://github.com/neoedmund/neoeedit
 
 - Open source, BSD LICENSE
 - Written in Java
-- Highly customized Java Swing GUI editor component.
+- Highly customized Java Swing GUI editor component
 - Stable, performant, crash proof
 - Good Unicode, CJK support, Good font handling
 - Rectangular mode
@@ -17,7 +17,7 @@ https://github.com/neoedmund/neoeedit
 - Also a command line console (no tty no input support)
 - Script ( in Java )
 - Advanced search (like grep)
-- Smart philosophy:
+- `Smart` philosophy:
   * when encounter a problem , instead of panic, it find solutions to go on
   * when you don't configure , it find best option for you
 - Small executable(200KB?), no bloatware. drop features that not often used while need lots code
@@ -27,12 +27,12 @@ https://github.com/neoedmund/neoeedit
 
 
 
-### Default key-bindings:(can be changed in config file, locate in <homedir>/.neoeedit)
+### Default key-bindings:(can be changed in config file, located in $homedir/.neoeedit)
 <pre>
 
-    <kbd>ctrl</kbd>-C/V/X: copy/paste/cut
+    <kbd>ctrl</kbd>-<kbd>C/V/X</kbd>: copy/paste/cut
 
-    <kbd>ctrl-1</kbd> go to file (and lineno) of current line.
+    <kbd>ctrl-1</kbd>: go to file (and lineno) of current line.
     <kbd>alt-E</kbd>(or <kbd>F9</kbd>): execute current line as command line
     <kbd>ctrl-O</kbd>: list files in current dir, then use ctrl-1 to open one of them.
     <kbd>alt-P</kbd>: move cursor between pair marks. (works on (){}<>)
@@ -92,6 +92,8 @@ https://github.com/neoedmund/neoeedit
     alt-c: switch between preset color modes, there are 3 now: White, Black, Blue.
     
     alt-S : change line seperator between windows(\r\n) and unix(\n)
+    
+    alt-R : readonly mode (for novel reading)
 
     It's also a image viewer! View large JPG, GIF, BMP, PNG images easily.
         Left, Right: view previous/next image
