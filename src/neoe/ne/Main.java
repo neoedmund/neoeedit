@@ -4,31 +4,26 @@ import java . io . File ;
 
 public class Main {
 	public static void main ( String [ ] args ) throws Exception {
-		EditorPanel editor = new EditorPanel ( EditorPanelConfig . DEFAULT ) ;
 		if ( args . length > 0 ) {
 			File f = new File ( args [ 0 ] ) ;
 			if ( U . isImageFile ( f ) ) {
-				new PicView ( editor ) . show ( f ) ;
+				new PicView ( ) . show ( f ) ;
 			} else {
+				EditorPanel editor = new EditorPanel ( EditorPanelConfig . DEFAULT ) ;
 				PlainPage . getPP ( editor , PageData . newFromFile ( f . getAbsolutePath ( ) ) ) ;
-				editor . openWindow ( null ) ;
+				editor . openWindow ( ) ;
+				SwingJniJvmPatch ( ) ;
 			}
 		} else {
-			editor . openWindow ( null ) ;
+			EditorPanel editor = new EditorPanel ( EditorPanelConfig . DEFAULT ) ;
+			editor . openWindow ( ) ;
+			SwingJniJvmPatch ( ) ;
 		}
-
-		SwingJniJvmPatch ( ) ;
 	}
 
-	//	public static EditorPanel open(String title, String text) throws
-	//Exception { 		EditorPanel editor = new EditorPanel(EditorPanelConfig.DEFAULT);
-	//		PlainPage pp = new PlainPage(editor, PageData.newEmpty(title,
-	//"")); 		pp.ptEdit.append(text); 		editor.openWindow(); 		return editor;
-	//	}
-
 	/**
-   * something like said in https://forums.oracle.com/thread/1542114
-   */
+	 * something like https://forums.oracle.com/thread/1542114
+	 */
 	private static void SwingJniJvmPatch ( ) {
 		while ( true ) {
 			try {

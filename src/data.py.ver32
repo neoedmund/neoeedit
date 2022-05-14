@@ -41,6 +41,7 @@
 		[ moveViewDown ctrl-DOWN cursor ]
 		[ resetScale ctrl-0 scale "tip:ctrl+mouse wheel to scale" ]
 		[ go ctrl-1 Important "goto file or page or set font, the most useful command" ]
+                [ goInNewWindow ctrl-alt-1 Important "see go" ]
 		[ fileHistory ctrl-H etc ]
 		[ dirHistory ctrl-alt-H etc ]
 		[ openFileSelector ctrl-2 etc ]
@@ -87,14 +88,14 @@
 	}
 	font : {
 		font_example : [ "font filename" fontsize <empty>|BOLD|ITALIC ]
+		console : [ FreeMono 12 ]
 		list : [
-
-		]
-		list2 : [ [ /home/neoe/oss/xiaolishu.ttf 14 ]
-			[ "DejaVu Sans Mono" 12 ]
-			[ "微软雅黑 Light" 14 ]
 			[ "DejaVu Math TeX Gyre" 14 ]
 			[ "Noto Sans CJK SC DemiLight" 14 ]
+		]
+		list_noused : [ [ /home/neoe/oss/xiaolishu.ttf 14 ]
+			[ "DejaVu Sans Mono" 12 ]
+			[ "微软雅黑 Light" 14 ]
 			[ /usr/share/fonts/opentype/noto/NotoSansCJK-Thin.ttc 14 ]
 		]
 	}

@@ -70,6 +70,7 @@ import javax . swing . JButton ;
 import javax . swing . JComponent ;
 import javax . swing . JFileChooser ;
 import javax . swing . JFrame ;
+import javax . swing . JInternalFrame ;
 import javax . swing . JOptionPane ;
 import javax . swing . JPanel ;
 import javax . swing . TransferHandler ;
@@ -85,6 +86,13 @@ import neoe . ne . util . PyData ;
  * Trivial static methods.
  */
 public class U {
+	private static void focusLine ( EditorPanel ep , int x , int lineNo , boolean recCh ) {
+		PlainPage pp = ep . getPage ( ) ;
+		pp . cursor . setSafePos ( x , lineNo - 1 , recCh ) ;
+		pp . focusCursor ( ) ;
+		U . checkChangedOutside ( pp ) ;
+		ep . repaint ( ) ;
+	}
 	static Font getFont ( String font , float size ) throws Exception {
 		Font f ;
 		if ( new File ( font ) . isFile ( ) ) {
@@ -141,6 +149,32 @@ public class U {
 			return -1 ;
 		}
 		return p ;
+	}
+
+	static EditorPanel newWindow ( PlainPage pp ) throws Exception {
+		EditorPanel uiComp = pp . uiComp ;
+		EditorPanel ep = new EditorPanel ( EditorPanelConfig . DEFAULT ) ;
+		if ( uiComp . desktopPane == null ) {
+			ep . openWindow ( ) ;
+		} else {
+			// U.e_png, parentUI, frame, frame, null
+			JInternalFrame neframe
+			= new JInternalFrame ( "ne" , true , true , true , true ) ;
+			ep . openWindow ( U . e_png , neframe , uiComp . realJFrame ,
+				uiComp . desktopPane ) ;
+			uiComp . desktopPane . add ( neframe ) ;
+			neframe . setVisible ( true ) ;
+			int fc = uiComp . desktopPane . getAllFrames ( ) . length ;
+			JInternalFrame p1 = ( JInternalFrame ) uiComp . frame ;
+			neframe . setLocation ( p1 . getLocation ( ) . x + 5 * fc ,
+				p1 . getLocation ( ) . y + 5 * fc ) ;
+			neframe . setLayer ( p1 . getLayer ( ) ) ;
+			neframe . setSize ( p1 . getSize ( ) ) ;
+			neframe . setSelected ( true ) ;
+		}
+		// set default working path
+		ep . getPage ( ) . pageData . workPath = pp . pageData . workPath ;
+		return ep ;
 	}
 
 	public static class LocationHistory < E > {
@@ -1538,7 +1572,7 @@ public class U {
 	static class TH extends TransferHandler {
 		private static final long serialVersionUID = 5046626748299023865L ;
 
-		private EditorPanel ep ;
+		private final EditorPanel ep ;
 
 		TH ( EditorPanel ep ) { this . ep = ep ;
 		}
@@ -2277,27 +2311,20 @@ public class U {
 	}
 
 	static boolean findAndShowPageListPage ( EditorPanel ep , String title ,
-		int lineNo , boolean rec ) {
+		int lineNo , boolean rec ) throws Exception {
 		PlainPage pp = findPage ( ep , title ) ;
 		if ( pp == null ) {
 			return false ;
 		} else {
-			ep . setPage ( pp , rec ) ;
+			ep = ep . setPage ( pp , rec ) ;
+			focusLine ( ep , 0 , lineNo , rec ) ;
 			return true ;
 		}
 	}
 
 	static boolean findAndShowPageListPage ( EditorPanel ep , String title ,
-		int lineNo , int x , boolean recCh ) {
-		boolean b = findAndShowPageListPage ( ep , title , lineNo , recCh ) ;
-		if ( b ) {
-			PlainPage pp = ep . getPage ( ) ;
-			pp . cursor . setSafePos ( x , lineNo - 1 , recCh ) ;
-			pp . focusCursor ( ) ;
-			U . checkChangedOutside ( pp ) ;
-			ep . repaint ( ) ;
-		}
-		return b ;
+		int lineNo , int x , boolean recCh ) throws Exception {
+		return findAndShowPageListPage ( ep , title , lineNo , recCh ) ;
 	}
 
 	static void findchar ( PlainPage page , char ch , int inc , int [ ] c1 , char chx ) {
@@ -3084,7 +3111,7 @@ public class U {
 
 	static PlainPage openFile ( File f , EditorPanel ep ) throws Exception {
 		if ( isImageFile ( f ) ) {
-			new PicView ( ep ) . show ( f ) ;
+			new PicView ( ) . show ( f ) ;
 			return null ;
 		} else {
 			if ( ep == null ) {
@@ -3092,8 +3119,9 @@ public class U {
 			}
 			if ( findAndShowPageListPage ( ep , f . getAbsolutePath ( ) , 0 , true ) ) {
 				return ep . getPage ( ) ;
+			} else {
+				return PlainPage . getPP ( ep , PageData . newFromFile ( f . getAbsolutePath ( ) ) ) ;
 			}
-			return PlainPage . getPP ( ep , PageData . newFromFile ( f . getAbsolutePath ( ) ) ) ;
 		}
 	}
 
@@ -3112,7 +3140,7 @@ public class U {
 			pp . pageData . workPath = page . pageData . workPath ;
 		} else {
 			EditorPanel ep = page . uiComp ;
-			if ( ! U . findAndShowPageListPage ( ep , title , 0 , true ) ) {
+			if ( U . findAndShowPageListPage ( ep , title , 0 , true ) ) {
 				PlainPage . getPP ( page . uiComp , pd ) ;
 			}
 		}
@@ -3128,7 +3156,6 @@ public class U {
 		if ( findAndShowPageListPage ( ep , title , line , recCh ) ) {
 			return true ;
 		}
-		PlainPage oldPage = ep . getPage ( ) ;
 		PageData pd = PageData . dataPool . get ( title ) ;
 		// including titles not saved
 		if ( pd == null ) {
@@ -3136,27 +3163,7 @@ public class U {
 		}
 
 		final PlainPage page = PlainPage . getPP ( ep , pd ) ;
-		int totalLine = page . pageData . lines . size ( ) ;
-		if ( totalLine > 0 ) {
-			line -= 1 ;
-			page . cx = 0 ;
-			page . cy = Math . max ( 0 , Math . min ( line , totalLine - 1 ) ) ;
-			page . selectstartx = 0 ;
-			page . selectstarty = page . cy ;
-			page . selectstopx = 0 ;
-			page . selectstopy = page . cy ;
-			page . sy = Math . max (
-				0 , page . cy -
-				( oldPage == null ? 3 : Math . max ( oldPage . showLineCnt / 2 , 3 ) ) ) ;
-			if ( oldPage != null ) {
-				int emptyLines = oldPage . showLineCnt - ( totalLine - page . sy ) ;
-				if ( emptyLines > 0 ) {
-					page . sy -= emptyLines ;
-				}
-				page . sy = Math . max ( 0 , page . sy ) ;
-			}
-			page . uiComp . repaint ( ) ;
-		}
+		focusLine ( page . uiComp , 0 , line , recCh ) ;
 
 		return true ;
 	}

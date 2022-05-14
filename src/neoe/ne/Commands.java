@@ -15,6 +15,7 @@ public enum Commands {
 	find ,
 	findNext ,
 	go ,
+	goInNewWindow ,
 	gotoLine ,
 	hex ,
 	indentLeft ,

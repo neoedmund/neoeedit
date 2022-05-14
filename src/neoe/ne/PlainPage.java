@@ -27,6 +27,828 @@ import neoe . ne . Plugin . PluginAction ;
 import neoe . ne . util . FindJDK ;
 
 public class PlainPage {
+	public static PlainPage getPP ( EditorPanel editor , PageData data )
+	throws Exception {
+		PlainPage pp = U . findPageByData ( editor . pageSet , data ) ;
+		if ( pp != null ) {
+			editor = editor . setPage ( pp , true ) ;
+			System . out . println ( "set existed page." ) ;
+			return editor . page ;
+		}
+		return new PlainPage ( editor , data , editor . getPage ( ) ) ;
+	}
+	private static boolean isButtonDown ( int i , MouseEvent evt ) {
+		int b = InputEvent . getMaskForButton ( i ) ;
+		int ex = evt . getModifiersEx ( ) ;
+		return ( ex & b ) != 0 ;
+	}
+
+	boolean changedOutside = false ;
+	public Console console ;
+	Cursor cursor = new Cursor ( ) ;
+	public int cx ;
+	public int cy ;
+	public Map < String , String > env ;
+	public String [ ] envs ;
+	FontList fontList ;
+	boolean ignoreCase = true ;
+	boolean isCommentChecked = false ;
+	public int keepx = -1 ;
+	Dimension lastSize = new Dimension ( ) ;
+	int mcount ;
+	String msg ;
+	long msgtime ;
+
+	//
+	boolean mshift ;
+	/*mouse x,y*/
+	int mx , my ;
+
+	public PageData pageData ;
+
+	private String preeditText ;
+	public EasyEdit ptEdit = new EasyEdit ( ) ;
+	public U . FindAndReplace ptFind = new U . FindAndReplace ( this ) ;
+	public Selection ptSelection = new Selection ( ) ;
+	boolean readonly = false ;
+
+	boolean rectSelectMode = false ;
+	boolean savingFromSelectionCancel ;
+	String searchResultOf ;
+	int selectstartx , selectstarty , selectstopx , selectstopy ;
+
+	int showLineCnt ;
+	int sx , sy ;
+
+	int toolbarHeight = 25 ;
+
+	public Paint ui = new Paint ( ) ;
+	public EditorPanel uiComp ;
+
+	private PlainPage ( ) {
+	}
+
+	/**there is only a few caller*/
+	private PlainPage ( EditorPanel editor , PageData data , PlainPage cp )
+	throws Exception {
+		this . uiComp = editor ;
+		this . pageData = data ;
+		if ( cp != null ) {
+			ui . applyColorMode ( cp . ui . colorMode ) ;
+			ui . scalev = cp . ui . scalev ;
+			fontList = cp . fontList ;
+			if ( pageData . workPath == null ) {
+				pageData . workPath = cp . pageData . workPath ;
+			}
+			//            System.out.println("workPath=" + pageData.workPath);
+		} else {
+			fontList = U . defaultFontList ;
+		}
+		int index = editor . pageSet . indexOf ( editor . getPage ( ) ) ;
+		if ( index >= editor . pageSet . size ( ) || index < 0 ) {
+		}
+		editor . pageSet . add ( this ) ;
+		editor = editor . setPage ( this , true ) ;
+		editor . changeTitle ( ) ;
+		cy = U . optimizeFileHistory ( data . getFn ( ) ) ;
+		// uiComp.ptCh.record(data.getTitle(), cx, cy);
+		data . ref ++ ;
+	}
+
+	public void close ( ) throws Exception {
+		String lastPage = uiComp . pageHis . back ( U . getLocString ( this ) ) ;
+
+		uiComp . page = null ;
+		uiComp . pageSet . remove ( this ) ;
+
+		pageData . ref -- ;
+		if ( pageData . ref <= 0 ) {
+			pageData . close ( ) ;
+		}
+		pageData = null ;
+
+		if ( uiComp . pageSet . size ( ) <= 0 ) {
+			// nothing to show
+			if ( uiComp . frame != null ) {
+				if ( uiComp . frame instanceof JFrame ) {
+					( ( JFrame ) uiComp . frame ) . dispose ( ) ;
+				} else if ( uiComp . frame instanceof JFrame ) {
+					( ( JInternalFrame ) uiComp . frame ) . dispose ( ) ;
+				}
+			}
+		} else {
+			U . gotoFileLine ( lastPage , uiComp , false ) ;
+		}
+		U . gc ( ) ;
+	}
+
+	private void doGo ( String line , boolean record , boolean newWindow ) throws Exception {
+		if ( line == null ) {
+			return ;
+		}
+		if ( line . startsWith ( "set-font:" ) ) {
+			String fn = line . substring ( "set-font:" . length ( ) ) . trim ( ) ;
+			Font font = U . getFont ( fn , fontList . getlineHeight ( ) ) ;
+			U . setFont ( uiComp , font ) ;
+		} else {
+			uiComp . newWindow = newWindow ;
+			if ( searchResultOf == null
+				|| ! U . gotoFileLine2 ( uiComp , line , searchResultOf , record ) ) {
+				if ( ! U . gotoFileLine ( line , uiComp , record ) ) {
+					if ( ! U . listDir ( PlainPage . this , cy ) ) {
+						U . launch ( line ) ;
+					}
+				}
+			}
+			uiComp . newWindow = false ;
+		}
+	}
+	private void doMoveViewDown ( ) {
+		sy = Math . min ( sy + 1 , pageData . roLines . getLinesize ( ) - 1 ) ;
+	}
+	private void doMoveViewUp ( ) {
+		sy = Math . max ( 0 , sy - 1 ) ;
+	}
+
+	public void focusCursor ( ) {
+		if ( cy < sy ) {
+			sy = Math . max ( 0 , cy - showLineCnt / 2 + 1 ) ;
+		}
+		if ( showLineCnt > 0 ) {
+			if ( sy + showLineCnt - 1 < cy ) {
+				sy = Math . max ( 0 , cy - showLineCnt / 2 + 1 ) ;
+			}
+		}
+		int totalLine = pageData . lines . size ( ) ;
+		int emptyLines = showLineCnt - ( totalLine - sy ) ;
+		if ( emptyLines > 0 ) {
+			sy -= emptyLines ;
+		}
+		sy = Math . max ( 0 , sy ) ;
+	}
+	private boolean isButtonBack ( MouseEvent evt ) {
+		if ( FindJDK . isWindows ) {
+			if ( isButtonDown ( 4 , evt ) ) {
+				return true ;
+			}
+		} else { // Linux
+			if ( isButtonDown ( 6 , evt ) ) {
+				return true ;
+			}
+		}
+		return false ;
+	}
+	private boolean isButtonForward ( MouseEvent evt ) {
+		if ( FindJDK . isWindows ) {
+			if ( isButtonDown ( 5 , evt ) ) {
+				return true ;
+			}
+		} else { // Linux
+			if ( isButtonDown ( 7 , evt ) ) {
+				return true ;
+			}
+		}
+		return false ;
+	}
+
+	public void keyPressed ( KeyEvent evt ) {
+		Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
+		if ( ime != null ) {
+			Out param = new Out ( ) ;
+			ime . keyPressed ( evt , param ) ;
+
+			if ( param . yield != null ) {
+				ptEdit . insertString ( param . yield ) ;
+			}
+			preeditText = param . preedit ;
+			if ( param . consumed ) {
+				uiComp . repaint ( ) ;
+				return ;
+			}
+		}
+
+		if ( evt . getKeyCode ( ) == KeyEvent . VK_ESCAPE ) {
+			if ( ui . cp . showCommandPanel ) {
+				ui . cp . showCommandPanel = false ;
+			}
+		}
+		final PageData pageData = this . pageData ;
+		pageData . history . beginAtom ( ) ;
+		try {
+			mshift = evt . isShiftDown ( ) ;
+			int ocx = cx ;
+			int ocy = cy ;
+			Commands cmd = U . mappingToCommand ( evt ) ;
+			if ( cmd == null ) {
+				int kc = evt . getKeyCode ( ) ;
+				boolean onlyShift
+				= evt . isShiftDown ( ) && ! evt . isControlDown ( ) && ! evt . isAltDown ( ) ;
+				if ( ! onlyShift
+					&& ( evt . isActionKey ( ) || evt . isControlDown ( ) || evt . isAltDown ( ) )
+					&& ( kc != KeyEvent . VK_SHIFT && kc != KeyEvent . VK_CONTROL
+						&& kc != KeyEvent . VK_ALT ) ) {
+					String name = U . getKeyName ( evt ) ;
+					PluginAction ac = U . pluginKeys . get ( name ) ;
+					if ( ac != null ) {
+						try {
+							ac . run ( this ) ;
+						} catch ( Throwable e ) {
+							e . printStackTrace ( ) ;
+							if ( e . getCause ( ) != null ) {
+								e = e . getCause ( ) ;
+							}
+							ui . message ( "plugin:" + e . getMessage ( ) ) ;
+						}
+						evt . consume ( ) ;
+					} else {
+						unknownCommand ( evt ) ;
+					}
+				}
+			} else {
+				processCommand ( cmd ) ;
+				evt . consume ( ) ;
+			}
+
+			boolean cmoved = ! ( ocx == cx && ocy == cy ) ;
+			if ( cmoved ) {
+				if ( evt . isShiftDown ( ) ) {
+					selectstopx = cx ;
+					selectstopy = cy ;
+				} else {
+					if ( savingFromSelectionCancel ) {
+						savingFromSelectionCancel = false ;
+					} else {
+						ptSelection . cancelSelect ( ) ;
+					}
+				}
+			}
+			uiComp . repaint ( ) ;
+		} catch ( Throwable e ) {
+			ui . message ( "err:" + e ) ;
+			e . printStackTrace ( ) ;
+		}
+		pageData . history . endAtom ( ) ;
+	}
+
+	public void keyReleased ( KeyEvent env ) {
+	}
+
+	public void keyTyped ( KeyEvent env ) {
+		if ( env . isControlDown ( ) || env . isAltDown ( ) ) {
+			// ignore
+		} else {
+			pageData . history . beginAtom ( ) ;
+			char kc = env . getKeyChar ( ) ;
+			if ( kc == KeyEvent . VK_TAB && env . isShiftDown ( ) ) {
+				Rectangle r = ptSelection . getSelectRect ( ) ;
+				if ( r . y < r . height ) {
+					ptEdit . moveRectLeft ( r . y , r . height ) ;
+				} else {
+					ptEdit . moveLineLeft ( cy ) ;
+				}
+			} else if ( kc == KeyEvent . VK_TAB && ! env . isShiftDown ( )
+				&& selectstarty != selectstopy && ! rectSelectMode ) {
+				Rectangle r = ptSelection . getSelectRect ( ) ;
+				ptEdit . moveRectRight ( r . y , r . height ) ;
+			} else {
+				Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
+				if ( ime != null ) {
+					Out param = new Out ( ) ;
+					ime . keyTyped ( env , param ) ;
+
+					if ( param . yield != null ) {
+						ptEdit . insertString ( param . yield ) ;
+					}
+					preeditText = param . preedit ;
+
+					if ( ! param . consumed ) {
+						ptEdit . insert ( kc ) ;
+					}
+				} else {
+					ptEdit . insert ( kc ) ;
+					if ( kc == '=' ) {
+						String ss = pageData . roLines . getline ( cy ) . toString ( ) ;
+						if ( cx <= ss . length ( ) && cx >= 3 ) {
+							try {
+								ss = ss . substring ( 0 , cx ) ;
+								if ( ss . endsWith ( "=" ) ) {
+									ss = ss . substring ( 0 , ss . length ( ) - 1 ) ;
+								}
+								ss = U . getMathExprTail ( ss ) ;
+								if ( ! ss . isEmpty ( ) ) {
+									ptEdit . insertString ( " " + U . evalMath ( ss ) ) ;
+								}
+							} catch ( Exception ex ) {
+								/* ignore */
+							}
+						}
+					}
+				}
+			}
+			pageData . history . endAtom ( ) ;
+		}
+	}
+
+	public void mouseClicked ( MouseEvent evt ) {
+		if ( ui . cp . showCommandPanel ) {
+			ui . cp . mouseClicked ( evt ) ;
+			if ( ui . cp . clickedName != null ) {
+				try {
+					processCommand ( Commands . valueOf ( ui . cp . clickedName ) ) ;
+					uiComp . repaint ( ) ;
+					mx = 0 ;
+					my = 0 ;
+					ui . cp . showCommandPanel = false ;
+				} catch ( Throwable e ) {
+					ui . message ( "err:" + e ) ;
+					e . printStackTrace ( ) ;
+				}
+				ui . cp . clickedName = null ;
+			}
+			return ;
+		} {
+			if ( isButtonDown ( 4 , evt ) || isButtonDown ( 5 , evt )
+				|| isButtonDown ( 6 , evt ) || isButtonDown ( 7 , evt ) ) {
+				return ;
+			}
+		}
+		int my = evt . getY ( ) ;
+		if ( my > 0 && my < toolbarHeight ) {
+			if ( pageData . getFn ( ) != null ) {
+				U . setClipBoard ( pageData . getFn ( ) ) ;
+				ui . message ( "filename copied" ) ;
+				my = 0 ;
+				// uiComp.repaint();
+			} else if ( pageData . workPath != null ) {
+				U . setClipBoard ( pageData . workPath ) ;
+				ui . message ( "work path copied" ) ;
+				my = 0 ;
+			} else {
+				try {
+					if ( U . saveFile ( this ) ) {
+						ui . message ( "saved" ) ;
+					}
+				} catch ( Throwable e ) {
+					ui . message ( "err:" + e ) ;
+					e . printStackTrace ( ) ;
+				}
+			}
+		} else {
+			int mx = evt . getX ( ) ;
+			if ( mx > 0 && mx < ui . gutterWidth ) {
+				cursor . gotoLine ( ) ;
+				uiComp . repaint ( ) ;
+			}
+		}
+	}
+
+	public void mouseDragged ( MouseEvent evt ) { {
+			if ( isButtonDown ( 4 , evt ) || isButtonDown ( 5 , evt )
+				|| isButtonDown ( 6 , evt ) || isButtonDown ( 7 , evt ) ) {
+				return ;
+			}
+		}
+		mx = evt . getX ( ) ;
+		my = evt . getY ( ) ;
+		mshift = true ;
+		uiComp . repaint ( ) ;
+	}
+
+	public void mouseMoved ( MouseEvent evt ) {
+		if ( ui . cp . showCommandPanel ) {
+			ui . cp . mouseMoved ( evt ) ;
+		}
+	}
+
+	public void mousePressed ( MouseEvent evt ) {
+		if ( isButtonBack ( evt ) ) {
+			pageBack ( ) ;
+		} else if ( isButtonForward ( evt ) ) {
+			pageForward ( ) ;
+		} else {
+			mx = evt . getX ( ) ;
+			my = evt . getY ( ) ;
+			mshift = evt . isShiftDown ( ) ;
+			mcount = evt . getClickCount ( ) ;
+			uiComp . repaint ( ) ;
+		}
+		// System.out.println("m press");
+	}
+
+	public void mouseWheelMoved ( MouseWheelEvent env ) {
+		int amount = env . getWheelRotation ( ) * env . getScrollAmount ( ) ;
+		if ( env . isControlDown ( ) ) { // scale
+			U . scale ( amount , ui ) ;
+			this . uiComp . repaint ( ) ;
+		} else if ( env . isAltDown ( ) ) { // horizon scroll
+			cursor . scrollHorizon ( amount ) ;
+		} else { // scroll
+			cursor . scroll ( amount ) ;
+		}
+	}
+
+	private void pageBack ( ) {
+		String s = uiComp . pageHis . back ( U . getLocString ( this ) ) ;
+		if ( s != null ) {
+			try {
+				U . gotoFileLine ( s , uiComp , false ) ;
+			} catch ( Throwable e ) {
+				ui . message ( "err:" + e ) ;
+				e . printStackTrace ( ) ;
+			}
+		}
+	}
+
+	private void pageForward ( ) {
+		String s = uiComp . pageHis . forward ( U . getLocString ( this ) ) ;
+		if ( s != null ) {
+			try {
+				U . gotoFileLine ( s , uiComp , false ) ;
+			} catch ( Throwable e ) {
+				ui . message ( "err:" + e ) ;
+				e . printStackTrace ( ) ;
+			}
+		}
+	}
+	/**
+	 * Add support to on-the-spot pre-editing of input method like CJK IME, not
+	 * perfect(the current java implementation seems not support pre-edit window
+	 * following function), but keep up with what did as swing JTextComponent.
+	 *
+	 */
+	public void preedit ( String text , int committedCharacterCount ) {
+		// System.out.println("preedit:" + text + "," +
+		// committedCharacterCount);
+		if ( committedCharacterCount > 0 ) {
+			String commit = text . substring ( 0 , committedCharacterCount ) ;
+			text = text . substring ( committedCharacterCount ) ;
+			ptEdit . insertString ( commit ) ;
+		}
+		this . preeditText = text ;
+		uiComp . repaint ( ) ;
+	}
+
+	void processCommand ( Commands cmd ) throws Exception {
+		switch ( cmd ) {
+			case showHelp :
+			U . showHelp ( ui , uiComp ) ;
+			break ;
+			case saveAs :
+			U . saveAs ( this ) ;
+			break ;
+			case changePathSep :
+			U . changePathSep ( pageData , cy ) ;
+			break ;
+			case findNext :
+			if ( ptFind . back ) {
+				ptFind . findPrev ( ptFind . word ) ;
+			} else {
+				ptFind . findNext ( ptFind . word ) ;
+			}
+			break ;
+			case findPrev :
+			if ( ! ptFind . back ) {
+				ptFind . findPrev ( ptFind . word ) ;
+			} else {
+				ptFind . findNext ( ptFind . word ) ;
+			}
+			break ;
+			case commandPanel :
+			ui . cp . showCommandPanel = true ;
+			break ;
+			case reloadWithEncoding :
+			if ( pageData . getTitle ( ) . equals ( U . titleOfPages ( uiComp ) ) ) {
+				pageData . setLines ( U . getPageListStrings ( uiComp ) ) ;
+			}
+			U . reloadWithEncodingByUser ( pageData . getFn ( ) , this ) ;
+			PlainPage . this . changedOutside = false ;
+			break ;
+			case moveLeft :
+			cursor . moveLeft ( ) ;
+			focusCursor ( ) ;
+			break ;
+			case moveRight :
+			cursor . moveRight ( ) ;
+			focusCursor ( ) ;
+			break ;
+			case moveUp :
+			if ( readonly ) {
+				doMoveViewUp ( ) ;
+			} else {
+				cursor . moveUp ( ) ;
+				focusCursor ( ) ;
+			}
+			break ;
+			case moveDown :
+			if ( readonly ) {
+				doMoveViewDown ( ) ;
+			} else {
+				cursor . moveDown ( ) ;
+				focusCursor ( ) ;
+			}
+			break ;
+			case moveHome :
+			cursor . moveHome ( ) ;
+			focusCursor ( ) ;
+			break ;
+			case moveEnd :
+			cursor . moveEnd ( ) ;
+			focusCursor ( ) ;
+			break ;
+			case movePageUp :
+			if ( readonly ) {
+				sy = Math . max ( 0 , sy - showLineCnt ) ;
+			} else {
+				cursor . movePageUp ( ) ;
+				focusCursor ( ) ;
+			}
+			break ;
+			case movePageDown :
+			if ( readonly ) {
+				sy = Math . min ( sy + showLineCnt , pageData . roLines . getLinesize ( ) - 1 ) ;
+			} else {
+				cursor . movePageDown ( ) ;
+				focusCursor ( ) ;
+			}
+			break ;
+			case indentLeft :
+			ptEdit . moveLineLeft ( cy ) ;
+			focusCursor ( ) ;
+			break ;
+			case indentRight :
+			ptEdit . moveLineRight ( cy ) ;
+			focusCursor ( ) ;
+			break ;
+			case rectangleMode :
+			rectSelectMode = ! rectSelectMode ;
+			break ;
+			case makeNoise :
+			ui . noise = ! ui . noise ;
+			if ( ui . noise ) {
+				U . startNoiseThread ( ui , uiComp ) ;
+			}
+			break ;
+			case toggleFps :
+			ui . fpsOn = ! ui . fpsOn ;
+			break ;
+			case switchLineSeperator :
+			if ( pageData . lineSep . equals ( "\n" ) ) {
+				pageData . lineSep = "\r\n" ;
+			} else {
+				pageData . lineSep = "\n" ;
+			}
+			break ;
+			case wrapLines :
+			System . out . println ( "wrapLines!" ) ;
+			ptEdit . wrapLines ( cx ) ;
+			focusCursor ( ) ;
+			break ;
+			case Javascript :
+			U . runScript ( this ) ;
+			break ;
+			case moveLeftBig :
+			cx = Math . max ( 0 , cx - uiComp . getWidth ( ) / 10 ) ;
+			focusCursor ( ) ;
+			break ;
+			case moveRightBig :
+			cx = cx + uiComp . getWidth ( ) / 10 ;
+			focusCursor ( ) ;
+			break ;
+			case switchColorMode :
+			ui . setNextColorMode ( ) ;
+			ui . applyColorMode ( ui . colorMode ) ;
+			break ;
+
+			case moveBetweenPair :
+			cursor . moveToPair ( ) ;
+			break ;
+
+			case execute :
+			if ( cy < pageData . lines . size ( ) ) {
+				U . exec ( this , pageData . roLines . getline ( cy ) . toString ( ) ) ;
+			}
+			break ;
+			case hex :
+			String s = U . exportString ( ptSelection . getSelected ( ) , pageData . lineSep ) ;
+			if ( s != null && s . length ( ) > 0 ) {
+				U . showHexOfString ( s , PlainPage . this ) ;
+			}
+			break ;
+			case listFonts :
+			U . listFonts ( this ) ;
+			break ;
+			case copySelected :
+			ptSelection . copySelected ( ) ;
+			break ;
+			case paste :
+			if ( keepx == -1 ) { // use-case 2: paste same thing along lines
+				//				System.out.println("keepx2=" + cx);
+				keepx = cx ;
+			}
+			ptEdit . insertString ( U . getClipBoard ( ) , true ) ;
+			break ;
+			case cut :
+			ptSelection . cutSelected ( ) ;
+			break ;
+			case selectLine :
+			ptSelection . selectLine ( ) ;
+			break ;
+			case selectAll :
+			ptSelection . selectAll ( ) ;
+			break ;
+			case deleteLine :
+			if ( ptSelection . isSelected ( ) ) {
+				ptEdit . deleteRect ( ptSelection . getSelectRect ( ) ) ;
+			} else {
+				ptEdit . deleteLine ( cy ) ;
+			}
+			focusCursor ( ) ;
+			break ;
+			case openFile :
+			U . openFile ( this ) ;
+			break ;
+			case newPage :
+			PlainPage pp = new PlainPage (
+				uiComp , PageData . newEmpty ( "UNTITLED #" + U . randomID ( ) ) , this ) ;
+			pp . ptSelection . selectAll ( ) ;
+			break ;
+			case newWindow :
+			U . newWindow ( this ) ;
+
+			break ;
+			case save :
+			if ( U . saveFile ( this ) ) {
+				ui . message ( "saved" ) ;
+			}
+			break ;
+			case gotoLine :
+			cursor . gotoLine ( ) ;
+			break ;
+			case undo :
+			pageData . history . undo ( this ) ;
+			break ;
+			case find :
+			ptFind . showFindDialog ( ) ;
+			break ;
+			case redo :
+			pageData . history . redo ( this ) ;
+			break ;
+			case closePage :
+			U . closePage ( this ) ;
+			break ;
+			case setEncoding :
+			U . setEncodingByUser ( this , "Set Encoding:" ) ;
+			break ;
+			case moveToHead :
+			cy = 0 ;
+			cx = 0 ;
+			focusCursor ( ) ;
+			break ;
+			case moveToTail :
+			cy = pageData . roLines . getLinesize ( ) - 1 ;
+			cx = 0 ;
+			focusCursor ( ) ;
+			break ;
+			case removeTralingSpace :
+			U . removeTrailingSpace ( pageData ) ;
+			break ;
+			case moveLeftWord :
+			cursor . moveLeftWord ( ) ;
+			focusCursor ( ) ;
+			break ;
+			case deleteWord :
+			ptEdit . deleteSpace ( ) ;
+			focusCursor ( ) ;
+			break ;
+			case moveRightWord :
+			cursor . moveRightWord ( ) ;
+			focusCursor ( ) ;
+			break ;
+			case moveViewUp :
+			doMoveViewUp ( ) ;
+			break ;
+			case moveViewDown :
+			doMoveViewDown ( ) ;
+			break ;
+			case moveUpLangLevel :
+			cursor . doMoveUpLangLevel ( ) ;
+			break ;
+			case resetScale :
+			ui . scalev = 1 ;
+			break ;
+			case go :
+			if ( cy < pageData . lines . size ( ) ) {
+				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
+				doGo ( line , true , false ) ;
+			}
+			break ;
+			case goInNewWindow : // not implement, hard
+			if ( cy < pageData . lines . size ( ) ) {
+				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
+				doGo ( line , true , true ) ;
+			}
+			break ;
+			case launch :
+			if ( cy < pageData . lines . size ( ) ) {
+				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
+				U . launch ( line ) ;
+			}
+			break ;
+			case readonlyMode :
+			readonly = ! readonly ;
+			break ;
+			case fileHistory :
+			U . openFileHistory ( uiComp ) ;
+			break ;
+			case dirHistory :
+			U . openDirHistory ( uiComp ) ;
+			break ;
+			case openFileSelector :
+			if ( cy < pageData . lines . size ( ) ) {
+				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
+				U . openFileSelector ( line , this ) ;
+			}
+			break ;
+			case print :
+			new U . Print ( PlainPage . this ) . printPages ( ) ;
+			break ;
+			case pageList :
+			U . switchToPageListPage ( this ) ;
+			break ;
+			case quickSwitchPage :
+			// U.switchPageInOrder(this);
+			// U.switchToLastPage(this);
+			doGo ( uiComp . pageHis . back ( U . getLocString ( this ) ) , false , false ) ;
+			break ;
+			case toggleIME :
+			Ime . nextIme ( ) ;
+			Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
+			if ( ime != null ) {
+				ime . setEnabled ( true ) ;
+			}
+			break ;
+			case ShellCommand :
+			Shell . run ( PlainPage . this , cy ) ;
+			break ;
+			case pageForward :
+			pageForward ( ) ;
+			break ;
+			case pageBack :
+			pageBack ( ) ;
+			break ;
+			case mathEval :
+			String ss = pageData . roLines . getline ( cy ) . toString ( ) ;
+			if ( cx <= ss . length ( ) && cx >= 3 ) {
+				try {
+					ss = ss . substring ( 0 , cx ) ;
+					if ( ss . endsWith ( "=" ) ) {
+						ss = ss . substring ( 0 , ss . length ( ) - 1 ) ;
+					}
+					ss = U . getMathExprTail ( ss ) ;
+					if ( ! ss . isEmpty ( ) ) {
+						ptEdit . insertString ( " = " + U . evalMath ( ss ) ) ;
+					}
+				} catch ( Exception ex ) {
+					/* ignore */
+				}
+			}
+			break ;
+			default :
+			ui . message ( "unprocessed Command:" + cmd ) ;
+		}
+	}
+
+	private void unknownCommand ( KeyEvent env ) {
+		StringBuilder sb = new StringBuilder ( ) ;
+		if ( env . isControlDown ( ) ) {
+			sb . append ( "Ctrl" ) ;
+		}
+		if ( env . isAltDown ( ) ) {
+			if ( sb . length ( ) > 0 ) {
+				sb . append ( "-" ) ;
+			}
+			sb . append ( "Alt" ) ;
+		}
+		if ( env . isShiftDown ( ) ) {
+			if ( sb . length ( ) > 0 ) {
+				sb . append ( "-" ) ;
+			}
+			sb . append ( "Shift" ) ;
+		}
+		if ( sb . length ( ) > 0 ) {
+			sb . append ( "-" ) ;
+		}
+		sb . append ( KeyEvent . getKeyText ( env . getKeyCode ( ) ) ) ;
+		ui . message ( "Unknow Command:" + sb ) ;
+	}
+
+	public void xpaint ( Graphics g , Dimension size ) {
+		if ( ! lastSize . equals ( size ) ) { // resized
+			lastSize = size ;
+			ui . cp . inited = false ;
+		}
+		ui . xpaint ( g , size ) ;
+	}
 	class Cursor {
 		void gotoLine ( ) {
 			String s = JOptionPane . showInputDialog ( uiComp , "Goto Line" ) ;
@@ -259,7 +1081,6 @@ public class PlainPage {
 			PlainPage . this . ui . commentor . moveToPairMark ( cx - 1 , cy , '{' , '}' , -1 ) ;
 		}
 	}
-
 	public class EasyEdit {
 		public synchronized void append ( String s ) {
 			cy = pageData . roLines . getLinesize ( ) - 1 ;
@@ -631,14 +1452,10 @@ public class PlainPage {
 				}
 			}
 			String title = "wrapped " + pageData . getTitle ( ) + " #" + U . randomID ( ) ;
-			PlainPage p2
-			= new PlainPage ( uiComp , PageData . newEmpty ( title ) , PlainPage . this ) ;
+			PlainPage p2 = new PlainPage ( uiComp , PageData . newEmpty ( title ) , PlainPage . this ) ;
 			p2 . pageData . setLines ( newtext ) ;
 		}
 	}
-
-	FontList fontList ;
-
 	public class Paint {
 		class Comment {
 			void markBox ( Graphics2D g2 , int x , int y ) {
@@ -732,9 +1549,9 @@ public class PlainPage {
 		colorGutMark2 , colorReturnMark ;
 		int colorMode ;
 		/**
-     * 0:white mode 1: black mode 2: blue mode * 1 bg, 2 normal, 3 keyword, 4
-     * digit, 5 comment, 6 gutNumber, 7 gutLine, 8 currentLineBg, 9 comment2
-     */
+		 * 0:white mode 1: black mode 2: blue mode * 1 bg, 2 normal, 3 keyword, 4
+		 * digit, 5 comment, 6 gutNumber, 7 gutLine, 8 currentLineBg, 9 comment2
+		 */
 		int [ ] [ ] ColorModes = null ;
 		Color colorNormal = Color . BLACK ;
 		String [ ] comment = null ;
@@ -1419,7 +2236,6 @@ public class PlainPage {
 			return new Color ( r , c . getGreen ( ) , c . getBlue ( ) ) ;
 		}
 	}
-
 	public class Selection {
 		public void cancelSelect ( ) {
 			selectstartx = cx ;
@@ -1505,10 +2321,10 @@ public class PlainPage {
 		}
 
 		/**
-     *
-     * @param sb
-     * @return mouseSelectedOnLimit, need move screen and repaint
-     */
+		 *
+		 * @param sb
+		 * @return mouseSelectedOnLimit, need move screen and repaint
+		 */
 		public boolean mouseSelection ( CharSequence sb ) {
 			if ( mcount == 2 ) {
 				int x1 = cx ;
@@ -1584,846 +2400,5 @@ public class PlainPage {
 			selectstopx = pageData . roLines . getline ( selectstopy ) . length ( ) ;
 			copySelected ( ) ;
 		}
-	}
-
-	boolean changedOutside = false ;
-	Cursor cursor = new Cursor ( ) ;
-	public int cx ;
-	public int cy ;
-	public int keepx = -1 ;
-	boolean ignoreCase = true ;
-	boolean isCommentChecked = false ;
-	Dimension lastSize = new Dimension ( ) ;
-	int mcount ;
-	String msg ;
-	long msgtime ;
-
-	//
-	boolean mshift ;
-	/*mouse x,y*/
-	int mx , my ;
-
-	public PageData pageData ;
-
-	private String preeditText ;
-	public EasyEdit ptEdit = new EasyEdit ( ) ;
-	public U . FindAndReplace ptFind = new U . FindAndReplace ( this ) ;
-	public Selection ptSelection = new Selection ( ) ;
-
-	boolean rectSelectMode = false ;
-	boolean savingFromSelectionCancel ;
-	String searchResultOf ;
-	int selectstartx , selectstarty , selectstopx , selectstopy ;
-
-	int showLineCnt ;
-	/*show x,y*/
-	int sy , sx ;
-
-	boolean readonly = false ;
-
-	int toolbarHeight = 25 ;
-
-	public Paint ui = new Paint ( ) ;
-	public EditorPanel uiComp ;
-
-	public Console console ;
-
-	public Map < String , String > env ;
-	public String [ ] envs ;
-
-	private PlainPage ( ) {
-	}
-
-	private PlainPage ( EditorPanel editor , PageData data , PlainPage cp )
-	throws Exception {
-		this . uiComp = editor ;
-		this . pageData = data ;
-		if ( cp != null ) {
-			ui . applyColorMode ( cp . ui . colorMode ) ;
-			ui . scalev = cp . ui . scalev ;
-			fontList = cp . fontList ;
-			if ( pageData . workPath == null ) {
-				pageData . workPath = cp . pageData . workPath ;
-			}
-			//            System.out.println("workPath=" + pageData.workPath);
-		} else {
-			fontList = U . defaultFontList ;
-		}
-		int index = editor . pageSet . indexOf ( editor . getPage ( ) ) ;
-		if ( index >= editor . pageSet . size ( ) || index < 0 ) {
-		}
-		editor . pageSet . add ( this ) ;
-		editor . setPage ( this , true ) ;
-		editor . changeTitle ( ) ;
-		cy = U . optimizeFileHistory ( data . getFn ( ) ) ;
-		// uiComp.ptCh.record(data.getTitle(), cx, cy);
-		data . ref ++ ;
-	}
-
-	public static PlainPage getPP ( EditorPanel editor , PageData data )
-	throws Exception {
-		PlainPage pp = U . findPageByData ( editor . pageSet , data ) ;
-		if ( pp != null ) {
-			editor . setPage ( pp , true ) ;
-			System . out . println ( "set existed page." ) ;
-			return pp ;
-		}
-		return new PlainPage ( editor , data , editor . getPage ( ) ) ;
-	}
-
-	public void close ( ) throws Exception {
-		String lastPage = uiComp . pageHis . back ( U . getLocString ( this ) ) ;
-
-		uiComp . page = null ;
-		uiComp . pageSet . remove ( this ) ;
-
-		pageData . ref -- ;
-		if ( pageData . ref <= 0 ) {
-			pageData . close ( ) ;
-		}
-		pageData = null ;
-
-		if ( uiComp . pageSet . size ( ) <= 0 ) {
-			// nothing to show
-			if ( uiComp . frame != null ) {
-				if ( uiComp . frame instanceof JFrame ) {
-					( ( JFrame ) uiComp . frame ) . dispose ( ) ;
-				} else if ( uiComp . frame instanceof JFrame ) {
-					( ( JInternalFrame ) uiComp . frame ) . dispose ( ) ;
-				}
-			}
-		} else {
-			U . gotoFileLine ( lastPage , uiComp , false ) ;
-		}
-		U . gc ( ) ;
-	}
-
-	private void doGo ( String line , boolean record ) throws Exception {
-		if ( line == null ) {
-			return ;
-		}
-		if ( line . startsWith ( "set-font:" ) ) {
-			String fn = line . substring ( "set-font:" . length ( ) ) . trim ( ) ;
-			Font font = U . getFont ( fn , fontList . getlineHeight ( ) ) ;
-			U . setFont ( uiComp , font ) ;
-		} else {
-			if ( searchResultOf == null
-				|| ! U . gotoFileLine2 ( uiComp , line , searchResultOf , record ) ) {
-				if ( ! U . gotoFileLine ( line , uiComp , record ) ) {
-					if ( ! U . listDir ( PlainPage . this , cy ) ) {
-						U . launch ( line ) ;
-					}
-				}
-			}
-		}
-	}
-
-	public void focusCursor ( ) {
-		if ( cy < sy ) {
-			sy = Math . max ( 0 , cy - showLineCnt / 2 + 1 ) ;
-		}
-		if ( showLineCnt > 0 ) {
-			if ( sy + showLineCnt - 1 < cy ) {
-				sy = Math . max ( 0 , cy - showLineCnt / 2 + 1 ) ;
-			}
-		}
-	}
-
-	private static boolean isButtonDown ( int i , MouseEvent evt ) {
-		int b = InputEvent . getMaskForButton ( i ) ;
-		int ex = evt . getModifiersEx ( ) ;
-		return ( ex & b ) != 0 ;
-	}
-
-	public void keyPressed ( KeyEvent evt ) {
-		Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-		if ( ime != null ) {
-			Out param = new Out ( ) ;
-			ime . keyPressed ( evt , param ) ;
-
-			if ( param . yield != null ) {
-				ptEdit . insertString ( param . yield ) ;
-			}
-			preeditText = param . preedit ;
-			if ( param . consumed ) {
-				uiComp . repaint ( ) ;
-				return ;
-			}
-		}
-
-		if ( evt . getKeyCode ( ) == KeyEvent . VK_ESCAPE ) {
-			if ( ui . cp . showCommandPanel ) {
-				ui . cp . showCommandPanel = false ;
-			}
-		}
-		final PageData pageData = this . pageData ;
-		pageData . history . beginAtom ( ) ;
-		try {
-			mshift = evt . isShiftDown ( ) ;
-			int ocx = cx ;
-			int ocy = cy ;
-			Commands cmd = U . mappingToCommand ( evt ) ;
-			if ( cmd == null ) {
-				int kc = evt . getKeyCode ( ) ;
-				boolean onlyShift
-				= evt . isShiftDown ( ) && ! evt . isControlDown ( ) && ! evt . isAltDown ( ) ;
-				if ( ! onlyShift
-					&& ( evt . isActionKey ( ) || evt . isControlDown ( ) || evt . isAltDown ( ) )
-					&& ( kc != KeyEvent . VK_SHIFT && kc != KeyEvent . VK_CONTROL
-						&& kc != KeyEvent . VK_ALT ) ) {
-					String name = U . getKeyName ( evt ) ;
-					PluginAction ac = U . pluginKeys . get ( name ) ;
-					if ( ac != null ) {
-						try {
-							ac . run ( this ) ;
-						} catch ( Throwable e ) {
-							e . printStackTrace ( ) ;
-							if ( e . getCause ( ) != null ) {
-								e = e . getCause ( ) ;
-							}
-							ui . message ( "plugin:" + e . getMessage ( ) ) ;
-						}
-						evt . consume ( ) ;
-					} else {
-						unknownCommand ( evt ) ;
-					}
-				}
-			} else {
-				processCommand ( cmd ) ;
-				evt . consume ( ) ;
-			}
-
-			boolean cmoved = ! ( ocx == cx && ocy == cy ) ;
-			if ( cmoved ) {
-				if ( evt . isShiftDown ( ) ) {
-					selectstopx = cx ;
-					selectstopy = cy ;
-				} else {
-					if ( savingFromSelectionCancel ) {
-						savingFromSelectionCancel = false ;
-					} else {
-						ptSelection . cancelSelect ( ) ;
-					}
-				}
-			}
-			uiComp . repaint ( ) ;
-		} catch ( Throwable e ) {
-			ui . message ( "err:" + e ) ;
-			e . printStackTrace ( ) ;
-		}
-		pageData . history . endAtom ( ) ;
-	}
-
-	public void keyReleased ( KeyEvent env ) {
-	}
-
-	public void keyTyped ( KeyEvent env ) {
-		if ( env . isControlDown ( ) || env . isAltDown ( ) ) {
-			// ignore
-		} else {
-			pageData . history . beginAtom ( ) ;
-			char kc = env . getKeyChar ( ) ;
-			if ( kc == KeyEvent . VK_TAB && env . isShiftDown ( ) ) {
-				Rectangle r = ptSelection . getSelectRect ( ) ;
-				if ( r . y < r . height ) {
-					ptEdit . moveRectLeft ( r . y , r . height ) ;
-				} else {
-					ptEdit . moveLineLeft ( cy ) ;
-				}
-			} else if ( kc == KeyEvent . VK_TAB && ! env . isShiftDown ( )
-				&& selectstarty != selectstopy && ! rectSelectMode ) {
-				Rectangle r = ptSelection . getSelectRect ( ) ;
-				ptEdit . moveRectRight ( r . y , r . height ) ;
-			} else {
-				Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-				if ( ime != null ) {
-					Out param = new Out ( ) ;
-					ime . keyTyped ( env , param ) ;
-
-					if ( param . yield != null ) {
-						ptEdit . insertString ( param . yield ) ;
-					}
-					preeditText = param . preedit ;
-
-					if ( ! param . consumed ) {
-						ptEdit . insert ( kc ) ;
-					}
-				} else {
-					ptEdit . insert ( kc ) ;
-					if ( kc == '=' ) {
-						String ss = pageData . roLines . getline ( cy ) . toString ( ) ;
-						if ( cx <= ss . length ( ) && cx >= 3 ) {
-							try {
-								ss = ss . substring ( 0 , cx ) ;
-								if ( ss . endsWith ( "=" ) ) {
-									ss = ss . substring ( 0 , ss . length ( ) - 1 ) ;
-								}
-								ss = U . getMathExprTail ( ss ) ;
-								if ( ! ss . isEmpty ( ) ) {
-									ptEdit . insertString ( " " + U . evalMath ( ss ) ) ;
-								}
-							} catch ( Exception ex ) {
-								/* ignore */
-							}
-						}
-					}
-				}
-			}
-			pageData . history . endAtom ( ) ;
-		}
-	}
-
-	public void mouseClicked ( MouseEvent evt ) {
-		if ( ui . cp . showCommandPanel ) {
-			ui . cp . mouseClicked ( evt ) ;
-			if ( ui . cp . clickedName != null ) {
-				try {
-					processCommand ( Commands . valueOf ( ui . cp . clickedName ) ) ;
-					uiComp . repaint ( ) ;
-					mx = 0 ;
-					my = 0 ;
-					ui . cp . showCommandPanel = false ;
-				} catch ( Throwable e ) {
-					ui . message ( "err:" + e ) ;
-					e . printStackTrace ( ) ;
-				}
-				ui . cp . clickedName = null ;
-			}
-			return ;
-		} {
-			if ( isButtonDown ( 4 , evt ) || isButtonDown ( 5 , evt )
-				|| isButtonDown ( 6 , evt ) || isButtonDown ( 7 , evt ) ) {
-				return ;
-			}
-		}
-		int my = evt . getY ( ) ;
-		if ( my > 0 && my < toolbarHeight ) {
-			if ( pageData . getFn ( ) != null ) {
-				U . setClipBoard ( pageData . getFn ( ) ) ;
-				ui . message ( "filename copied" ) ;
-				my = 0 ;
-				// uiComp.repaint();
-			} else if ( pageData . workPath != null ) {
-				U . setClipBoard ( pageData . workPath ) ;
-				ui . message ( "work path copied" ) ;
-				my = 0 ;
-			} else {
-				try {
-					if ( U . saveFile ( this ) ) {
-						ui . message ( "saved" ) ;
-					}
-				} catch ( Throwable e ) {
-					ui . message ( "err:" + e ) ;
-					e . printStackTrace ( ) ;
-				}
-			}
-		} else {
-			int mx = evt . getX ( ) ;
-			if ( mx > 0 && mx < ui . gutterWidth ) {
-				cursor . gotoLine ( ) ;
-				uiComp . repaint ( ) ;
-			}
-		}
-	}
-
-	public void mouseDragged ( MouseEvent evt ) { {
-			if ( isButtonDown ( 4 , evt ) || isButtonDown ( 5 , evt )
-				|| isButtonDown ( 6 , evt ) || isButtonDown ( 7 , evt ) ) {
-				return ;
-			}
-		}
-		mx = evt . getX ( ) ;
-		my = evt . getY ( ) ;
-		mshift = true ;
-		uiComp . repaint ( ) ;
-	}
-
-	public void mouseMoved ( MouseEvent evt ) {
-		if ( ui . cp . showCommandPanel ) {
-			ui . cp . mouseMoved ( evt ) ;
-		}
-	}
-
-	public void mousePressed ( MouseEvent evt ) {
-		if ( isButtonBack ( evt ) ) {
-			pageBack ( ) ;
-		} else if ( isButtonForward ( evt ) ) {
-			pageForward ( ) ;
-		} else {
-			mx = evt . getX ( ) ;
-			my = evt . getY ( ) ;
-			mshift = evt . isShiftDown ( ) ;
-			mcount = evt . getClickCount ( ) ;
-			uiComp . repaint ( ) ;
-		}
-		// System.out.println("m press");
-	}
-
-	public void mouseWheelMoved ( MouseWheelEvent env ) {
-		int amount = env . getWheelRotation ( ) * env . getScrollAmount ( ) ;
-		if ( env . isControlDown ( ) ) { // scale
-			U . scale ( amount , ui ) ;
-			this . uiComp . repaint ( ) ;
-		} else if ( env . isAltDown ( ) ) { // horizon scroll
-			cursor . scrollHorizon ( amount ) ;
-		} else { // scroll
-			cursor . scroll ( amount ) ;
-		}
-	}
-
-	/**
-   * Add support to on-the-spot pre-editing of input method like CJK IME, not
-   * perfect(the current java implementation seems not support pre-edit window
-   * following function), but keep up with what did as swing JTextComponent.
-   *
-   */
-	public void preedit ( String text , int committedCharacterCount ) {
-		// System.out.println("preedit:" + text + "," +
-		// committedCharacterCount);
-		if ( committedCharacterCount > 0 ) {
-			String commit = text . substring ( 0 , committedCharacterCount ) ;
-			text = text . substring ( committedCharacterCount ) ;
-			ptEdit . insertString ( commit ) ;
-		}
-		this . preeditText = text ;
-		uiComp . repaint ( ) ;
-	}
-
-	private boolean isButtonBack ( MouseEvent evt ) {
-		if ( FindJDK . isWindows ) {
-			if ( isButtonDown ( 4 , evt ) ) {
-				return true ;
-			}
-		} else { // Linux
-			if ( isButtonDown ( 6 , evt ) ) {
-				return true ;
-			}
-		}
-		return false ;
-	}
-
-	private boolean isButtonForward ( MouseEvent evt ) {
-		if ( FindJDK . isWindows ) {
-			if ( isButtonDown ( 5 , evt ) ) {
-				return true ;
-			}
-		} else { // Linux
-			if ( isButtonDown ( 7 , evt ) ) {
-				return true ;
-			}
-		}
-		return false ;
-	}
-
-	private void pageBack ( ) {
-		String s = uiComp . pageHis . back ( U . getLocString ( this ) ) ;
-		if ( s != null ) {
-			try {
-				U . gotoFileLine ( s , uiComp , false ) ;
-			} catch ( Throwable e ) {
-				ui . message ( "err:" + e ) ;
-				e . printStackTrace ( ) ;
-			}
-		}
-	}
-
-	private void pageForward ( ) {
-		String s = uiComp . pageHis . forward ( U . getLocString ( this ) ) ;
-		if ( s != null ) {
-			try {
-				U . gotoFileLine ( s , uiComp , false ) ;
-			} catch ( Throwable e ) {
-				ui . message ( "err:" + e ) ;
-				e . printStackTrace ( ) ;
-			}
-		}
-	}
-
-	void processCommand ( Commands cmd ) throws Exception {
-		switch ( cmd ) {
-			case showHelp :
-			U . showHelp ( ui , uiComp ) ;
-			break ;
-			case saveAs :
-			U . saveAs ( this ) ;
-			break ;
-			case changePathSep :
-			U . changePathSep ( pageData , cy ) ;
-			break ;
-			case findNext :
-			if ( ptFind . back ) {
-				ptFind . findPrev ( ptFind . word ) ;
-			} else {
-				ptFind . findNext ( ptFind . word ) ;
-			}
-			break ;
-			case findPrev :
-			if ( ! ptFind . back ) {
-				ptFind . findPrev ( ptFind . word ) ;
-			} else {
-				ptFind . findNext ( ptFind . word ) ;
-			}
-			break ;
-			case commandPanel :
-			ui . cp . showCommandPanel = true ;
-			break ;
-			case reloadWithEncoding :
-			if ( pageData . getTitle ( ) . equals ( U . titleOfPages ( uiComp ) ) ) {
-				pageData . setLines ( U . getPageListStrings ( uiComp ) ) ;
-			}
-			U . reloadWithEncodingByUser ( pageData . getFn ( ) , this ) ;
-			PlainPage . this . changedOutside = false ;
-			break ;
-			case moveLeft :
-			cursor . moveLeft ( ) ;
-			focusCursor ( ) ;
-			break ;
-			case moveRight :
-			cursor . moveRight ( ) ;
-			focusCursor ( ) ;
-			break ;
-			case moveUp :
-			if ( readonly ) {
-				doMoveViewUp ( ) ;
-			} else {
-				cursor . moveUp ( ) ;
-				focusCursor ( ) ;
-			}
-			break ;
-			case moveDown :
-			if ( readonly ) {
-				doMoveViewDown ( ) ;
-			} else {
-				cursor . moveDown ( ) ;
-				focusCursor ( ) ;
-			}
-			break ;
-			case moveHome :
-			cursor . moveHome ( ) ;
-			focusCursor ( ) ;
-			break ;
-			case moveEnd :
-			cursor . moveEnd ( ) ;
-			focusCursor ( ) ;
-			break ;
-			case movePageUp :
-			if ( readonly ) {
-				sy = Math . max ( 0 , sy - showLineCnt ) ;
-			} else {
-				cursor . movePageUp ( ) ;
-				focusCursor ( ) ;
-			}
-			break ;
-			case movePageDown :
-			if ( readonly ) {
-				sy = Math . min ( sy + showLineCnt , pageData . roLines . getLinesize ( ) - 1 ) ;
-			} else {
-				cursor . movePageDown ( ) ;
-				focusCursor ( ) ;
-			}
-			break ;
-			case indentLeft :
-			ptEdit . moveLineLeft ( cy ) ;
-			focusCursor ( ) ;
-			break ;
-			case indentRight :
-			ptEdit . moveLineRight ( cy ) ;
-			focusCursor ( ) ;
-			break ;
-			case rectangleMode :
-			rectSelectMode = ! rectSelectMode ;
-			break ;
-			case makeNoise :
-			ui . noise = ! ui . noise ;
-			if ( ui . noise ) {
-				U . startNoiseThread ( ui , uiComp ) ;
-			}
-			break ;
-			case toggleFps :
-			ui . fpsOn = ! ui . fpsOn ;
-			break ;
-			case switchLineSeperator :
-			if ( pageData . lineSep . equals ( "\n" ) ) {
-				pageData . lineSep = "\r\n" ;
-			} else {
-				pageData . lineSep = "\n" ;
-			}
-			break ;
-			case wrapLines :
-			System . out . println ( "wrapLines!" ) ;
-			ptEdit . wrapLines ( cx ) ;
-			focusCursor ( ) ;
-			break ;
-			case Javascript :
-			U . runScript ( this ) ;
-			break ;
-			case moveLeftBig :
-			cx = Math . max ( 0 , cx - uiComp . getWidth ( ) / 10 ) ;
-			focusCursor ( ) ;
-			break ;
-			case moveRightBig :
-			cx = cx + uiComp . getWidth ( ) / 10 ;
-			focusCursor ( ) ;
-			break ;
-			case switchColorMode :
-			ui . setNextColorMode ( ) ;
-			ui . applyColorMode ( ui . colorMode ) ;
-			break ;
-
-			case moveBetweenPair :
-			cursor . moveToPair ( ) ;
-			break ;
-
-			case execute :
-			if ( cy < pageData . lines . size ( ) ) {
-				U . exec ( this , pageData . roLines . getline ( cy ) . toString ( ) ) ;
-			}
-			break ;
-			case hex :
-			String s = U . exportString ( ptSelection . getSelected ( ) , pageData . lineSep ) ;
-			if ( s != null && s . length ( ) > 0 ) {
-				U . showHexOfString ( s , PlainPage . this ) ;
-			}
-			break ;
-			case listFonts :
-			U . listFonts ( this ) ;
-			break ;
-			case copySelected :
-			//			if (console != null) {
-			//				if (!ptSelection.isSelected()) {
-			//					console.submit(3);
-			//				}
-			//			}
-			ptSelection . copySelected ( ) ;
-			break ;
-			case paste :
-			if ( keepx == -1 ) { // use-case 2: paste same thing along lines
-				//				System.out.println("keepx2=" + cx);
-				keepx = cx ;
-			}
-			ptEdit . insertString ( U . getClipBoard ( ) , true ) ;
-			break ;
-			case cut :
-			ptSelection . cutSelected ( ) ;
-			break ;
-			case selectLine :
-			ptSelection . selectLine ( ) ;
-			break ;
-			case selectAll :
-			ptSelection . selectAll ( ) ;
-			break ;
-			case deleteLine :
-			if ( ptSelection . isSelected ( ) ) {
-				ptEdit . deleteRect ( ptSelection . getSelectRect ( ) ) ;
-			} else {
-				ptEdit . deleteLine ( cy ) ;
-			}
-			focusCursor ( ) ;
-			break ;
-			case openFile :
-			U . openFile ( this ) ;
-			break ;
-			case newPage :
-			PlainPage pp = new PlainPage (
-				uiComp , PageData . newEmpty ( "UNTITLED #" + U . randomID ( ) ) , this ) ;
-			pp . ptSelection . selectAll ( ) ;
-			break ;
-			case newWindow :
-			EditorPanel ep = new EditorPanel ( EditorPanelConfig . DEFAULT ) ;
-			if ( uiComp . desktopPane == null ) {
-				ep . openWindow ( uiComp ) ;
-			} else {
-				// U.e_png, parentUI, frame, frame, null
-				JInternalFrame neframe
-				= new JInternalFrame ( "ne" , true , true , true , true ) ;
-				ep . openWindow ( U . e_png , uiComp , neframe , uiComp . realJFrame ,
-					uiComp . desktopPane ) ;
-				uiComp . desktopPane . add ( neframe ) ;
-				neframe . setVisible ( true ) ;
-				int fc = uiComp . desktopPane . getAllFrames ( ) . length ;
-				JInternalFrame p1 = ( JInternalFrame ) uiComp . frame ;
-				neframe . setLocation ( p1 . getLocation ( ) . x + 5 * fc ,
-					p1 . getLocation ( ) . y + 5 * fc ) ;
-				neframe . setLayer ( p1 . getLayer ( ) ) ;
-				neframe . setSize ( p1 . getSize ( ) ) ;
-				neframe . setSelected ( true ) ;
-			}
-			// set default working path
-			ep . getPage ( ) . pageData . workPath = pageData . workPath ;
-			break ;
-			case save :
-			if ( U . saveFile ( this ) ) {
-				ui . message ( "saved" ) ;
-			}
-			break ;
-			case gotoLine :
-			cursor . gotoLine ( ) ;
-			break ;
-			case undo :
-			pageData . history . undo ( this ) ;
-			break ;
-			case find :
-			ptFind . showFindDialog ( ) ;
-			break ;
-			case redo :
-			pageData . history . redo ( this ) ;
-			break ;
-			case closePage :
-			U . closePage ( this ) ;
-			break ;
-			case setEncoding :
-			U . setEncodingByUser ( this , "Set Encoding:" ) ;
-			break ;
-			case moveToHead :
-			cy = 0 ;
-			cx = 0 ;
-			focusCursor ( ) ;
-			break ;
-			case moveToTail :
-			cy = pageData . roLines . getLinesize ( ) - 1 ;
-			cx = 0 ;
-			focusCursor ( ) ;
-			break ;
-			case removeTralingSpace :
-			U . removeTrailingSpace ( pageData ) ;
-			break ;
-			case moveLeftWord :
-			cursor . moveLeftWord ( ) ;
-			focusCursor ( ) ;
-			break ;
-			case deleteWord :
-			ptEdit . deleteSpace ( ) ;
-			focusCursor ( ) ;
-			break ;
-			case moveRightWord :
-			cursor . moveRightWord ( ) ;
-			focusCursor ( ) ;
-			break ;
-			case moveViewUp :
-			doMoveViewUp ( ) ;
-			break ;
-			case moveViewDown :
-			doMoveViewDown ( ) ;
-			break ;
-			case moveUpLangLevel :
-			cursor . doMoveUpLangLevel ( ) ;
-			break ;
-			case resetScale :
-			ui . scalev = 1 ;
-			break ;
-			case go :
-			if ( cy < pageData . lines . size ( ) ) {
-				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
-				doGo ( line , true ) ;
-			}
-			break ;
-			case launch :
-			if ( cy < pageData . lines . size ( ) ) {
-				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
-				U . launch ( line ) ;
-			}
-			break ;
-			case readonlyMode :
-			readonly = ! readonly ;
-			break ;
-			case fileHistory :
-			U . openFileHistory ( uiComp ) ;
-			break ;
-			case dirHistory :
-			U . openDirHistory ( uiComp ) ;
-			break ;
-			case openFileSelector :
-			if ( cy < pageData . lines . size ( ) ) {
-				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
-				U . openFileSelector ( line , this ) ;
-			}
-			break ;
-			case print :
-			new U . Print ( PlainPage . this ) . printPages ( ) ;
-			break ;
-			case pageList :
-			U . switchToPageListPage ( this ) ;
-			break ;
-			case quickSwitchPage :
-			// U.switchPageInOrder(this);
-			// U.switchToLastPage(this);
-			doGo ( uiComp . pageHis . back ( U . getLocString ( this ) ) , false ) ;
-			break ;
-			case toggleIME :
-			Ime . nextIme ( ) ;
-			Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-			if ( ime != null ) {
-				ime . setEnabled ( true ) ;
-			}
-			break ;
-			case ShellCommand :
-			Shell . run ( PlainPage . this , cy ) ;
-			break ;
-			case pageForward :
-			pageForward ( ) ;
-			break ;
-			case pageBack :
-			pageBack ( ) ;
-			break ;
-			case mathEval :
-			String ss = pageData . roLines . getline ( cy ) . toString ( ) ;
-			if ( cx <= ss . length ( ) && cx >= 3 ) {
-				try {
-					ss = ss . substring ( 0 , cx ) ;
-					if ( ss . endsWith ( "=" ) ) {
-						ss = ss . substring ( 0 , ss . length ( ) - 1 ) ;
-					}
-					ss = U . getMathExprTail ( ss ) ;
-					if ( ! ss . isEmpty ( ) ) {
-						ptEdit . insertString ( " = " + U . evalMath ( ss ) ) ;
-					}
-				} catch ( Exception ex ) {
-					/* ignore */
-				}
-			}
-			break ;
-			default :
-			ui . message ( "unprocessed Command:" + cmd ) ;
-		}
-	}
-
-	private void doMoveViewUp ( ) {
-		sy = Math . max ( 0 , sy - 1 ) ;
-	}
-
-	private void doMoveViewDown ( ) {
-		sy = Math . min ( sy + 1 , pageData . roLines . getLinesize ( ) - 1 ) ;
-	}
-
-	private void unknownCommand ( KeyEvent env ) {
-		StringBuilder sb = new StringBuilder ( ) ;
-		if ( env . isControlDown ( ) ) {
-			sb . append ( "Ctrl" ) ;
-		}
-		if ( env . isAltDown ( ) ) {
-			if ( sb . length ( ) > 0 ) {
-				sb . append ( "-" ) ;
-			}
-			sb . append ( "Alt" ) ;
-		}
-		if ( env . isShiftDown ( ) ) {
-			if ( sb . length ( ) > 0 ) {
-				sb . append ( "-" ) ;
-			}
-			sb . append ( "Shift" ) ;
-		}
-		if ( sb . length ( ) > 0 ) {
-			sb . append ( "-" ) ;
-		}
-		sb . append ( KeyEvent . getKeyText ( env . getKeyCode ( ) ) ) ;
-		ui . message ( "Unknow Command:" + sb ) ;
-	}
-
-	public void xpaint ( Graphics g , Dimension size ) {
-		if ( ! lastSize . equals ( size ) ) { // resized
-			lastSize = size ;
-			ui . cp . inited = false ;
-		}
-		ui . xpaint ( g , size ) ;
 	}
 }

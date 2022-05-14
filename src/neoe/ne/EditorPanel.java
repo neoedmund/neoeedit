@@ -37,16 +37,21 @@ public class EditorPanel
 extends JPanel implements MouseMotionListener , MouseListener ,
 MouseWheelListener , KeyListener {
 	/**
-   * It's only need to be not-null and not actually called?
-   */
+	 * a hack to pass param
+	 */
+	boolean newWindow ;
+
+	/**
+	 * It's only need to be not-null and not actually called?
+	 */
 	class MyInputMethodRequestsHandler implements InputMethodRequests {
 		Rectangle rect = new Rectangle ( 200 , 200 , 0 , 10 ) ;
 
 		@ Override
 		public AttributedCharacterIterator
 		cancelLatestCommittedText ( Attribute [ ] attributes ) {
-			System . out . println ( "cancelLatestCommittedText=" +
-				Arrays . deepToString ( attributes ) ) ;
+			System . out . println ( "cancelLatestCommittedText="
+				+ Arrays . deepToString ( attributes ) ) ;
 			return null ;
 		}
 
@@ -128,11 +133,12 @@ MouseWheelListener , KeyListener {
 	JDesktopPane desktopPane ;
 
 	/**
-   * for handle the window events
-   */
+	 * for handle the window events
+	 */
 	JFrame realJFrame ;
 
-	public EditorPanel ( ) throws Exception { this ( EditorPanelConfig . DEFAULT ) ;
+	public EditorPanel ( ) throws Exception {
+		this ( EditorPanelConfig . DEFAULT ) ;
 	}
 
 	public EditorPanel ( EditorPanelConfig config ) throws Exception {
@@ -150,8 +156,8 @@ MouseWheelListener , KeyListener {
 				@ Override
 				public void caretPositionChanged ( InputMethodEvent event ) {
 					System . out . println (
-						"if you see this, tell neoeedit's author what system you are in pls. caretPositionChanged=" +
-						event . paramString ( ) ) ;
+						"if you see this, tell neoeedit's author what system you are in pls. caretPositionChanged="
+						+ event . paramString ( ) ) ;
 				}
 
 				@ Override
@@ -181,8 +187,8 @@ MouseWheelListener , KeyListener {
 		setOpaque ( false ) ;
 		setCursor ( new Cursor ( Cursor . TEXT_CURSOR ) ) ;
 		setFocusTraversalKeysEnabled ( false ) ;
-		PlainPage pp =
-		PlainPage . getPP ( this , PageData . newEmpty ( "UNTITLED #" + U . randomID ( ) ) ) ;
+		PlainPage pp
+		= PlainPage . getPP ( this , PageData . newEmpty ( "UNTITLED #" + U . randomID ( ) ) ) ;
 		pp . ptSelection . selectAll ( ) ;
 	}
 
@@ -196,12 +202,12 @@ MouseWheelListener , KeyListener {
 			title = ( "Console - " + page . console . cmd ) ;
 		} else {
 			if ( fn != null ) {
-				title =
-				( new File ( fn ) . getName ( ) + " " + new File ( fn ) . getParent ( ) + " - (" +
-					pageSet . size ( ) + ") - " + EditorPanel . WINDOW_NAME + U . suNotice ( ) ) ;
+				title
+				= ( new File ( fn ) . getName ( ) + " " + new File ( fn ) . getParent ( ) + " - ("
+					+ pageSet . size ( ) + ") - " + EditorPanel . WINDOW_NAME + U . suNotice ( ) ) ;
 			} else {
-				title = ( page . pageData . getTitle ( ) + " - (" + pageSet . size ( ) + ") - " +
-					EditorPanel . WINDOW_NAME + U . suNotice ( ) ) ;
+				title = ( page . pageData . getTitle ( ) + " - (" + pageSet . size ( ) + ") - "
+					+ EditorPanel . WINDOW_NAME + U . suNotice ( ) ) ;
 			}
 		}
 		if ( title != null ) {
@@ -218,7 +224,8 @@ MouseWheelListener , KeyListener {
 		return U . exportString ( pd . lines , pd . lineSep ) ;
 	}
 
-	public PlainPage getPage ( ) { return page ;
+	public PlainPage getPage ( ) {
+		return page ;
 	}
 
 	@ Override
@@ -273,10 +280,12 @@ MouseWheelListener , KeyListener {
 	}
 
 	@ Override
-	public void mouseEntered ( MouseEvent arg0 ) { }
+	public void mouseEntered ( MouseEvent arg0 ) {
+	}
 
 	@ Override
-	public void mouseExited ( MouseEvent arg0 ) { }
+	public void mouseExited ( MouseEvent arg0 ) {
+	}
 
 	@ Override
 	public void mouseMoved ( MouseEvent evt ) {
@@ -299,7 +308,8 @@ MouseWheelListener , KeyListener {
 	}
 
 	@ Override
-	public void mouseReleased ( MouseEvent arg0 ) { }
+	public void mouseReleased ( MouseEvent arg0 ) {
+	}
 
 	@ Override
 	public void mouseWheelMoved ( MouseWheelEvent env ) {
@@ -311,17 +321,17 @@ MouseWheelListener , KeyListener {
 		}
 	}
 
-	public void openWindow ( EditorPanel parentUI ) throws IOException {
-		openedWindows ++ ;
-		if ( frame != null ) {
+	public void openWindow ( ) throws IOException {
+		if ( frame != null ) { //?
 			return ;
 		}
-		JFrame frame = new JFrame ( EditorPanel . WINDOW_NAME ) ;
-		openWindow ( U . e_png , parentUI , frame , frame , null ) ;
-		installWindowListener ( frame ) ;
+		openedWindows ++ ;
+		JFrame f = new JFrame ( EditorPanel . WINDOW_NAME ) ;
+		openWindow ( U . e_png , f , f , null ) ;
+		installWindowListener ( f ) ;
 	}
 
-	public void openWindow ( String iconname , EditorPanel parentUI ,
+	public void openWindow ( String iconname ,
 		RootPaneContainer outFrame , JFrame realJFrame ,
 		JDesktopPane desktopPane ) throws IOException {
 		frame = outFrame ;
@@ -330,7 +340,7 @@ MouseWheelListener , KeyListener {
 			iconname = U . e_png ;
 		}
 		if ( frame instanceof JFrame ) {
-			initJFrame ( iconname , parentUI , ( JFrame ) frame ) ;
+			initJFrame ( iconname , ( JFrame ) frame ) ;
 		} else if ( frame instanceof JInternalFrame ) {
 			JInternalFrame ji = ( JInternalFrame ) frame ;
 			ji . add ( this ) ;
@@ -376,7 +386,7 @@ MouseWheelListener , KeyListener {
 			} ) ;
 	}
 
-	private void initJFrame ( String iconname , EditorPanel parentUI , JFrame frame )
+	private void initJFrame ( String iconname , JFrame frame )
 	throws IOException {
 		if ( iconname != null ) {
 			frame . setIconImage ( U . getAppIcon ( iconname ) ) ;
@@ -384,15 +394,8 @@ MouseWheelListener , KeyListener {
 		frame . setDefaultCloseOperation ( WindowConstants . DISPOSE_ON_CLOSE ) ;
 		U . setFrameSize ( frame ) ;
 		frame . setTransferHandler ( new U . TH ( this ) ) ;
-		frame . setLocationRelativeTo ( parentUI ) ;
 		frame . add ( this ) ;
 		frame . setVisible ( true ) ;
-
-		// frame.addWindowFocusListener(new WindowAdapter() {
-		// public void windowGainedFocus(WindowEvent e) {
-		// EditPanel.this.requestFocusInWindow();
-		// }
-		// });
 	}
 
 	@ Override
@@ -406,12 +409,19 @@ MouseWheelListener , KeyListener {
 		}
 	}
 
-	public void setPage ( PlainPage pp , boolean rec ) {
+	public EditorPanel setPage ( PlainPage pp , boolean rec ) throws Exception {
+		//		if (newWindow){
+		//			EditorPanel ep2 = U.newWindow(pp);
+		//			PlainPage.getPP(ep2, pp.pageData);
+		//			return ep2;
+		//		}else{
 		lastPage = page ;
 		page = pp ;
 		if ( rec ) {
 			pageHis . add ( U . getLocString ( pp ) , U . getLocString ( lastPage ) ) ;
 		}
 		changeTitle ( ) ;
+		return pp . uiComp ;
+		//		}
 	}
 }

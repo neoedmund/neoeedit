@@ -686,14 +686,10 @@ public class PicView {
 
 	private int cutx , cuty , cutx2 , cuty2 ;
 	private boolean savingCut ;
-	private EditorPanel ep ;
 
 	Slideshow ss ;
 
 	public PicView ( ) { }
-
-	public PicView ( EditorPanel ep ) { this . ep = ep ;
-	}
 
 	private void installSlideshow ( JFrame frame , PicViewPanel p ) {
 		ss = new Slideshow ( p ) ;
@@ -731,7 +727,6 @@ public class PicView {
 		picviewpanel = new PicViewPanel ( f , fn ) ;
 		f . getContentPane ( ) . setLayout ( new BorderLayout ( ) ) ;
 		f . getContentPane ( ) . add ( picviewpanel ) ;
-		f . setTransferHandler ( new U . TH ( ep ) ) ;
 		f . setVisible ( true ) ;
 		U . saveFileHistory ( fn . getAbsolutePath ( ) , 0 ) ;
 		installSlideshow ( f , picviewpanel ) ;
