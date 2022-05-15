@@ -29,9 +29,11 @@ public class Finder {
 		}
 	}
 
-	public boolean finished ( ) { return i >= page . length ( ) ;
+	public boolean finished ( ) {
+		return i >= page . length ( ) ;
 	}
 
-	public void reset ( ) { i = 0 ;
+	public void reset ( ) {
+		i = 0 ;
 	}
 }

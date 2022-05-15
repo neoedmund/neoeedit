@@ -30,16 +30,73 @@ import javax . swing . JFrame ;
 import javax . swing . JInternalFrame ;
 import javax . swing . JPanel ;
 import javax . swing . RootPaneContainer ;
+import javax . swing . SwingUtilities ;
 import javax . swing . WindowConstants ;
 import neoe . ne . U . LocationHistory ;
 
 public class EditorPanel
 extends JPanel implements MouseMotionListener , MouseListener ,
 MouseWheelListener , KeyListener {
-	/**
-	 * a hack to pass param
+	/*
+	 * a hack to pass param, not work yet
 	 */
 	boolean newWindow ;
+
+	boolean findAndShowPage ( String title , int line , boolean rec ) throws Exception {
+		if ( title == null )
+		return false ;
+		PlainPage pp = findPage ( title ) ;
+		if ( pp != null ) {
+			if ( newWindow && pp . pageData . fileLoaded ) {
+				openInNewWindow ( title , line ) ;
+				return true ;
+			}
+			setPage ( pp , rec ) ;
+			if ( line > 0 )
+			pp . cursor . setSafePos ( 0 , line - 1 ) ;
+			pp . adjustCursor ( ) ;
+			U . checkChangedOutside ( pp ) ;
+			SwingUtilities . invokeLater ( ( ) -> repaint ( ) ) ;
+			return true ;
+		}
+
+		// can i open the file?
+		if ( title . startsWith ( "[" ) )
+		return false ; //not likely
+		File f = new File ( title ) ;
+		if ( ! f . isFile ( ) )
+		f = new File ( page . workPath , title ) ;
+		if ( ! f . isFile ( ) )
+		return false ;
+
+		if ( newWindow ) {
+			openInNewWindow ( title , line ) ;
+			return true ;
+		}
+		pp = new PlainPage ( this , PageData . fromFile ( title ) , page ) ;
+		if ( line > 0 )
+		pp . cursor . setSafePos ( 0 , line - 1 ) ;
+		pp . adjustCursor ( ) ;
+		return true ;
+	}
+
+	private PlainPage findPage ( String title ) {
+		for ( int i = 0 ; i < pageSet . size ( ) ; i ++ ) {
+			PlainPage p = pageSet . get ( i ) ;
+			if ( p . pageData . title . equals ( title ) )
+			return p ;
+		}
+		return null ;
+	}
+
+	private void openInNewWindow ( String title , int line ) throws Exception {
+		EditorPanel ep = new EditorPanel ( this . config ) ;
+		ep . openWindow ( ) ;
+		PlainPage pp = new PlainPage ( ep , PageData . fromFile ( title ) , page ) ;
+		if ( line > 0 )
+		pp . cursor . setSafePos ( 0 , line - 1 ) ;
+		pp . adjustCursor ( ) ;
+	}
 
 	/**
 	 * It's only need to be not-null and not actually called?
@@ -97,27 +154,9 @@ MouseWheelListener , KeyListener {
 
 	static int openedWindows ;
 
-	private static final long serialVersionUID = -1667283144475200365L ;
-
 	static final String WINDOW_NAME = "neoeedit " + Version . REV ;
 
 	// CursorHistory ptCh = new CursorHistory();
-	static boolean init = false ;
-
-	private static void doinit ( ) throws Exception {
-		if ( init ) {
-			return ;
-		} else {
-			init = true ;
-		}
-
-		U . Config . setDefaultLookAndFeel ( ) ;
-		U . Config . setDefaultBKColor ( ) ;
-		U . Config . initKeys ( ) ;
-		Gimp . loadFromConfig ( ) ;
-		Plugin . load ( ) ;
-	}
-
 	public RootPaneContainer frame ;
 
 	PlainPage lastPage ;
@@ -132,21 +171,19 @@ MouseWheelListener , KeyListener {
 
 	JDesktopPane desktopPane ;
 
-	/**
-	 * for handle the window events
-	 */
 	JFrame realJFrame ;
+	private static final EditorPanelConfig DEFAULT = new EditorPanelConfig ( ) ;
 
 	public EditorPanel ( ) throws Exception {
-		this ( EditorPanelConfig . DEFAULT ) ;
+		this ( DEFAULT ) ;
 	}
 
 	public EditorPanel ( EditorPanelConfig config ) throws Exception {
-		doinit ( ) ;
 		this . config = config ;
-		U . Config . loadOtherConfig ( config ) ;
+		Main . doinit ( ) ;
+		Conf . loadOtherConfig ( config ) ;
 		enableEvents ( AWTEvent . KEY_EVENT_MASK | AWTEvent . INPUT_METHOD_EVENT_MASK ) ;
-		setBackground ( U . Config . getDefaultBgColor ( ) ) ;
+		setBackground ( Conf . getDefaultBgColor ( ) ) ;
 		setFocusable ( true ) ;
 		addMouseMotionListener ( this ) ;
 		addMouseListener ( this ) ;
@@ -156,18 +193,14 @@ MouseWheelListener , KeyListener {
 				@ Override
 				public void caretPositionChanged ( InputMethodEvent event ) {
 					System . out . println (
-						"if you see this, tell neoeedit's author what system you are in pls. caretPositionChanged="
+						"if you see this, tell neoeedit's author what system you are using. caretPositionChanged="
 						+ event . paramString ( ) ) ;
 				}
 
 				@ Override
 				public void inputMethodTextChanged ( InputMethodEvent event ) {
-					// System.out.println("getInputContext0=" + getInputContext());
-					// System.out.println("inputMethodTextChanged="
-					// + event.paramString());
-					if ( page == null ) {
-						return ;
-					}
+					if ( page == null )
+					return ;
 					AttributedCharacterIterator text = event . getText ( ) ;
 					if ( text == null ) {
 						page . preedit ( "" , 0 ) ;
@@ -187,45 +220,28 @@ MouseWheelListener , KeyListener {
 		setOpaque ( false ) ;
 		setCursor ( new Cursor ( Cursor . TEXT_CURSOR ) ) ;
 		setFocusTraversalKeysEnabled ( false ) ;
-		PlainPage pp
-		= PlainPage . getPP ( this , PageData . newEmpty ( "UNTITLED #" + U . randomID ( ) ) ) ;
+		PlainPage pp = new PlainPage ( this , PageData . newUntitled ( ) , null ) ;
 		pp . ptSelection . selectAll ( ) ;
 	}
 
 	void changeTitle ( ) {
-		if ( frame == null ) {
-			return ;
-		}
-		String fn = page . pageData . getFn ( ) ;
-		String title = null ;
-		if ( page . console != null ) {
-			title = ( "Console - " + page . console . cmd ) ;
-		} else {
-			if ( fn != null ) {
-				title
-				= ( new File ( fn ) . getName ( ) + " " + new File ( fn ) . getParent ( ) + " - ("
-					+ pageSet . size ( ) + ") - " + EditorPanel . WINDOW_NAME + U . suNotice ( ) ) ;
-			} else {
-				title = ( page . pageData . getTitle ( ) + " - (" + pageSet . size ( ) + ") - "
-					+ EditorPanel . WINDOW_NAME + U . suNotice ( ) ) ;
-			}
-		}
-		if ( title != null ) {
-			if ( frame instanceof JFrame ) {
-				( ( JFrame ) frame ) . setTitle ( title ) ;
-			} else if ( frame instanceof JInternalFrame ) {
-				( ( JInternalFrame ) frame ) . setTitle ( title ) ;
-			}
-		}
-	}
-
-	public String getCurrentText ( ) {
-		PageData pd = getPage ( ) . pageData ;
-		return U . exportString ( pd . lines , pd . lineSep ) ;
-	}
-
-	public PlainPage getPage ( ) {
-		return page ;
+		if ( frame == null )
+		return ;
+		String tag = " (" + pageSet . size ( ) + ") - " + EditorPanel . WINDOW_NAME + U . suNotice ( ) ;
+		String pre = "/ne/ " ;
+		String title ;
+		String fn = page . pageData . title ;
+		if ( page . console != null )
+		title = pre + "(exec)" + page . console . cmd + tag ;
+		else if ( page . pageData . fileLoaded )
+		title = pre + new File ( fn ) . getName ( ) + " " + new File ( fn ) . getParent ( ) + tag ;
+		else
+		title = pre + fn + tag ;
+		if ( title != null )
+		if ( frame instanceof JFrame )
+		( ( JFrame ) frame ) . setTitle ( title ) ;
+		else if ( frame instanceof JInternalFrame )
+		( ( JInternalFrame ) frame ) . setTitle ( title ) ;
 	}
 
 	@ Override
@@ -322,9 +338,8 @@ MouseWheelListener , KeyListener {
 	}
 
 	public void openWindow ( ) throws IOException {
-		if ( frame != null ) { //?
-			return ;
-		}
+		if ( frame != null ) //?
+		return ;
 		openedWindows ++ ;
 		JFrame f = new JFrame ( EditorPanel . WINDOW_NAME ) ;
 		openWindow ( U . e_png , f , f , null ) ;
@@ -336,12 +351,11 @@ MouseWheelListener , KeyListener {
 		JDesktopPane desktopPane ) throws IOException {
 		frame = outFrame ;
 		this . desktopPane = desktopPane ;
-		if ( iconname == null ) {
-			iconname = U . e_png ;
-		}
-		if ( frame instanceof JFrame ) {
-			initJFrame ( iconname , ( JFrame ) frame ) ;
-		} else if ( frame instanceof JInternalFrame ) {
+		if ( iconname == null )
+		iconname = U . e_png ;
+		if ( frame instanceof JFrame )
+		initJFrame ( iconname , ( JFrame ) frame ) ;
+		else if ( frame instanceof JInternalFrame ) {
 			JInternalFrame ji = ( JInternalFrame ) frame ;
 			ji . add ( this ) ;
 		}
@@ -354,10 +368,8 @@ MouseWheelListener , KeyListener {
 		realJFrame . addWindowListener ( new WindowAdapter ( ) {
 				@ Override
 				public void windowActivated ( WindowEvent e ) {
-					PlainPage pp = getPage ( ) ;
-					if ( pp != null ) {
-						U . checkChangedOutside ( pp ) ;
-					}
+					if ( page != null )
+					U . checkChangedOutside ( page ) ;
 				}
 
 				@ Override
@@ -368,29 +380,24 @@ MouseWheelListener , KeyListener {
 
 				@ Override
 				public void windowClosing ( WindowEvent e ) {
-					int size = pageSet . size ( ) ;
-					int i = 0 ;
-					for ( PlainPage pp : pageSet ) {
-						if ( pp . pageData . getFn ( ) != null ) {
-							try {
-								System . out . printf ( "save file his[%d/%d]%s\n" , ++ i , size ,
-									pp . pageData . getFn ( ) ) ;
-								U . saveFileHistory ( pp . pageData . getFn ( ) , pp . cy + 1 ) ;
-							} catch ( IOException e1 ) {
-								e1 . printStackTrace ( ) ;
-							}
-						}
+					StringBuilder sb = new StringBuilder ( ) ;
+					for ( PlainPage pp : pageSet )
+					if ( pp . pageData . fileLoaded )
+					sb . append ( String . format ( "\n%s|%s:" , pp . pageData . title , pp . cy + 1 ) ) ;
+
+					try {
+						U . saveFileHistorys ( sb . toString ( ) ) ;
+					} catch ( IOException e1 ) {
+						e1 . printStackTrace ( ) ;
 					}
-					// System.out.println("exit");
 				}
 			} ) ;
 	}
 
 	private void initJFrame ( String iconname , JFrame frame )
 	throws IOException {
-		if ( iconname != null ) {
-			frame . setIconImage ( U . getAppIcon ( iconname ) ) ;
-		}
+		if ( iconname != null )
+		frame . setIconImage ( U . getAppIcon ( iconname ) ) ;
 		frame . setDefaultCloseOperation ( WindowConstants . DISPOSE_ON_CLOSE ) ;
 		U . setFrameSize ( frame ) ;
 		frame . setTransferHandler ( new U . TH ( this ) ) ;
@@ -401,27 +408,19 @@ MouseWheelListener , KeyListener {
 	@ Override
 	public void paint ( Graphics g ) {
 		try {
-			if ( page != null ) {
-				page . xpaint ( g , this . getSize ( ) ) ;
-			}
+			if ( page != null )
+			page . xpaint ( g , this . getSize ( ) ) ;
 		} catch ( Throwable e ) {
 			e . printStackTrace ( ) ;
 		}
 	}
 
-	public EditorPanel setPage ( PlainPage pp , boolean rec ) throws Exception {
-		//		if (newWindow){
-		//			EditorPanel ep2 = U.newWindow(pp);
-		//			PlainPage.getPP(ep2, pp.pageData);
-		//			return ep2;
-		//		}else{
+	public EditorPanel setPage ( PlainPage pp , boolean rec ) {
 		lastPage = page ;
 		page = pp ;
-		if ( rec ) {
-			pageHis . add ( U . getLocString ( pp ) , U . getLocString ( lastPage ) ) ;
-		}
+		if ( rec )
+		pageHis . add ( U . getLocString ( pp ) , U . getLocString ( lastPage ) ) ;
 		changeTitle ( ) ;
 		return pp . uiComp ;
-		//		}
 	}
 }

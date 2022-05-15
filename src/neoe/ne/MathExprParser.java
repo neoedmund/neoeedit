@@ -12,24 +12,24 @@ public class MathExprParser {
 	int pos = -1 , c ;
 	private String str ;
 
-	public MathExprParser ( String str ) { this . str = str ;
+	public MathExprParser ( String str ) {
+		this . str = str ;
 	}
 
-	void eatChar ( ) { c = ( ++ pos < str . length ( ) ) ? str . charAt ( pos ) : -1 ;
+	void eatChar ( ) {
+		c = ( ++ pos < str . length ( ) ) ? str . charAt ( pos ) : -1 ;
 	}
 
 	void eatSpace ( ) {
-		while ( Character . isWhitespace ( c ) ) {
-			eatChar ( ) ;
-		}
+		while ( Character . isWhitespace ( c ) )
+		eatChar ( ) ;
 	}
 
 	public BigDecimal parse ( ) {
 		eatChar ( ) ;
 		BigDecimal v = parseExpression ( ) ;
-		if ( c != -1 ) {
-			throw new RuntimeException ( "Unexpected: " + ( char ) c ) ;
-		}
+		if ( c != -1 )
+		throw new RuntimeException ( "Unexpected: " + ( char ) c ) ;
 		return v ;
 	}
 
@@ -48,9 +48,8 @@ public class MathExprParser {
 			} else if ( c == '-' ) { // subtraction
 				eatChar ( ) ;
 				v = v . subtract ( parseTerm ( ) ) ;
-			} else {
-				return v ;
-			}
+			} else
+			return v ;
 		}
 	}
 
@@ -65,13 +64,11 @@ public class MathExprParser {
 				eatChar ( ) ;
 				v = new BigDecimal ( v . longValue ( ) % parseFactor ( ) . longValue ( ) ) ;
 			} else if ( c == '*' || c == '(' ) { // multiplication
-				if ( c == '*' ) {
-					eatChar ( ) ;
-				}
+				if ( c == '*' )
+				eatChar ( ) ;
 				v = v . multiply ( parseFactor ( ) ) ;
-			} else {
-				return v ;
-			}
+			} else
+			return v ;
 		}
 	}
 
@@ -87,24 +84,21 @@ public class MathExprParser {
 		if ( c == '(' ) { // brackets
 			eatChar ( ) ;
 			v = parseExpression ( ) ;
-			if ( c == ')' ) {
-				eatChar ( ) ;
-			}
+			if ( c == ')' )
+			eatChar ( ) ;
 		} else { // numbers
 			StringBuilder sb = new StringBuilder ( ) ;
 			while ( U . isMathExprNumberChar ( c ) ) {
 				sb . append ( ( char ) c ) ;
 				eatChar ( ) ;
 			}
-			if ( sb . length ( ) == 0 ) {
-				throw new RuntimeException ( "Unexpected: " + ( char ) c ) ;
-			}
+			if ( sb . length ( ) == 0 )
+			throw new RuntimeException ( "Unexpected: " + ( char ) c ) ;
 			String s = sb . toString ( ) ;
-			if ( s . startsWith ( "0x" ) ) {
-				v = new BigDecimal ( new BigInteger ( s . substring ( 2 ) , 16 ) ) ;
-			} else {
-				v = new BigDecimal ( s ) ;
-			}
+			if ( s . startsWith ( "0x" ) )
+			v = new BigDecimal ( new BigInteger ( s . substring ( 2 ) , 16 ) ) ;
+			else
+			v = new BigDecimal ( s ) ;
 		}
 		eatSpace ( ) ;
 		if ( c == '^' ) { // exponentiation
@@ -113,9 +107,8 @@ public class MathExprParser {
 				Math . pow ( v . doubleValue ( ) , parseFactor ( ) . doubleValue ( ) ) ) ;
 		}
 		if ( negate ) // unary minus is applied after exponentiation; e.g. -3^2=-9
-		{
-			v = v . negate ( ) ;
-		}
+
+		v = v . negate ( ) ;
 
 		return v ;
 	}

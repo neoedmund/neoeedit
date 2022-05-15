@@ -26,7 +26,8 @@ public class FindJDK {
 		isX86 = osarch . indexOf ( "x86" ) >= 0 && System . getenv ( "ProgramW6432" ) == null ;
 	}
 
-	public FindJDK ( ) { }
+	public FindJDK ( ) {
+	}
 
 	public static void main ( String [ ] args ) throws IOException {
 		// test
@@ -40,42 +41,37 @@ public class FindJDK {
 	}
 
 	/**
-   *
-   * @param bit 64,32,0==any
-   * @param jdk true must be JDK, false JRE is okay
-   * @return
-   * @throws IOException
-   */
+	 *
+	 * @param bit 64,32,0==any
+	 * @param jdk true must be JDK, false JRE is okay
+	 * @return
+	 * @throws IOException
+	 */
 	public String find ( int bit , boolean jdk ) throws IOException {
 		String path = "" ;
 		this . jdk = jdk ;
 		System . out . println ( "isX86:" + isX86 ) ;
-		if ( isWindows ) {
-			if ( isX86 ) {
-				if ( bit == 64 ) {
-					System . out . println ( "This is Win32 but you need 64bit JDK" ) ;
-					return "" ;
-				}
-				path = searchPath ( new String [ ] { "Program Files/Java/" } ) ;
-			} else { // 64
-				if ( bit == 32 ) {
-					path = searchPath ( new String [ ] { "Program Files (x86)/Java/" } ) ;
-				} else if ( bit == 0 ) { // any
-					path = searchPath ( new String [ ] { "Program Files/Java/" ,
-							"Program Files (x86)/Java/" } ) ;
-				} else { // bit==64
-					path = searchPath ( new String [ ] {
-							"Program Files/Java/" ,
-						} ) ;
-				}
+		if ( isWindows )
+		if ( isX86 ) {
+			if ( bit == 64 ) {
+				System . out . println ( "This is Win32 but you need 64bit JDK" ) ;
+				return "" ;
 			}
-		} else { // linux
-			path = searchPath ( new String [ ] { "/usr/lib/jvm/" , "/usr/java/" ,
-					"/usr/local/java/" , "/opt/" } ) ;
-		}
-		if ( path . isEmpty ( ) ) {
-			path = System . getenv ( "JAVA_HOME" ) ;
-		}
+			path = searchPath ( new String [ ] { "Program Files/Java/" } ) ;
+		} else // 64
+		if ( bit == 32 )
+		path = searchPath ( new String [ ] { "Program Files (x86)/Java/" } ) ;
+		else if ( bit == 0 ) // any
+		path = searchPath ( new String [ ] { "Program Files/Java/" ,
+				"Program Files (x86)/Java/" } ) ;
+		else // bit==64
+		path = searchPath ( new String [ ] {
+				"Program Files/Java/" , } ) ;
+		else // linux
+		path = searchPath ( new String [ ] { "/usr/lib/jvm/" , "/usr/java/" ,
+				"/usr/local/java/" , "/opt/" } ) ;
+		if ( path . isEmpty ( ) )
+		path = System . getenv ( "JAVA_HOME" ) ;
 		if ( path == null )
 		path = "" ;
 		return path ;
@@ -83,9 +79,8 @@ public class FindJDK {
 
 	private String searchPath ( String [ ] paths ) throws IOException {
 		String driver = "" ;
-		if ( isWindows ) {
-			driver = System . getenv ( "SystemDrive" ) + "/" ;
-		}
+		if ( isWindows )
+		driver = System . getenv ( "SystemDrive" ) + "/" ;
 		for ( String path : paths ) {
 			String s = searchAPath ( driver + path ) ;
 			if ( ! s . isEmpty ( ) )
@@ -99,38 +94,33 @@ public class FindJDK {
 		File p = new File ( path ) ;
 		String latestVer = "" ;
 		String ret = "" ;
-		if ( p . exists ( ) && p . isDirectory ( ) ) {
-			for ( File f : p . listFiles ( ) ) {
-				if ( f . isDirectory ( ) ) {
-					String fn = f . getName ( ) . toLowerCase ( ) ;
-					boolean isJavaDir =
-					jdk ? ( fn . indexOf ( "jdk" ) >= 0 || fn . indexOf ( "java" ) >= 0 )
-					: ( fn . indexOf ( "jdk" ) >= 0 || fn . indexOf ( "jre" ) >= 0 ||
-						fn . indexOf ( "java" ) >= 0 ) ;
-					if ( ! isJavaDir )
-					continue ;
-					debug ( "check java dir:" + f . getAbsolutePath ( ) ) ;
-					boolean found = false ;
-					if ( jdk ) {
-						if ( isWindows ) {
-							found = new File ( f , "bin/javac.exe" ) . exists ( ) ;
-						} else {
-							found = new File ( f , "bin/javac" ) . exists ( ) ;
-						}
-					} else {
-						if ( isWindows ) {
-							found = new File ( f , "bin/java.exe" ) . exists ( ) ;
-						} else {
-							found = new File ( f , "bin/java" ) . exists ( ) ;
-						}
-					}
-					if ( found ) {
-						String ver = getVersion ( f . getName ( ) ) ;
-						if ( ver . compareTo ( latestVer ) > 0 ) {
-							latestVer = ver ;
-							ret = f . getAbsolutePath ( ) ;
-						}
-					}
+		if ( p . exists ( ) && p . isDirectory ( ) )
+		for ( File f : p . listFiles ( ) )
+		if ( f . isDirectory ( ) ) {
+			String fn = f . getName ( ) . toLowerCase ( ) ;
+			boolean isJavaDir
+			= jdk ? ( fn . indexOf ( "jdk" ) >= 0 || fn . indexOf ( "java" ) >= 0 )
+			: ( fn . indexOf ( "jdk" ) >= 0 || fn . indexOf ( "jre" ) >= 0
+				|| fn . indexOf ( "java" ) >= 0 ) ;
+			if ( ! isJavaDir )
+			continue ;
+			debug ( "check java dir:" + f . getAbsolutePath ( ) ) ;
+			boolean found = false ;
+			if ( jdk )
+			if ( isWindows )
+			found = new File ( f , "bin/javac.exe" ) . exists ( ) ;
+			else
+			found = new File ( f , "bin/javac" ) . exists ( ) ;
+			else
+			if ( isWindows )
+			found = new File ( f , "bin/java.exe" ) . exists ( ) ;
+			else
+			found = new File ( f , "bin/java" ) . exists ( ) ;
+			if ( found ) {
+				String ver = getVersion ( f . getName ( ) ) ;
+				if ( ver . compareTo ( latestVer ) > 0 ) {
+					latestVer = ver ;
+					ret = f . getAbsolutePath ( ) ;
 				}
 			}
 		}
@@ -147,17 +137,16 @@ public class FindJDK {
 		int p2 = s . length ( ) ;
 		for ( int i = 0 ; i < s . length ( ) ; i ++ ) {
 			char c = s . charAt ( i ) ;
-			if ( Character . isDigit ( c ) || c == '.' || c == '_' ) {
-				if ( p1 == -1 ) {
-					p1 = i ;
-				} else {
-				}
+			if ( Character . isDigit ( c ) || c == '.' || c == '_' )
+			if ( p1 == -1 )
+			p1 = i ;
+			else {
+			}
+			else
+			if ( p1 >= 0 ) {
+				p2 = i ;
+				break ;
 			} else {
-				if ( p1 >= 0 ) {
-					p2 = i ;
-					break ;
-				} else {
-				}
 			}
 		}
 		if ( p1 >= 0 && p2 > p1 ) {

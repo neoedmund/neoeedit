@@ -79,8 +79,8 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		s . add ( jb2 = new JButton ( "Replace" ) ) ;
 		s . add ( jb3 = new JButton ( "Replace All" ) ) ;
 		s . newline ( ) ;
-		final JComponent [ ] pack1 =
-		new JComponent [ ] { jtadir , jtFnFilter , lbdir , lbfnfilter , jbup } ;
+		final JComponent [ ] pack1
+		= new JComponent [ ] { jtadir , jtFnFilter , lbdir , lbfnfilter , jbup } ;
 
 		jcb1 . addActionListener ( new ActionListener ( ) {
 				@ Override
@@ -116,17 +116,15 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		//        jcb3.setEnabled(false);
 		dialog . pack ( ) ;
 		dialog . setLocationRelativeTo ( f ) ;
-		if ( page != null && page . pageData . getFn ( ) != null ) {
-			jtadir . setText ( new File ( page . pageData . getFn ( ) ) . getParent ( ) ) ;
-		}
+		if ( page != null && page . workPath != null )
+		jtadir . setText ( page . workPath ) ;
 		jta1 . addKeyListener ( this ) ;
 		jta2 . addKeyListener ( this ) ;
 		KeyListener closeOnEsc = new KeyAdapter ( ) {
 			@ Override
 			public void keyPressed ( KeyEvent env ) {
-				if ( env . getKeyCode ( ) == KeyEvent . VK_ESCAPE ) {
-					dialog . dispose ( ) ;
-				}
+				if ( env . getKeyCode ( ) == KeyEvent . VK_ESCAPE )
+				dialog . dispose ( ) ;
 			}
 		} ;
 		dialog . addKeyListener ( closeOnEsc ) ;
@@ -142,29 +140,25 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		//        jcb3.addKeyListener(closeOnEsc);
 		{
 			int totalLines = page . pageData . lines . size ( ) ;
-			if ( totalLines > 5 && totalLines - page . cy <= 3 ) {
-				// at bottom, so likely to search backwards
-				jcbDirection . setSelected ( true ) ;
-			}
+			if ( totalLines > 5 && totalLines - page . cy <= 3 )
+			// at bottom, so likely to search backwards
+			jcbDirection . setSelected ( true ) ;
 		}
 	}
 
 	private void doDirUp ( ) {
 		String s = jtadir . getText ( ) ;
 		File f = new File ( s ) ;
-		if ( f . exists ( ) ) {
-			f = f . getParentFile ( ) ;
-		}
-		if ( f == null ) {
-			return ;
-		}
+		if ( f . exists ( ) )
+		f = f . getParentFile ( ) ;
+		if ( f == null )
+		return ;
 		jtadir . setText ( f . getAbsolutePath ( ) ) ;
 	}
 
 	protected void setVisible ( JComponent [ ] pack , boolean b ) {
-		for ( JComponent p : pack ) {
-			p . setVisible ( b ) ;
-		}
+		for ( JComponent p : pack )
+		p . setVisible ( b ) ;
 		dialog . pack ( ) ;
 	}
 
@@ -173,27 +167,26 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		page . pageData . history . beginAtom ( ) ;
 		try {
 			String command = ae . getActionCommand ( ) ;
-			if ( command . equals ( "find" ) ) {
-				page . ptFind . doFind ( jta1 . getText ( ) , jrb1 . isSelected ( ) , jrb2 . isSelected ( ) ,
-					jcb1 . isSelected ( ) , jtadir . getText ( ) ,
-					jtFnFilter . getText ( ) , jcbDirection . isSelected ( ) ,
-					jcbword . isSelected ( ) ) ;
-			} else if ( command . equals ( "findall" ) ) {
-				U . doFindInPage ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) ,
-					jcbword . isSelected ( ) ) ;
-			} else if ( command . equals ( "replace" ) ) {
-				U . doReplace ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) , jrb2 . isSelected ( ) ,
-					jta2 . getText ( ) , false , false , null ) ;
-			} else if ( command . equals ( "replaceall" ) ) {
-				U . doReplaceAll ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) ,
-					jrb2 . isSelected ( ) , jta2 . getText ( ) , jcb1 . isSelected ( ) ,
-					jtadir . getText ( ) , jtFnFilter . getText ( ) ) ;
-			} else if ( command . equals ( "up" ) ) {
+			if ( command . equals ( "find" ) )
+			page . ptFind . doFind ( jta1 . getText ( ) , jrb1 . isSelected ( ) , jrb2 . isSelected ( ) ,
+				jcb1 . isSelected ( ) , jtadir . getText ( ) ,
+				jtFnFilter . getText ( ) , jcbDirection . isSelected ( ) ,
+				jcbword . isSelected ( ) ) ;
+			else if ( command . equals ( "findall" ) )
+			page . ptFind . doFindInPage ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) ,
+				jcbword . isSelected ( ) ) ;
+			else if ( command . equals ( "replace" ) )
+			page . ptFind . doReplace ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) , jrb2 . isSelected ( ) ,
+				jta2 . getText ( ) , false , false , null ) ;
+			else if ( command . equals ( "replaceall" ) )
+			page . ptFind . doReplaceAll ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) ,
+				jrb2 . isSelected ( ) , jta2 . getText ( ) , jcb1 . isSelected ( ) ,
+				jtadir . getText ( ) , jtFnFilter . getText ( ) ) ;
+			else if ( command . equals ( "up" ) ) {
 				new Thread ( ( ) -> doDirUp ( ) ) . start ( ) ;
 				return ;
-			} else {
-				return ;
-			}
+			} else
+			return ;
 			dialog . dispose ( ) ;
 		} catch ( Throwable e ) {
 			e . printStackTrace ( ) ;
@@ -203,12 +196,6 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		}
 	}
 
-	// public static void main(String[] args) {
-	// JFrame f = new JFrame();
-	// f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	// f.setVisible(true);
-	// new FindReplaceWindow(f, null).show();
-	// }
 	@ Override
 	public void keyPressed ( KeyEvent e ) {
 		if ( e . getSource ( ) == jta1 ) {
@@ -216,22 +203,22 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 				ActionEvent ae = new ActionEvent ( this , 1 , "find" ) ;
 				actionPerformed ( ae ) ;
 			}
-		} else {
-			if ( e . getSource ( ) == jta2 ) {
-				if ( e . getKeyCode ( ) == KeyEvent . VK_ENTER ) {
-					ActionEvent ae = new ActionEvent ( this , 1 , "replaceall" ) ;
-					actionPerformed ( ae ) ;
-				}
-			}
+		} else if ( e . getSource ( ) == jta2 )
+		if ( e . getKeyCode ( ) == KeyEvent . VK_ENTER ) {
+			ActionEvent ae = new ActionEvent ( this , 1 , "replaceall" ) ;
+			actionPerformed ( ae ) ;
 		}
 	}
 
 	@ Override
-	public void keyReleased ( KeyEvent e ) { }
+	public void keyReleased ( KeyEvent e ) {
+	}
 
 	@ Override
-	public void keyTyped ( KeyEvent e ) { }
+	public void keyTyped ( KeyEvent e ) {
+	}
 
-	public void show ( ) { dialog . setVisible ( true ) ;
+	public void show ( ) {
+		dialog . setVisible ( true ) ;
 	}
 }

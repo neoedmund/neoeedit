@@ -28,19 +28,19 @@ public class FileIterator implements Iterable < File > {
 			public File next ( ) {
 				File f = buf . remove ( 0 ) ;
 				String name = f . getName ( ) ;
-				if ( f . isDirectory ( ) && ! name . equals ( ".svn" ) && ! name . equals ( ".cvs" ) &&
-					! name . equals ( ".bzr" ) &&
-					! name . equals ( ".git" ) /*&& (!Files.isSymbolicLink(f.toPath()))*/ ) {
+				if ( f . isDirectory ( ) && ! name . equals ( ".svn" ) && ! name . equals ( ".cvs" )
+					&& ! name . equals ( ".bzr" )
+					&& ! name . equals ( ".git" ) /*&& (!Files.isSymbolicLink(f.toPath()))*/ ) {
 					File [ ] sub = f . listFiles ( ) ;
-					if ( sub != null ) {
-						buf . addAll ( Arrays . asList ( sub ) ) ;
-					}
+					if ( sub != null )
+					buf . addAll ( Arrays . asList ( sub ) ) ;
 				}
 				return f ;
 			}
 
 			@ Override
-			public void remove ( ) { }
+			public void remove ( ) {
+			}
 		} ;
 	}
 }

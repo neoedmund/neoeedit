@@ -21,7 +21,8 @@ public class CommandPanel {
 	public static class CommandPanelPaint {
 		private PlainPage pp ;
 
-		public CommandPanelPaint ( PlainPage plainPage ) { this . pp = plainPage ;
+		public CommandPanelPaint ( PlainPage plainPage ) {
+			this . pp = plainPage ;
 		}
 
 		static Font fontTopLine1 = new Font ( "Courier" , Font . PLAIN , 11 ) ;
@@ -42,12 +43,10 @@ public class CommandPanel {
 				h += 4 + h2 ;
 			}
 			Rectangle r = new Rectangle ( mx , my , w + 8 , h + 8 ) ;
-			if ( r . x + r . width > dim . width ) {
-				r . x = dim . width - r . width ;
-			}
-			if ( r . y + r . height > dim . height ) {
-				r . y = dim . height - r . height ;
-			}
+			if ( r . x + r . width > dim . width )
+			r . x = dim . width - r . width ;
+			if ( r . y + r . height > dim . height )
+			r . y = dim . height - r . height ;
 			g . setColor ( bg ) ;
 			g . fillRect ( r . x , r . y , r . width , r . height ) ;
 			g . setColor ( Color . BLACK ) ;
@@ -55,14 +54,14 @@ public class CommandPanel {
 			g . setColor ( fg ) ;
 			g . setFont ( fontTopLine1 ) ;
 			g . drawString ( ss [ 0 ] , r . x + 4 ,
-				r . y + 4 - g . getFontMetrics ( ) . getDescent ( ) +
-				g . getFontMetrics ( ) . getHeight ( ) ) ;
+				r . y + 4 - g . getFontMetrics ( ) . getDescent ( )
+				+ g . getFontMetrics ( ) . getHeight ( ) ) ;
 			if ( ss . length > 1 ) {
 				g . setFont ( fontTopLine2 ) ;
 				g . drawString ( ss [ 1 ] , r . x + 4 ,
-					r . y + 4 + 4 + g . getFontMetrics ( fontTopLine1 ) . getHeight ( ) -
-					g . getFontMetrics ( ) . getDescent ( ) +
-					g . getFontMetrics ( ) . getHeight ( ) ) ;
+					r . y + 4 + 4 + g . getFontMetrics ( fontTopLine1 ) . getHeight ( )
+					- g . getFontMetrics ( ) . getDescent ( )
+					+ g . getFontMetrics ( ) . getHeight ( ) ) ;
 			}
 		}
 
@@ -145,52 +144,47 @@ public class CommandPanel {
 
 		private void drawComps ( Graphics2D g ) {
 			String tip = null ;
-			for ( Object o : comps ) {
-				if ( o instanceof XButton ) {
-					XButton btn = ( XButton ) o ;
-					if ( btn == lastInObj ) {
-						btn . selected = true ;
-						// long now = System.currentTimeMillis();
-						// if (now - lastInObjMs > tipMs) {
-						btn . showTip = true ;
-						// }
-					}
-					btn . xpaint ( g ) ;
-
-					if ( btn . showTip ) {
-						tip = btn . tip ;
-					}
-
-					btn . selected = false ;
-					btn . showTip = false ;
+			for ( Object o : comps )
+			if ( o instanceof XButton ) {
+				XButton btn = ( XButton ) o ;
+				if ( btn == lastInObj ) {
+					btn . selected = true ;
+					// long now = System.currentTimeMillis();
+					// if (now - lastInObjMs > tipMs) {
+					btn . showTip = true ;
+					// }
 				}
+				btn . xpaint ( g ) ;
+
+				if ( btn . showTip )
+				tip = btn . tip ;
+
+				btn . selected = false ;
+				btn . showTip = false ;
 			}
-			if ( tip != null ) {
-				drawTip2 ( g , mx , my , tip , dim ) ;
-			}
+			if ( tip != null )
+			drawTip2 ( g , mx , my , tip , dim ) ;
 		}
 
 		private void fireClicked ( Object inObj ) {
-			if ( inObj != null &&
-				( inObj instanceof XButton && ! ( ( XButton ) inObj ) . disabled ) ) {
-				clickedName = ( ( XButton ) inObj ) . text ;
-			}
+			if ( inObj != null
+				&& ( inObj instanceof XButton && ! ( ( XButton ) inObj ) . disabled ) )
+			clickedName = ( ( XButton ) inObj ) . text ;
 		}
 
 		private Object getInObj ( int mx , int my ) {
-			for ( Object o : comps ) {
-				if ( o instanceof XButton ) {
-					XButton btn = ( XButton ) o ;
-					if ( btn . disabled )
-					continue ;
-					Rectangle r = new Rectangle ( btn . rect ) ;
-					r . x = r . x + btn . spacing ;
-					r . y = r . y + btn . spacing ;
-					r . width = r . width - 2 * btn . spacing ;
-					r . height = r . height - 2 * btn . spacing ;
-					if ( r . contains ( mx , my ) )
-					return o ;
-				}
+			for ( Object o : comps )
+			if ( o instanceof XButton ) {
+				XButton btn = ( XButton ) o ;
+				if ( btn . disabled )
+				continue ;
+				Rectangle r = new Rectangle ( btn . rect ) ;
+				r . x = r . x + btn . spacing ;
+				r . y = r . y + btn . spacing ;
+				r . width = r . width - 2 * btn . spacing ;
+				r . height = r . height - 2 * btn . spacing ;
+				if ( r . contains ( mx , my ) )
+				return o ;
 			}
 			return null ;
 		}
@@ -228,26 +222,25 @@ public class CommandPanel {
 			int mx = evt . getX ( ) ;
 			int my = evt . getY ( ) ;
 			Object inObj = getInObj ( mx , my ) ;
-			if ( inObj != null &&
-				( inObj instanceof XButton && ! ( ( XButton ) inObj ) . disabled ) ) {
-				fireClicked ( inObj ) ;
-			}
+			if ( inObj != null
+				&& ( inObj instanceof XButton && ! ( ( XButton ) inObj ) . disabled ) )
+			fireClicked ( inObj ) ;
 		}
 
 		public void mouseMoved ( MouseEvent evt ) {
 			mx = evt . getX ( ) ;
 			my = evt . getY ( ) ;
 			Object inObj = getInObj ( mx , my ) ;
-			if ( inObj != null &&
-				( inObj instanceof XButton && ! ( ( XButton ) inObj ) . disabled ) ) {
-				if ( inObj == lastInObj ) {
-					// need show tip
-				} else {
-					lastInObj = inObj ;
-					lastInObjMs = System . currentTimeMillis ( ) ;
-					repaint ( ) ;
-				}
+			if ( inObj != null
+				&& ( inObj instanceof XButton && ! ( ( XButton ) inObj ) . disabled ) )
+			if ( inObj == lastInObj ) {
+				// need show tip
 			} else {
+				lastInObj = inObj ;
+				lastInObjMs = System . currentTimeMillis ( ) ;
+				repaint ( ) ;
+			}
+			else {
 				lastInObj = inObj ;
 				lastInObjMs = System . currentTimeMillis ( ) ;
 				repaint ( ) ;
@@ -269,9 +262,8 @@ public class CommandPanel {
 			g . setColor ( bkColor ) ;
 			g . fillRect ( 0 , 0 , size . width , size . height ) ;
 			//
-			if ( ! inited ) {
-				init ( ) ;
-			}
+			if ( ! inited )
+			init ( ) ;
 			drawComps ( g ) ;
 		}
 	}
@@ -321,8 +313,8 @@ public class CommandPanel {
 			g . setColor ( color ) ;
 			g . setFont ( font ) ;
 			g . drawString ( text , rect . x + padding + spacing ,
-				rect . y + padding + spacing + g . getFontMetrics ( ) . getHeight ( ) -
-				g . getFontMetrics ( ) . getDescent ( ) ) ;
+				rect . y + padding + spacing + g . getFontMetrics ( ) . getHeight ( )
+				- g . getFontMetrics ( ) . getDescent ( ) ) ;
 		}
 	}
 }

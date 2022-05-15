@@ -12,9 +12,9 @@ import neoe . ne . util . FileUtil ;
 
 public class MakeKeywords {
 	/**
-   * @param args
-   * @throws Exception
-   */
+	 * @param args
+	 * @throws Exception
+	 */
 	public static void main ( String [ ] args ) throws Exception {
 		new MakeKeywords ( ) . addTextFile ( "/data/2k/temp1" ) ;
 	}
@@ -41,9 +41,8 @@ public class MakeKeywords {
 
 	private void output ( List < String > sl ) {
 		StringBuffer sb = new StringBuffer ( ) ;
-		for ( String s : sl ) {
-			sb . append ( " " ) . append ( s ) ;
-		}
+		for ( String s : sl )
+		sb . append ( " " ) . append ( s ) ;
 		System . out . println ( "size:" + sl . size ( ) ) ;
 		System . out . println ( sb . toString ( ) ) ;
 	}

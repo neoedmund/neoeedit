@@ -30,14 +30,13 @@ public class Xcd {
 	public static String readString ( InputStream ins , String enc )
 	throws IOException {
 		if ( enc == null )
-		enc = "UTF-8" ;
+		enc = U . UTF8 ;
 		BufferedReader in = new BufferedReader ( new InputStreamReader ( ins , enc ) ) ;
 		char [ ] buf = new char [ 1000 ] ;
 		int len ;
 		StringBuffer sb = new StringBuffer ( ) ;
-		while ( ( len = in . read ( buf ) ) > 0 ) {
-			sb . append ( buf , 0 , len ) ;
-		}
+		while ( ( len = in . read ( buf ) ) > 0 )
+		sb . append ( buf , 0 , len ) ;
 		in . close ( ) ;
 		return sb . toString ( ) ;
 	}
@@ -80,12 +79,10 @@ public class Xcd {
 		String [ ] ss = readString ( new FileInputStream ( hisfile ) , null ) . split ( "\n" ) ;
 		for ( String s : ss ) {
 			s = s . trim ( ) ;
-			if ( ! ( s . startsWith ( "/" ) || s . startsWith ( "~/" ) ) ) {
-				continue ;
-			}
-			if ( key != null && ! s . toLowerCase ( ) . contains ( key ) ) {
-				continue ;
-			}
+			if ( ! ( s . startsWith ( "/" ) || s . startsWith ( "~/" ) ) )
+			continue ;
+			if ( key != null && ! s . toLowerCase ( ) . contains ( key ) )
+			continue ;
 			File f = new File ( s ) ;
 			if ( f . isDirectory ( ) ) {
 				s = f . getAbsolutePath ( ) ;
@@ -104,16 +101,13 @@ public class Xcd {
 		String [ ] ss = readString ( new FileInputStream ( hisfile ) , null ) . split ( "\n" ) ;
 		for ( String s : ss ) {
 			s = s . trim ( ) ;
-			if ( ! s . startsWith ( "cd " ) ) {
-				continue ;
-			}
+			if ( ! s . startsWith ( "cd " ) )
+			continue ;
 			s = s . substring ( 3 ) . trim ( ) ;
-			if ( ! ( s . startsWith ( "/" ) || s . startsWith ( "~/" ) ) ) {
-				continue ;
-			}
-			if ( key != null && ! s . toLowerCase ( ) . contains ( key ) ) {
-				continue ;
-			}
+			if ( ! ( s . startsWith ( "/" ) || s . startsWith ( "~/" ) ) )
+			continue ;
+			if ( key != null && ! s . toLowerCase ( ) . contains ( key ) )
+			continue ;
 			File f = new File ( s ) ;
 			if ( f . isDirectory ( ) ) {
 				s = f . getAbsolutePath ( ) ;
@@ -148,9 +142,9 @@ public class Xcd {
 				@ Override
 				public void keyPressed ( KeyEvent e ) {
 					int kc = e . getKeyCode ( ) ;
-					if ( kc == KeyEvent . VK_ESCAPE ) {
-						frame . dispose ( ) ;
-					} else if ( kc == KeyEvent . VK_ENTER ) {
+					if ( kc == KeyEvent . VK_ESCAPE )
+					frame . dispose ( ) ;
+					else if ( kc == KeyEvent . VK_ENTER ) {
 						String s = ( String ) list . getSelectedValue ( ) ;
 						selection [ 0 ] = s ;
 						frame . dispose ( ) ;

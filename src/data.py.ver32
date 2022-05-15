@@ -69,7 +69,7 @@
 		[ toggleFps ctrl-alt-R etc "toggle FPS" ]
 		[ changePathSep alt-SLASH edit2 "change between / and \\" ]
 		[ commandPanel F1 help "show commands panel" ]
-		[ mathEval F6 etc "evaluate a math expression" ]
+		/* [ mathEval F6 etc "evaluate a math expression, use = instead" ] */
 		[ readonlyMode alt-R etc "navigate mode" ]
 		[ moveUpLangLevel alt-BACK_SPACE cursor "move to up level of c-like source" ]
 	]
@@ -90,8 +90,8 @@
 		font_example : [ "font filename" fontsize <empty>|BOLD|ITALIC ]
 		console : [ FreeMono 12 ]
 		list : [
-			[ "DejaVu Math TeX Gyre" 14 ]
-			[ "Noto Sans CJK SC DemiLight" 14 ]
+			[ "Source Code Pro Semibold" 16 ]
+			[ "Noto Sans CJK SC DemiLight" 16 ]
 		]
 		list_noused : [ [ /home/neoe/oss/xiaolishu.ttf 14 ]
 			[ "DejaVu Sans Mono" 12 ]

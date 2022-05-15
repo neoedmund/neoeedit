@@ -28,8 +28,11 @@ public class PyData {
 
 	private boolean lastIsRN ;
 
-	/** for dump */
-	public PyData ( ) { lastIsRN = false ;
+	/**
+	 * for dump
+	 */
+	public PyData ( ) {
+		lastIsRN = false ;
 	}
 
 	public void dump ( Object data , Writer out , String indent , boolean listIndex )
@@ -47,16 +50,13 @@ public class PyData {
 			int i = 0 ;
 			boolean first = true ;
 			for ( Object o : l ) {
-				if ( sepByComma ) {
-					if ( first ) {
-						first = false ;
-					} else {
-						out . write ( " , " ) ;
-					}
-				}
-				if ( listIndex ) {
-					out . write ( String . format ( " /*%s*/ " , i ++ ) ) ;
-				}
+				if ( sepByComma )
+				if ( first )
+				first = false ;
+				else
+				out . write ( " , " ) ;
+				if ( listIndex )
+				out . write ( String . format ( " /*%s*/ " , i ++ ) ) ;
 				dump ( o , out , indent + "  " , listIndex ) ;
 			}
 			if ( ! lastIsRN )
@@ -74,21 +74,19 @@ public class PyData {
 			boolean first = true ;
 			for ( Object o : m . keySet ( ) ) {
 				out . write ( in2 ) ;
-				if ( sepByComma ) {
-					if ( first ) {
-						first = false ;
-					} else {
-						out . write ( " , " ) ;
-					}
-				}
-				if ( sepByComma ) {
-					out . write ( "\"" ) ;
-				} else {
+				if ( sepByComma )
+				if ( first )
+				first = false ;
+				else
+				out . write ( " , " ) ;
+				if ( sepByComma )
+				out . write ( "\"" ) ;
+				else {
 				}
 				out . write ( o . toString ( ) ) ;
-				if ( sepByComma ) {
-					out . write ( "\"" ) ;
-				} else {
+				if ( sepByComma )
+				out . write ( "\"" ) ;
+				else {
 				}
 				out . write ( ":" ) ;
 				lastIsRN = false ;
@@ -103,17 +101,15 @@ public class PyData {
 		} else {
 			if ( lastIsRN )
 			out . write ( indent ) ;
-			if ( sepByComma ) {
-				out . write ( "\"" ) ;
-			} else {
-				out . write ( "`" ) ;
-			}
+			if ( sepByComma )
+			out . write ( "\"" ) ;
+			else
+			out . write ( "`" ) ;
 			out . write ( data . toString ( ) ) ;
-			if ( sepByComma ) {
-				out . write ( "\"" ) ;
-			} else {
-				out . write ( "`" ) ;
-			}
+			if ( sepByComma )
+			out . write ( "\"" ) ;
+			else
+			out . write ( "`" ) ;
 			out . write ( "\t" ) ;
 			lastIsRN = false ;
 		}
@@ -158,20 +154,19 @@ public class PyData {
 
 	private boolean useEscape = false ;
 
-	String at ( ) { return " at line:" + lno + " pos:" + pos ;
+	String at ( ) {
+		return " at line:" + lno + " pos:" + pos ;
 	}
 
 	void confirm ( char i , char c ) throws Exception {
 		if ( c == ',' && ! sepByComma ) {
 			if ( i != c )
 			pushBack ( i ) ;
-		} else {
-			if ( i != c ) {
-				throw new Exception ( "Expected to read `" + c + "` but `" + i + "`(" +
-					( ( int ) i ) + ") found" + at ( ) +
-					", sep=" + sepByComma ) ;
-			}
-		}
+		} else
+		if ( i != c )
+		throw new Exception ( "Expected to read `" + c + "` but `" + i + "`("
+			+ ( ( int ) i ) + ") found" + at ( )
+			+ ", sep=" + sepByComma ) ;
 	}
 
 	void confirm ( Reader in , char c ) throws Exception {
@@ -187,14 +182,12 @@ public class PyData {
 			if ( i2 == '*' ) {
 				skipUtil ( in , "*/" ) ;
 				i = readA ( in ) ;
-			} else {
-				pushBack ( i2 ) ;
-			}
+			} else
+			pushBack ( i2 ) ;
 		}
 
-		if ( i == EOF ) {
-			return null ;
-		}
+		if ( i == EOF )
+		return null ;
 
 		if ( i == '{' ) {
 			Map m = new LinkedHashMap ( ) ;
@@ -238,7 +231,8 @@ public class PyData {
 		return o ;
 	}
 
-	void pushBack ( char c ) { buf . append ( c ) ;
+	void pushBack ( char c ) {
+		buf . append ( c ) ;
 	}
 
 	char read ( Reader in ) throws Exception {
@@ -246,18 +240,16 @@ public class PyData {
 		if ( c == '\n' ) {
 			lno ++ ;
 			pos = 0 ;
-		} else {
-			pos ++ ;
-		}
+		} else
+		pos ++ ;
 		return c ;
 	}
 
 	char readA ( Reader in ) throws Exception {
 		char i = xread ( in ) ;
 		while ( true ) {
-			while ( i == '\n' || i == '\r' || i == ' ' || i == '\t' ) {
-				i = xread ( in ) ;
-			}
+			while ( i == '\n' || i == '\r' || i == ' ' || i == '\t' )
+			i = xread ( in ) ;
 			// add comment
 			if ( i == '/' ) {
 				char i2 = xread ( in ) ;
@@ -268,9 +260,8 @@ public class PyData {
 					pushBack ( i2 ) ;
 					return i ;
 				}
-			} else {
-				return i ;
-			}
+			} else
+			return i ;
 		}
 	}
 
@@ -279,8 +270,8 @@ public class PyData {
 		sb . append ( first ) ;
 		while ( true ) {
 			char i = xread ( in ) ;
-			if ( i == EOF || i == ' ' || i == '\n' || i == '\r' || i == '\t' ||
-				i == ',' || i == '}' || i == ')' || i == ']' || i == ':' ) {
+			if ( i == EOF || i == ' ' || i == '\n' || i == '\r' || i == '\t'
+				|| i == ',' || i == '}' || i == ')' || i == ']' || i == ':' ) {
 				pushBack ( i ) ;
 				break ;
 			}
@@ -296,20 +287,17 @@ public class PyData {
 	void readList ( Reader in , List l , char end ) throws Exception {
 		while ( true ) {
 			char i = readA ( in ) ;
-			if ( i == EOF ) {
-				throw new Exception ( "Expected to read " + end + " but EOF found" +
-					at ( ) ) ;
-			}
-			if ( i == end ) {
-				return ;
-			}
+			if ( i == EOF )
+			throw new Exception ( "Expected to read " + end + " but EOF found"
+				+ at ( ) ) ;
+			if ( i == end )
+			return ;
 			pushBack ( i ) ;
 			Object e = parse ( in ) ;
 			l . add ( e ) ;
 			i = readA ( in ) ;
-			if ( i == end ) {
-				return ;
-			}
+			if ( i == end )
+			return ;
 			confirm ( i , ',' ) ;
 		}
 	}
@@ -317,22 +305,19 @@ public class PyData {
 	void readMap ( Reader in , Map m , char end ) throws Exception {
 		while ( true ) {
 			char i = readA ( in ) ;
-			if ( i == EOF ) {
-				throw new Exception ( "Expected to read " + end + " but EOF found" +
-					at ( ) ) ;
-			}
-			if ( i == end ) {
-				return ;
-			}
+			if ( i == EOF )
+			throw new Exception ( "Expected to read " + end + " but EOF found"
+				+ at ( ) ) ;
+			if ( i == end )
+			return ;
 			pushBack ( i ) ;
 			Object key = parse ( in ) ;
 			confirm ( in , ':' ) ;
 			Object value = parse ( in ) ;
 			m . put ( key , value ) ;
 			i = readA ( in ) ;
-			if ( i == end ) {
-				return ;
-			}
+			if ( i == end )
+			return ;
 			confirm ( i , ',' ) ;
 		}
 	}
@@ -362,10 +347,9 @@ public class PyData {
 				else if ( i == 't' )
 				i = '\t' ;
 			}
-			if ( i == EOF ) {
-				throw new Exception ( "Expected to read " + end + " but EOF found" +
-					at ( ) ) ;
-			}
+			if ( i == EOF )
+			throw new Exception ( "Expected to read " + end + " but EOF found"
+				+ at ( ) ) ;
 			sb . append ( i ) ;
 			i = xread ( in ) ;
 		}
@@ -395,9 +379,8 @@ public class PyData {
 
 		void add ( int c ) {
 			cs [ p ++ ] = ( char ) c ;
-			if ( p >= size ) {
-				p = 0 ;
-			}
+			if ( p >= size )
+			p = 0 ;
 		}
 
 		public String get ( ) {
@@ -405,9 +388,8 @@ public class PyData {
 			StringBuffer sb = new StringBuffer ( ) ;
 			for ( int i = 0 ; i < size ; i ++ ) {
 				sb . append ( ( char ) cs [ q ++ ] ) ;
-				if ( q >= size ) {
-					q = 0 ;
-				}
+				if ( q >= size )
+				q = 0 ;
 			}
 			return sb . toString ( ) ;
 		}
@@ -417,16 +399,14 @@ public class PyData {
 		LoopStringBuffer lsb = new LoopStringBuffer ( end . length ( ) ) ;
 		while ( true ) {
 			char b ;
-			if ( ( b = xread ( in ) ) == EOF ) {
-				// not found end string
-				return ;
-			}
+			if ( ( b = xread ( in ) ) == EOF )
+			// not found end string
+			return ;
 			// total++;
 			// ba.write(b);
 			lsb . add ( b ) ;
-			if ( lsb . get ( ) . equals ( end ) ) {
-				break ;
-			}
+			if ( lsb . get ( ) . equals ( end ) )
+			break ;
 		}
 	}
 

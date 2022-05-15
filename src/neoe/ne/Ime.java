@@ -1,6 +1,5 @@
 package neoe . ne ;
 
-import java . awt . Font ;
 import java . awt . Graphics2D ;
 import java . awt . Rectangle ;
 import java . awt . event . KeyEvent ;
@@ -39,9 +38,8 @@ public abstract class Ime {
 	}
 
 	public static ImeInterface getCurrentIme ( ) {
-		if ( instances == null || ! enabled ) {
-			return null ;
-		}
+		if ( instances == null || ! enabled )
+		return null ;
 		return instances . get ( index ) ;
 	}
 

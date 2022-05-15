@@ -14,6 +14,7 @@ import java . util . Iterator ;
 import java . util . Map ;
 import java . util . Set ;
 
+/*not used*/
 class DumpToString {
 	private static final int MAX_DUMP_ARR = 99 ;
 
@@ -42,18 +43,17 @@ class DumpToString {
 		return ;
 
 		String name = o . getClass ( ) . getName ( ) ;
-		if ( isPrimitive ( name , o ) ) {
-			out . write ( o . toString ( ) ) ;
-		} else {
+		if ( isPrimitive ( name , o ) )
+		out . write ( o . toString ( ) ) ;
+		else {
 			if ( objSet . contains ( o ) ) {
-				out . write ( o . getClass ( ) . getName ( ) + "@" +
-					Integer . toHexString ( o . hashCode ( ) ) + "..." ) ;
+				out . write ( o . getClass ( ) . getName ( ) + "@"
+					+ Integer . toHexString ( o . hashCode ( ) ) + "..." ) ;
 				return ;
 			}
 			objSet . add ( o ) ;
-			if ( indent >= maxLevel && maxLevel > 0 ) {
-				return ;
-			}
+			if ( indent >= maxLevel && maxLevel > 0 )
+			return ;
 			if ( o . getClass ( ) . isArray ( ) ) {
 				out . write ( "arr[" ) ;
 				for ( int i = 0 ; i < Array . getLength ( o ) ; i ++ ) {
@@ -159,8 +159,7 @@ class DumpToString {
 	private static boolean isPrimitive ( String name , Object o ) {
 		if ( o . getClass ( ) . isArray ( ) || o instanceof Iterable || o instanceof Map )
 		return false ;
-		return
-		// name.startsWith("java.") || name.startsWith("javax.")||
+		return // name.startsWith("java.") || name.startsWith("javax.")||
 		// name.startsWith("sun.") ||
 		name . startsWith ( "java.lang." ) || name . indexOf ( "." ) < 0 ;
 	}
@@ -177,9 +176,8 @@ public class Shell {
 				e . printStackTrace ( ) ;
 				r = e . toString ( ) ;
 			}
-			if ( cy == pp . pageData . lines . size ( ) - 1 ) {
-				pp . pageData . editRec . insertEmptyLine ( cy + 1 ) ;
-			}
+			if ( cy == pp . pageData . lines . size ( ) - 1 )
+			pp . pageData . editRec . insertEmptyLine ( cy + 1 ) ;
 			pp . cursor . moveDown ( ) ;
 			pp . cursor . moveHome ( ) ;
 			pp . ptEdit . insertString ( r ) ;
@@ -190,7 +188,8 @@ public class Shell {
 
 	private StringBuffer ret = new StringBuffer ( "#" ) ;
 
-	public Shell ( PlainPage pp ) { this . pp = pp ;
+	public Shell ( PlainPage pp ) {
+		this . pp = pp ;
 	}
 
 	private static Object getObj ( Object o , String name ) {
@@ -200,11 +199,9 @@ public class Shell {
 			return value ;
 		} catch ( Exception e ) {
 			Method [ ] methods = o . getClass ( ) . getDeclaredMethods ( ) ;
-			for ( Method m : methods ) {
-				if ( m . getName ( ) . equals ( name ) ) {
-					return m ;
-				}
-			}
+			for ( Method m : methods )
+			if ( m . getName ( ) . equals ( name ) )
+			return m ;
 		}
 		return null ;
 	}
@@ -218,9 +215,9 @@ public class Shell {
 	}
 
 	private void list ( String name ) throws Exception {
-		if ( name . equals ( "this" ) ) {
-			list ( pp ) ;
-		} else {
+		if ( name . equals ( "this" ) )
+		list ( pp ) ;
+		else {
 			Object o = getObj ( pp , name ) ;
 			list ( o ) ;
 		}

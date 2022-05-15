@@ -10,7 +10,9 @@ import java . util . Set ;
 import neoe . ne . U ;
 import neoe . ne . util . FileUtil ;
 
-/** remove filename not exists */
+/**
+ * remove filename not exists
+ */
 public class RefreshFileHistory {
 	public static void main ( String [ ] args ) throws Exception {
 		File fhn = U . getFileHistoryName ( ) ;
@@ -23,23 +25,19 @@ public class RefreshFileHistory {
 			int p1 = s . lastIndexOf ( '|' ) ;
 			if ( p1 > 0 ) {
 				String fn = s . substring ( 0 , p1 ) ;
-				if ( ! new File ( fn ) . isFile ( ) ) {
-					fail = true ;
-				} else {
-					if ( e . contains ( fn ) ) {
-						fail = true ;
-					} else {
-						e . add ( fn ) ;
-					}
-				}
-			} else {
+				if ( ! new File ( fn ) . isFile ( ) )
 				fail = true ;
-			}
-			if ( fail ) {
-				System . out . println ( "fail: " + s ) ;
-			} else {
-				fs2 . add ( s ) ;
-			}
+				else
+				if ( e . contains ( fn ) )
+				fail = true ;
+				else
+				e . add ( fn ) ;
+			} else
+			fail = true ;
+			if ( fail )
+			System . out . println ( "fail: " + s ) ;
+			else
+			fs2 . add ( s ) ;
 		}
 		Collections . reverse ( fs2 ) ;
 		FileUtil . save ( String . join ( "\n" , fs2 ) . getBytes ( "utf8" ) ,

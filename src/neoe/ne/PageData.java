@@ -6,113 +6,116 @@ import java . util . ArrayList ;
 import java . util . HashMap ;
 import java . util . List ;
 import java . util . Map ;
-import neoe . ne . U . History ;
+import static neoe . ne . U . saveFileHistory ;
 
 /**
  * Text data stores here.
  */
 public class PageData {
-	static Map < String , PageData > dataPool = new HashMap < String , PageData > ( ) ;
+	/**
+	 * whole JVM, regardless how many window opened, data get shared
+	 */
+	static Map < String , PageData > dataPool = new HashMap < > ( ) ;
 
-	public static PageData newEmpty ( String title ) {
-		return newEmpty ( title , "empty" ) ;
+	public static PageData newUntitled ( ) {
+		return fromTitle ( "[Untitled]#" + U . randomID ( ) ) ;
 	}
 
-	public static PageData newEmpty ( String title , String initStr ) {
+	public static PageData fromTitle ( String title ) {
 		PageData pd = dataPool . get ( title ) ;
-		if ( pd != null ) {
-			return pd ;
-		}
+		if ( pd != null )
+		return pd ;
 		pd = new PageData ( ) ;
 		pd . title = title ;
-		pd . lines = new ArrayList < CharSequence > ( ) ;
-		pd . lines . add ( initStr ) ;
+		pd . lines = new ArrayList < > ( ) ;
+		pd . lines . add ( U . EMPTY ) ;
 		dataPool . put ( title , pd ) ;
 		return pd ;
 	}
 
-	public static PageData newFromFile ( String fn ) throws IOException {
+	public static PageData fromFile ( String fn ) throws IOException {
 		PageData pd = dataPool . get ( fn ) ;
-		if ( pd != null ) {
-			return pd ;
-		}
+		if ( pd != null )
+		return pd ;
 		pd = new PageData ( ) ;
-		pd . fn = fn ;
-		U . readFile ( pd , fn ) ;
+		readFile ( pd , fn ) ;
 		dataPool . put ( fn , pd ) ;
+		saveFileHistory ( fn , 0 ) ;
 		return pd ;
 	}
+	public boolean changedOutside ;
 
-	U . BasicEdit editNoRec = new U . BasicEdit ( false , this ) ;
-
-	U . BasicEdit editRec = new U . BasicEdit ( true , this ) ;
+	BasicEdit editNoRec = new BasicEdit ( false , this ) ;
+	BasicEdit editRec = new BasicEdit ( true , this ) ;
 
 	String encoding ;
 
 	long fileLastModified ;
 
-	private String fn ; // private!
-	U . History history ;
+	boolean fileLoaded ;
+	History history ;
 	boolean isCommentChecked ;
-
+	String [ ] comment = null ;
 	/* element: String or StringBuilder(after edit) */
 	public List < CharSequence > lines ;
 	public String lineSep = "\n" ;
 
 	public int ref ;
-	U . ReadonlyLines roLines = new U . ReadonlyLines ( this ) ;
-	private String title ; // private!
-
-	public String workPath ;
+	ReadonlyLines roLines = new ReadonlyLines ( this ) ;
+	public String title ;
 
 	public boolean gzip ;
 
 	public byte [ ] bs ;
 
-	private PageData ( ) { history = new History ( this ) ;
+	private PageData ( ) {
+		history = new History ( this ) ;
 	}
 
 	public void close ( ) {
-		dataPool . remove ( getTitle ( ) ) ;
-		if ( fn != null ) {
-			dataPool . remove ( fn ) ;
-		}
+		dataPool . remove ( title ) ;
+		lines . clear ( ) ;
 		lines = null ;
-		//		System.out.println("released data " + getTitle());
 	}
 
-	public String getFn ( ) { return fn ;
+	private static void readFile ( PageData data , String fn ) {
+		File f = new File ( fn ) ;
+		if ( fn . endsWith ( ".gz" ) )
+		data . gzip = U . tryGzip ( fn , data ) ;
+		data . isCommentChecked = false ;
+		if ( data . encoding == null )
+		data . encoding = U . guessEncodingForEditor ( fn , data ) ;
+		data . lineSep = U . guessLineSepForEditor ( fn , data ) ;
+		data . lines = null ;
+		data . history . clear ( ) ;
+		data . resetLines ( U . readFileForEditor ( fn , data . encoding , data ) ) ;
+
+		data . fileLastModified = f . lastModified ( ) ;
+		data . changedOutside = false ;
+		data . title = fn ;
+		data . fileLoaded = true ;
 	}
 
-	public String getTitle ( ) {
-		if ( title != null ) {
-			return title ;
-		}
-		return fn ;
+	public void reloadFile ( ) {
+		if ( fileLoaded )
+		readFile ( this , title ) ;
 	}
 
-	public void setFn ( String fn2 ) {
-		String key = getTitle ( ) ;
-		dataPool . remove ( key ) ;
-		if ( fn != null ) {
-			dataPool . remove ( fn ) ;
-		}
-		title = null ;
-		fn = fn2 ;
-		workPath = new File ( fn ) . getParent ( ) ;
-		dataPool . put ( fn2 , this ) ;
+	void renameTo ( String fn ) {
+		PageData . dataPool . remove ( title ) ;
+		title = fn ;
+		PageData . dataPool . put ( fn , this ) ;
 	}
 
-	void setLines ( List < CharSequence > newLines ) {
+	public void resetLines ( List < CharSequence > newLines ) {
 		lines = newLines ;
 		history . clear ( ) ;
 	}
 
 	public void setText ( String s ) {
 		List < CharSequence > ss = U . removeTailR ( U . split ( s , U . N ) ) ;
-		if ( ss . size ( ) == 0 ) {
-			ss . add ( "empty" ) ;
-		}
-		setLines ( ss ) ;
+		if ( ss . isEmpty ( ) )
+		ss . add ( U . EMPTY ) ;
+		resetLines ( ss ) ;
 	}
 }

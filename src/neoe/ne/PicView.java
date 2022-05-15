@@ -45,7 +45,8 @@ public class PicView {
 	public static class DigitFilenameCompare implements Comparator {
 		private Map < File , String > cache ;
 
-		DigitFilenameCompare ( ) { cache = new HashMap ( ) ;
+		DigitFilenameCompare ( ) {
+			cache = new HashMap ( ) ;
 		}
 
 		@ Override
@@ -74,9 +75,8 @@ public class PicView {
 				if ( Character . isDigit ( c ) ) {
 					sb2 . append ( c ) ;
 					if ( isDigit ) {
-					} else {
-						isDigit = true ;
-					}
+					} else
+					isDigit = true ;
 				} else {
 					if ( isDigit ) {
 						submit ( sb2 , sb ) ;
@@ -136,12 +136,12 @@ public class PicView {
 			this . frame = f ;
 			long t1 = System . currentTimeMillis ( ) ;
 			this . f = fn ;
-			GraphicsEnvironment env =
-			GraphicsEnvironment . getLocalGraphicsEnvironment ( ) ;
+			GraphicsEnvironment env
+			= GraphicsEnvironment . getLocalGraphicsEnvironment ( ) ;
 			maxWindow = env . getMaximumWindowBounds ( ) ;
 			img = ImageIO . read ( fn ) ;
-			small = ( img . getWidth ( ) > maxWindow . width ||
-				img . getHeight ( ) > maxWindow . height ) ;
+			small = ( img . getWidth ( ) > maxWindow . width
+				|| img . getHeight ( ) > maxWindow . height ) ;
 			System . out . println ( "read in " + ( System . currentTimeMillis ( ) - t1 ) ) ;
 			files = listImgs ( ) ;
 			setTitleWithSize ( fn , fi , files . size ( ) ) ;
@@ -174,37 +174,35 @@ public class PicView {
 			int kc = e . getKeyCode ( ) ;
 			try {
 				if ( e . isControlDown ( ) ) {
-					if ( kc == KeyEvent . VK_W ) {
-						frame . dispose ( ) ;
-					} else if ( kc == KeyEvent . VK_S ) {
-						saveCut ( ) ;
-					}
-				} else {
-					if ( kc == KeyEvent . VK_F1 || kc == KeyEvent . VK_TAB ) {
-						small = ! small ;
-						repaint1 ( ) ;
-					} else if ( kc == KeyEvent . VK_LEFT || kc == KeyEvent . VK_BACK_SPACE ) {
-						viewFile ( -1 ) ;
-					} else if ( kc == KeyEvent . VK_RIGHT || kc == KeyEvent . VK_SPACE ) {
-						viewFile ( 1 ) ;
-					} else if ( kc == KeyEvent . VK_UP ) {
-						rotate ( 1 ) ;
-					} else if ( kc == KeyEvent . VK_DOWN ) {
-						rotate ( -1 ) ;
-					} else if ( kc == KeyEvent . VK_P ) {
-						ss . stop ( ) ;
-					} else if ( kc == KeyEvent . VK_S ) {
-						toggleSuperMode ( ) ;
-					} else if ( kc == KeyEvent . VK_OPEN_BRACKET ) {
-						ss . decDelay ( ) ;
-					} else if ( kc == KeyEvent . VK_CLOSE_BRACKET ) {
-						ss . incDelay ( ) ;
-					} else if ( kc == KeyEvent . VK_0 ) {
-						rate = 1 ;
-						vx = 0 ;
-						vy = 0 ;
-						repaint1 ( ) ;
-					}
+					if ( kc == KeyEvent . VK_W )
+					frame . dispose ( ) ;
+					else if ( kc == KeyEvent . VK_S )
+					saveCut ( ) ;
+				} else
+				if ( kc == KeyEvent . VK_F1 || kc == KeyEvent . VK_TAB ) {
+					small = ! small ;
+					repaint1 ( ) ;
+				} else if ( kc == KeyEvent . VK_LEFT || kc == KeyEvent . VK_BACK_SPACE )
+				viewFile ( -1 ) ;
+				else if ( kc == KeyEvent . VK_RIGHT || kc == KeyEvent . VK_SPACE )
+				viewFile ( 1 ) ;
+				else if ( kc == KeyEvent . VK_UP )
+				rotate ( 1 ) ;
+				else if ( kc == KeyEvent . VK_DOWN )
+				rotate ( -1 ) ;
+				else if ( kc == KeyEvent . VK_P )
+				ss . stop ( ) ;
+				else if ( kc == KeyEvent . VK_S )
+				toggleSuperMode ( ) ;
+				else if ( kc == KeyEvent . VK_OPEN_BRACKET )
+				ss . decDelay ( ) ;
+				else if ( kc == KeyEvent . VK_CLOSE_BRACKET )
+				ss . incDelay ( ) ;
+				else if ( kc == KeyEvent . VK_0 ) {
+					rate = 1 ;
+					vx = 0 ;
+					vy = 0 ;
+					repaint1 ( ) ;
 				}
 			} catch ( Exception e1 ) {
 				e1 . printStackTrace ( ) ;
@@ -212,28 +210,27 @@ public class PicView {
 		}
 
 		@ Override
-		public void keyReleased ( KeyEvent e ) { }
+		public void keyReleased ( KeyEvent e ) {
+		}
 
 		@ Override
-		public void keyTyped ( KeyEvent e ) { }
+		public void keyTyped ( KeyEvent e ) {
+		}
 
 		private List < File > listImgs ( ) {
 			List < File > files = new ArrayList < File > ( ) ;
 			// bug of getParentFile?
 			File [ ] fs = f . getAbsoluteFile ( ) . getParentFile ( ) . listFiles ( ) ;
-			for ( File f1 : fs ) {
-				if ( U . isImageFile ( f1 ) ) {
-					files . add ( f1 ) ;
-				}
-			}
+			for ( File f1 : fs )
+			if ( U . isImageFile ( f1 ) )
+			files . add ( f1 ) ;
 			Collections . sort ( files , new DigitFilenameCompare ( ) ) ;
 			fi = files . indexOf ( f ) ;
 			if ( fi < 0 ) {
 				fi = 0 ;
 				System . out . println ( "what?not found file name in list" ) ;
-			} else {
-				System . out . println ( "list image files count " + files . size ( ) ) ;
-			}
+			} else
+			System . out . println ( "list image files count " + files . size ( ) ) ;
 			return files ;
 		}
 
@@ -255,8 +252,8 @@ public class PicView {
 			savingCut = true ;
 			Graphics2D g = null ;
 			try {
-				BufferedImage im =
-				new BufferedImage ( picviewpanel . getWidth ( ) , picviewpanel . getHeight ( ) ,
+				BufferedImage im
+				= new BufferedImage ( picviewpanel . getWidth ( ) , picviewpanel . getHeight ( ) ,
 					BufferedImage . TYPE_INT_RGB ) ;
 				g = im . createGraphics ( ) ;
 				paintComponent ( g ) ;
@@ -271,24 +268,22 @@ public class PicView {
 				png . close ( ) ;
 				jpg . close ( ) ;
 				if ( jpg . size ( ) == 0 && png . size ( ) == 0 ) {
-					U . dialogMsg ( "no JPG or PNG support in ImageIO" ) ;
+					JOptionPane . showMessageDialog ( null , "no JPG or PNG support in ImageIO" ) ;
 					return ;
 				}
 				boolean usepng = ( png . size ( ) < jpg . size ( ) ) ;
-				if ( jpg . size ( ) == 0 ) {
-					usepng = true ;
-				} else {
-					usepng = ( png . size ( ) < jpg . size ( ) ) ;
-				}
+				if ( jpg . size ( ) == 0 )
+				usepng = true ;
+				else
+				usepng = ( png . size ( ) < jpg . size ( ) ) ;
 				System . out . printf ( "size png(%,d) vs jpg(%,d)\n" , png . size ( ) ,
 					jpg . size ( ) ) ;
 				String f0 = f . getName ( ) ;
 				int p1 = f0 . lastIndexOf ( '.' ) ;
-				if ( p1 > 0 ) {
-					f0 = f0 . substring ( 0 , p1 ) ;
-				}
-				String fn =
-				String . format ( "%s_%dx%d%s" , f0 , w , h , usepng ? ".png" : ".jpg" ) ;
+				if ( p1 > 0 )
+				f0 = f0 . substring ( 0 , p1 ) ;
+				String fn
+				= String . format ( "%s_%dx%d%s" , f0 , w , h , usepng ? ".png" : ".jpg" ) ;
 				saveCut ( fn , usepng , usepng ? png : jpg ) ;
 			} finally {
 				savingCut = false ;
@@ -317,15 +312,13 @@ public class PicView {
 		public void mouseClicked ( MouseEvent e ) {
 			int x = e . getX ( ) , y = e . getY ( ) ;
 			if ( e . isControlDown ( ) ) {
-				if ( ! e . isShiftDown ( ) ) {
-					startCut ( x , y ) ;
-				}
+				if ( ! e . isShiftDown ( ) )
+				startCut ( x , y ) ;
+			} else
+			if ( e . getClickCount ( ) == 2 ) {
+				setRate ( x , y , 1 ) ;
+				repaint1 ( ) ;
 			} else {
-				if ( e . getClickCount ( ) == 2 ) {
-					setRate ( x , y , 1 ) ;
-					repaint1 ( ) ;
-				} else {
-				}
 			}
 		}
 
@@ -333,23 +326,22 @@ public class PicView {
 		public void mouseDragged ( MouseEvent e ) {
 			int x = e . getX ( ) , y = e . getY ( ) ;
 			if ( e . isControlDown ( ) ) {
-				if ( cutx == -1 ) {
-					startCut ( x , y ) ;
-				} else {
+				if ( cutx == -1 )
+				startCut ( x , y ) ;
+				else {
 					cutx2 = x ;
 					cuty2 = y ;
 				}
 				repaint1 ( ) ;
-			} else {
-				if ( inSmall ( x , y ) ) {
-					setPosSmall ( x , y ) ;
-				} else {
-					int dx = e . getX ( ) - mx ;
-					int dy = e . getY ( ) - my ;
-					vx = ( int ) ( vx1 + dx ) ;
-					vy = ( int ) ( vy1 + dy ) ;
-					repaint1 ( ) ;
-				}
+			} else
+			if ( inSmall ( x , y ) )
+			setPosSmall ( x , y ) ;
+			else {
+				int dx = e . getX ( ) - mx ;
+				int dy = e . getY ( ) - my ;
+				vx = ( int ) ( vx1 + dx ) ;
+				vy = ( int ) ( vy1 + dy ) ;
+				repaint1 ( ) ;
 			}
 		}
 
@@ -359,10 +351,12 @@ public class PicView {
 		}
 
 		@ Override
-		public void mouseEntered ( MouseEvent e ) { }
+		public void mouseEntered ( MouseEvent e ) {
+		}
 
 		@ Override
-		public void mouseExited ( MouseEvent e ) { }
+		public void mouseExited ( MouseEvent e ) {
+		}
 
 		@ Override
 		public void mouseMoved ( MouseEvent e ) {
@@ -376,9 +370,9 @@ public class PicView {
 			int x = e . getX ( ) , y = e . getY ( ) ;
 			mx = e . getX ( ) ;
 			my = e . getY ( ) ;
-			if ( inSmall ( x , y ) ) {
-				setPosSmall ( x , y ) ;
-			} else {
+			if ( inSmall ( x , y ) )
+			setPosSmall ( x , y ) ;
+			else {
 				vx1 = vx ;
 				vy1 = vy ;
 			}
@@ -400,17 +394,17 @@ public class PicView {
 		}
 
 		@ Override
-		public void mouseReleased ( MouseEvent e ) { }
+		public void mouseReleased ( MouseEvent e ) {
+		}
 
 		@ Override
 		public void mouseWheelMoved ( MouseWheelEvent e ) {
 			int amount = e . getWheelRotation ( ) * e . getScrollAmount ( ) ;
 			int x = e . getX ( ) , y = e . getY ( ) ;
-			if ( amount > 0 ) {
-				setRate ( x , y , rate / 1.1 ) ;
-			} else {
-				setRate ( x , y , rate * 1.1 ) ;
-			}
+			if ( amount > 0 )
+			setRate ( x , y , rate / 1.1 ) ;
+			else
+			setRate ( x , y , rate * 1.1 ) ;
 			repaint1 ( ) ;
 		}
 
@@ -471,12 +465,10 @@ public class PicView {
 				int textH = g . getFont ( ) . getSize ( ) ;
 				int x2 = rx ;
 				int y2 = ry ;
-				if ( x2 + textW > w ) {
-					x2 = w - textW ;
-				}
-				if ( y2 < textH ) {
-					y2 = textH ;
-				}
+				if ( x2 + textW > w )
+				x2 = w - textW ;
+				if ( y2 < textH )
+				y2 = textH ;
 				g . setColor ( Color . BLACK ) ;
 				g . drawString ( spos , x2 + 1 , y2 + 1 ) ;
 				g . setColor ( Color . WHITE ) ;
@@ -491,11 +483,10 @@ public class PicView {
 			int h = getHeight ( ) ;
 			int sw = w / 4 ;
 			int sh = h / 4 ;
-			if ( ph / pw > h / w ) {
-				sw = sh * pw / ph ;
-			} else {
-				sh = sw * ph / pw ;
-			}
+			if ( ph / pw > h / w )
+			sw = sh * pw / ph ;
+			else
+			sh = sw * ph / pw ;
 			return new int [ ] { sw , sh , w , h } ;
 		}
 
@@ -508,8 +499,8 @@ public class PicView {
 
 			g . setColor ( Color . red ) ;
 			float [ ] dashingPattern1 = { 2f , 2f } ;
-			Stroke stroke1 =
-			new BasicStroke ( 2f , BasicStroke . CAP_BUTT , BasicStroke . JOIN_MITER ,
+			Stroke stroke1
+			= new BasicStroke ( 2f , BasicStroke . CAP_BUTT , BasicStroke . JOIN_MITER ,
 				1.0f , dashingPattern1 , 2.0f ) ;
 
 			g . setStroke ( stroke1 ) ;
@@ -520,7 +511,8 @@ public class PicView {
 				cuty2 ) ;
 		}
 
-		public void repaint1 ( ) { needRepaint = true ;
+		public void repaint1 ( ) {
+			needRepaint = true ;
 		}
 
 		public void rotate ( int direction ) {
@@ -551,9 +543,8 @@ public class PicView {
 
 		private void setTitleWithSize ( File f , int index , int total ) {
 			String ss1 = "" ;
-			if ( ss != null ) {
-				ss1 = ss . delay > 0 ? " slide:" + ss . delay + " sec" : "" ;
-			}
+			if ( ss != null )
+			ss1 = ss . delay > 0 ? " slide:" + ss . delay + " sec" : "" ;
 			frame . setTitle ( String . format (
 					"PicView %s [%dx%d] %s %,d BS%s - neoeedit %s" , f . getName ( ) ,
 					img . getWidth ( ) , img . getHeight ( ) ,
@@ -562,23 +553,22 @@ public class PicView {
 			setSize ( img ) ;
 		}
 
-		/** i only supported to be 1 or -1 */
+		/**
+		 * i only supported to be 1 or -1
+		 */
 		private void superModeViewFile ( int i ) {
-			if ( i > 0 ) {
-				if ( superModeHistoryPointer < superModeHistory . size ( ) ) {
-					viewFile ( superModeHistory . get ( superModeHistoryPointer ++ ) ) ;
-				} else {
-					File f = nextSpFile ( ) ;
-					if ( f != null ) {
-						viewFile ( f ) ;
-					} // else skip
-				}
-			} else if ( i < 0 ) {
-				if ( superModeHistoryPointer > 0 &&
-					superModeHistoryPointer <= superModeHistory . size ( ) ) {
-					viewFile ( superModeHistory . get ( -- superModeHistoryPointer ) ) ;
-				} // else skip
+			if ( i > 0 )
+			if ( superModeHistoryPointer < superModeHistory . size ( ) )
+			viewFile ( superModeHistory . get ( superModeHistoryPointer ++ ) ) ;
+			else {
+				File f = nextSpFile ( ) ;
+				if ( f != null )
+				viewFile ( f ) ; // else skip
 			}
+			else if ( i < 0 )
+			if ( superModeHistoryPointer > 0
+				&& superModeHistoryPointer <= superModeHistory . size ( ) )
+			viewFile ( superModeHistory . get ( -- superModeHistoryPointer ) ) ; // else skip
 		}
 
 		public void toggleSuperMode ( ) {
@@ -607,9 +597,8 @@ public class PicView {
 				superModeViewFile ( i ) ;
 				return ;
 			}
-			if ( files == null ) {
-				files = listImgs ( ) ;
-			}
+			if ( files == null )
+			files = listImgs ( ) ;
 			if ( files . size ( ) <= 0 )
 			return ;
 
@@ -629,37 +618,36 @@ public class PicView {
 		int delay = 0 ;
 		private PicViewPanel p ;
 
-		public Slideshow ( PicViewPanel p ) { this . p = p ;
+		public Slideshow ( PicViewPanel p ) {
+			this . p = p ;
 		}
 
 		public void decDelay ( ) {
-			if ( delay > 0 ) {
-				delay -- ;
-			} else {
-				delay = 0 ;
-			}
+			if ( delay > 0 )
+			delay -- ;
+			else
+			delay = 0 ;
 		}
 
 		public void incDelay ( ) {
 			if ( delay <= 0 )
 			delay = 5 ;
-			else {
-				delay ++ ;
-			}
+			else
+			delay ++ ;
 		}
 
 		public void next ( ) {
 			try {
 				Thread . sleep ( delay <= 0 ? 1000 : 1000 * delay ) ;
-				if ( delay > 0 && ! iconed && ! exited ) {
-					p . viewFile ( 1 ) ;
-				}
+				if ( delay > 0 && ! iconed && ! exited )
+				p . viewFile ( 1 ) ;
 			} catch ( Exception e ) {
 				e . printStackTrace ( ) ;
 			}
 		}
 
-		public void stop ( ) { delay = 0 ;
+		public void stop ( ) {
+			delay = 0 ;
 		}
 	}
 
@@ -681,7 +669,8 @@ public class PicView {
 		}
 	}
 
-	public void resetCut ( ) { cutx = cuty = cutx2 = cuty2 = -1 ;
+	public void resetCut ( ) {
+		cutx = cuty = cutx2 = cuty2 = -1 ;
 	}
 
 	private int cutx , cuty , cutx2 , cuty2 ;
@@ -689,7 +678,8 @@ public class PicView {
 
 	Slideshow ss ;
 
-	public PicView ( ) { }
+	public PicView ( ) {
+	}
 
 	private void installSlideshow ( JFrame frame , PicViewPanel p ) {
 		ss = new Slideshow ( p ) ;

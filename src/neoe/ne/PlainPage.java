@@ -13,6 +13,7 @@ import java . awt . event . KeyEvent ;
 import java . awt . event . MouseEvent ;
 import java . awt . event . MouseWheelEvent ;
 import java . awt . image . BufferedImage ;
+import java . io . File ;
 import java . io . IOException ;
 import java . util . ArrayList ;
 import java . util . List ;
@@ -24,26 +25,17 @@ import javax . swing . SwingUtilities ;
 import neoe . ne . CommandPanel . CommandPanelPaint ;
 import neoe . ne . Ime . Out ;
 import neoe . ne . Plugin . PluginAction ;
+import static neoe . ne . U . showPageListPage ;
 import neoe . ne . util . FindJDK ;
 
 public class PlainPage {
-	public static PlainPage getPP ( EditorPanel editor , PageData data )
-	throws Exception {
-		PlainPage pp = U . findPageByData ( editor . pageSet , data ) ;
-		if ( pp != null ) {
-			editor = editor . setPage ( pp , true ) ;
-			System . out . println ( "set existed page." ) ;
-			return editor . page ;
-		}
-		return new PlainPage ( editor , data , editor . getPage ( ) ) ;
-	}
 	private static boolean isButtonDown ( int i , MouseEvent evt ) {
 		int b = InputEvent . getMaskForButton ( i ) ;
 		int ex = evt . getModifiersEx ( ) ;
 		return ( ex & b ) != 0 ;
 	}
 
-	boolean changedOutside = false ;
+	//	boolean changedOutside = false ;
 	public Console console ;
 	Cursor cursor = new Cursor ( ) ;
 	public int cx ;
@@ -52,7 +44,6 @@ public class PlainPage {
 	public String [ ] envs ;
 	FontList fontList ;
 	boolean ignoreCase = true ;
-	boolean isCommentChecked = false ;
 	public int keepx = -1 ;
 	Dimension lastSize = new Dimension ( ) ;
 	int mcount ;
@@ -63,12 +54,12 @@ public class PlainPage {
 	boolean mshift ;
 	/*mouse x,y*/
 	int mx , my ;
-
+	public String workPath = "." ;
 	public PageData pageData ;
 
 	private String preeditText ;
 	public EasyEdit ptEdit = new EasyEdit ( ) ;
-	public U . FindAndReplace ptFind = new U . FindAndReplace ( this ) ;
+	public FindAndReplace ptFind = new FindAndReplace ( this ) ;
 	public Selection ptSelection = new Selection ( ) ;
 	boolean readonly = false ;
 
@@ -88,64 +79,53 @@ public class PlainPage {
 	private PlainPage ( ) {
 	}
 
-	/**there is only a few caller*/
-	private PlainPage ( EditorPanel editor , PageData data , PlainPage cp )
-	throws Exception {
+	/**
+	 * there is only a few caller
+	 */
+	public PlainPage ( EditorPanel editor , PageData data , PlainPage parent ) throws Exception {
 		this . uiComp = editor ;
 		this . pageData = data ;
-		if ( cp != null ) {
-			ui . applyColorMode ( cp . ui . colorMode ) ;
-			ui . scalev = cp . ui . scalev ;
-			fontList = cp . fontList ;
-			if ( pageData . workPath == null ) {
-				pageData . workPath = cp . pageData . workPath ;
-			}
-			//            System.out.println("workPath=" + pageData.workPath);
-		} else {
-			fontList = U . defaultFontList ;
-		}
-		int index = editor . pageSet . indexOf ( editor . getPage ( ) ) ;
-		if ( index >= editor . pageSet . size ( ) || index < 0 ) {
-		}
+		if ( parent != null ) {
+			ui . applyColorMode ( parent . ui . colorMode ) ;
+			ui . scalev = parent . ui . scalev ;
+			fontList = parent . fontList ;
+			workPath = parent . workPath ;
+			showLineCnt = parent . showLineCnt ;
+		} else fontList = Conf . defaultFontList ;
+		if ( data . fileLoaded ) workPath = new File ( data . title ) . getParent ( ) ;
 		editor . pageSet . add ( this ) ;
-		editor = editor . setPage ( this , true ) ;
-		editor . changeTitle ( ) ;
-		cy = U . optimizeFileHistory ( data . getFn ( ) ) ;
-		// uiComp.ptCh.record(data.getTitle(), cx, cy);
+		editor . setPage ( this , true ) ;
 		data . ref ++ ;
 	}
 
 	public void close ( ) throws Exception {
-		String lastPage = uiComp . pageHis . back ( U . getLocString ( this ) ) ;
+		String lastPageAndPos = uiComp . pageHis . back ( U . getLocString ( this ) ) ;
 
 		uiComp . page = null ;
 		uiComp . pageSet . remove ( this ) ;
 
 		pageData . ref -- ;
-		if ( pageData . ref <= 0 ) {
-			pageData . close ( ) ;
-		}
+		if ( pageData . ref <= 0 ) pageData . close ( ) ;
 		pageData = null ;
 
 		if ( uiComp . pageSet . size ( ) <= 0 ) {
 			// nothing to show
-			if ( uiComp . frame != null ) {
-				if ( uiComp . frame instanceof JFrame ) {
-					( ( JFrame ) uiComp . frame ) . dispose ( ) ;
-				} else if ( uiComp . frame instanceof JFrame ) {
-					( ( JInternalFrame ) uiComp . frame ) . dispose ( ) ;
-				}
-			}
-		} else {
-			U . gotoFileLine ( lastPage , uiComp , false ) ;
+			if ( uiComp . frame != null )
+			if ( uiComp . frame instanceof JFrame )
+			( ( JFrame ) uiComp . frame ) . dispose ( ) ;
+			else if ( uiComp . frame instanceof JFrame )
+			( ( JInternalFrame ) uiComp . frame ) . dispose ( ) ;
+			else System . out . println ( "cannot close frame, bug" ) ;
+		} else gotoFileLine ( lastPageAndPos , uiComp , false ) ;
+		if ( uiComp . page == null && ! uiComp . pageSet . isEmpty ( ) ) { //if anything failed
+			PlainPage lp = uiComp . pageSet . get ( 0 ) ;
+			uiComp . setPage ( lp , false ) ;
 		}
-		U . gc ( ) ;
 	}
 
-	private void doGo ( String line , boolean record , boolean newWindow ) throws Exception {
-		if ( line == null ) {
-			return ;
-		}
+	public void go ( String line , boolean newWindow ) throws Exception {
+		if ( line == null || line . trim ( ) . isEmpty ( ) )
+		return ;
 		if ( line . startsWith ( "set-font:" ) ) {
 			String fn = line . substring ( "set-font:" . length ( ) ) . trim ( ) ;
 			Font font = U . getFont ( fn , fontList . getlineHeight ( ) ) ;
@@ -153,61 +133,110 @@ public class PlainPage {
 		} else {
 			uiComp . newWindow = newWindow ;
 			if ( searchResultOf == null
-				|| ! U . gotoFileLine2 ( uiComp , line , searchResultOf , record ) ) {
-				if ( ! U . gotoFileLine ( line , uiComp , record ) ) {
-					if ( ! U . listDir ( PlainPage . this , cy ) ) {
-						U . launch ( line ) ;
-					}
-				}
-			}
+				|| ! gotoFileLineSearchResult ( uiComp , line , searchResultOf ) )
+			if ( ! gotoFileLine ( line , uiComp , true ) )
+			if ( ! U . listDirOrOpenFile ( PlainPage . this , cy ) )
+			U . launch ( line ) ;
 			uiComp . newWindow = false ;
 		}
 	}
+
+	private static boolean gotoFileLine ( String s , EditorPanel ep , boolean rec )
+	throws Exception {
+		if ( s == null )
+		return false ;
+		int p1 , p2 ;
+		String fn = s ;
+		if ( ( p1 = s . indexOf ( '|' ) ) >= 0 ) {
+			fn = s . substring ( 0 , p1 ) . trim ( ) ;
+			if ( ( p2 = s . indexOf ( ':' , p1 ) ) >= 0 ) { // search result
+				int line = -1 ;
+				try {
+					String v = s . substring ( p1 + 1 , p2 ) ;
+					line = Integer . parseInt ( v ) ;
+				} catch ( NumberFormatException e ) {
+				}
+				if ( line >= 0 ) {
+					ep . findAndShowPage ( fn , line , rec ) ;
+					return true ;
+				}
+			}
+		} else if ( ( p1 = s . indexOf ( ':' , 2 ) ) > 0 ) { // try filename:lineno pattern
+			int line = 0 ;
+			try {
+				fn = s . substring ( 0 , p1 ) . trim ( ) ;
+				p2 = s . indexOf ( ':' , p1 + 1 ) ;
+				String v ;
+				if ( p2 > 0 ) // fn:line:nnn in some format(like javac output)
+				v = s . substring ( p1 + 1 , p2 ) . trim ( ) ;
+				else
+				v = s . substring ( p1 + 1 ) . trim ( ) ;
+				line = Integer . parseInt ( v ) ;
+			} catch ( NumberFormatException e ) {
+			}
+			return ep . findAndShowPage ( fn , line , rec ) ;
+		}
+
+		return false ;
+	}
+
+	/*
+	 * goto search result
+	 */
+	private static boolean gotoFileLineSearchResult ( EditorPanel ep , String sb , String fn ) throws Exception {
+		int p1 ;
+		if ( ( p1 = sb . indexOf ( ":" ) ) >= 0 )
+		try {
+			int line = Integer . parseInt ( sb . substring ( 0 , p1 ) ) ;
+			return ep . findAndShowPage ( fn , line , true ) ;
+		} catch ( Exception e ) {
+		}
+		return false ;
+	}
+
 	private void doMoveViewDown ( ) {
 		sy = Math . min ( sy + 1 , pageData . roLines . getLinesize ( ) - 1 ) ;
 	}
+
 	private void doMoveViewUp ( ) {
 		sy = Math . max ( 0 , sy - 1 ) ;
 	}
 
+	/* let cursor get see*/
 	public void focusCursor ( ) {
-		if ( cy < sy ) {
-			sy = Math . max ( 0 , cy - showLineCnt / 2 + 1 ) ;
-		}
-		if ( showLineCnt > 0 ) {
-			if ( sy + showLineCnt - 1 < cy ) {
-				sy = Math . max ( 0 , cy - showLineCnt / 2 + 1 ) ;
-			}
-		}
-		int totalLine = pageData . lines . size ( ) ;
-		int emptyLines = showLineCnt - ( totalLine - sy ) ;
-		if ( emptyLines > 0 ) {
-			sy -= emptyLines ;
-		}
-		sy = Math . max ( 0 , sy ) ;
+		sy = U . between ( U . between ( sy , cy - showLineCnt + 3 , cy -3 ) , 0 , pageData . lines . size ( ) -1 ) ;
 	}
+	/**change cursor to middle of page*/
+	public void adjustCursor ( ) {
+		if ( showLineCnt == 0 ) { // not yet painted, \
+			showLineCnt = Math . round ( ( uiComp . getSize ( ) . height - toolbarHeight )
+				/ ( ( ui . lineHeight + ui . lineGap ) * ui . scalev ) ) ; //not work?
+		}
+		int sc = Math . max ( 5 , showLineCnt ) ;
+		sy = Math . max ( 0 , cy - sc / 2 + 1 ) ;
+		int totalLine = pageData . lines . size ( ) ;
+		int emptyLines = sc - ( totalLine - sy ) ;
+		if ( emptyLines > 0 )
+		sy = Math . max ( 0 , sy - emptyLines + 1 ) ;
+	}
+
 	private boolean isButtonBack ( MouseEvent evt ) {
 		if ( FindJDK . isWindows ) {
-			if ( isButtonDown ( 4 , evt ) ) {
-				return true ;
-			}
-		} else { // Linux
-			if ( isButtonDown ( 6 , evt ) ) {
-				return true ;
-			}
-		}
+			if ( isButtonDown ( 4 , evt ) )
+			return true ;
+		} else // Linux
+		if ( isButtonDown ( 6 , evt ) )
+		return true ;
 		return false ;
 	}
+
 	private boolean isButtonForward ( MouseEvent evt ) {
 		if ( FindJDK . isWindows ) {
-			if ( isButtonDown ( 5 , evt ) ) {
-				return true ;
-			}
-		} else { // Linux
-			if ( isButtonDown ( 7 , evt ) ) {
-				return true ;
-			}
-		}
+			if ( isButtonDown ( 5 , evt ) )
+			return true ;
+		} else // Linux
+		if ( isButtonDown ( 7 , evt ) )
+		return true ;
 		return false ;
 	}
 
@@ -217,22 +246,23 @@ public class PlainPage {
 			Out param = new Out ( ) ;
 			ime . keyPressed ( evt , param ) ;
 
-			if ( param . yield != null ) {
-				ptEdit . insertString ( param . yield ) ;
-			}
+			if ( param . yield != null )
+			ptEdit . insertString ( param . yield ) ;
 			preeditText = param . preedit ;
 			if ( param . consumed ) {
-				uiComp . repaint ( ) ;
+				repaint ( ) ;
 				return ;
 			}
 		}
 
-		if ( evt . getKeyCode ( ) == KeyEvent . VK_ESCAPE ) {
-			if ( ui . cp . showCommandPanel ) {
-				ui . cp . showCommandPanel = false ;
-			}
+		if ( evt . getKeyCode ( ) == KeyEvent . VK_ESCAPE )
+		if ( ui . cp . showCommandPanel ) {
+			ui . cp . showCommandPanel = false ;
+			evt . consume ( ) ;
+			repaint ( ) ;
+			return ;
 		}
-		final PageData pageData = this . pageData ;
+
 		pageData . history . beginAtom ( ) ;
 		try {
 			mshift = evt . isShiftDown ( ) ;
@@ -241,8 +271,7 @@ public class PlainPage {
 			Commands cmd = U . mappingToCommand ( evt ) ;
 			if ( cmd == null ) {
 				int kc = evt . getKeyCode ( ) ;
-				boolean onlyShift
-				= evt . isShiftDown ( ) && ! evt . isControlDown ( ) && ! evt . isAltDown ( ) ;
+				boolean onlyShift = evt . isShiftDown ( ) && ! evt . isControlDown ( ) && ! evt . isAltDown ( ) ;
 				if ( ! onlyShift
 					&& ( evt . isActionKey ( ) || evt . isControlDown ( ) || evt . isAltDown ( ) )
 					&& ( kc != KeyEvent . VK_SHIFT && kc != KeyEvent . VK_CONTROL
@@ -254,15 +283,13 @@ public class PlainPage {
 							ac . run ( this ) ;
 						} catch ( Throwable e ) {
 							e . printStackTrace ( ) ;
-							if ( e . getCause ( ) != null ) {
-								e = e . getCause ( ) ;
-							}
+							if ( e . getCause ( ) != null )
+							e = e . getCause ( ) ;
 							ui . message ( "plugin:" + e . getMessage ( ) ) ;
 						}
 						evt . consume ( ) ;
-					} else {
-						unknownCommand ( evt ) ;
-					}
+					} else
+					unknownCommand ( evt ) ;
 				}
 			} else {
 				processCommand ( cmd ) ;
@@ -270,24 +297,22 @@ public class PlainPage {
 			}
 
 			boolean cmoved = ! ( ocx == cx && ocy == cy ) ;
-			if ( cmoved ) {
-				if ( evt . isShiftDown ( ) ) {
-					selectstopx = cx ;
-					selectstopy = cy ;
-				} else {
-					if ( savingFromSelectionCancel ) {
-						savingFromSelectionCancel = false ;
-					} else {
-						ptSelection . cancelSelect ( ) ;
-					}
-				}
-			}
-			uiComp . repaint ( ) ;
+			if ( cmoved )
+			if ( evt . isShiftDown ( ) ) {
+				selectstopx = cx ;
+				selectstopy = cy ;
+			} else if ( savingFromSelectionCancel )
+			savingFromSelectionCancel = false ;
+			else
+			ptSelection . cancelSelect ( ) ;
+			repaint ( ) ;
 		} catch ( Throwable e ) {
 			ui . message ( "err:" + e ) ;
 			e . printStackTrace ( ) ;
+		} finally {
+			if ( pageData != null ) //in case closed
+			pageData . history . endAtom ( ) ;
 		}
-		pageData . history . endAtom ( ) ;
 	}
 
 	public void keyReleased ( KeyEvent env ) {
@@ -298,54 +323,51 @@ public class PlainPage {
 			// ignore
 		} else {
 			pageData . history . beginAtom ( ) ;
-			char kc = env . getKeyChar ( ) ;
-			if ( kc == KeyEvent . VK_TAB && env . isShiftDown ( ) ) {
-				Rectangle r = ptSelection . getSelectRect ( ) ;
-				if ( r . y < r . height ) {
+			try {
+				char kc = env . getKeyChar ( ) ;
+				if ( kc == KeyEvent . VK_TAB && env . isShiftDown ( ) ) {
+					Rectangle r = ptSelection . getSelectRect ( ) ;
+					if ( r . y < r . height )
 					ptEdit . moveRectLeft ( r . y , r . height ) ;
-				} else {
+					else
 					ptEdit . moveLineLeft ( cy ) ;
-				}
-			} else if ( kc == KeyEvent . VK_TAB && ! env . isShiftDown ( )
-				&& selectstarty != selectstopy && ! rectSelectMode ) {
-				Rectangle r = ptSelection . getSelectRect ( ) ;
-				ptEdit . moveRectRight ( r . y , r . height ) ;
-			} else {
-				Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-				if ( ime != null ) {
-					Out param = new Out ( ) ;
-					ime . keyTyped ( env , param ) ;
-
-					if ( param . yield != null ) {
-						ptEdit . insertString ( param . yield ) ;
-					}
-					preeditText = param . preedit ;
-
-					if ( ! param . consumed ) {
-						ptEdit . insert ( kc ) ;
-					}
+				} else if ( kc == KeyEvent . VK_TAB && ! env . isShiftDown ( )
+					&& selectstarty != selectstopy && ! rectSelectMode ) {
+					Rectangle r = ptSelection . getSelectRect ( ) ;
+					ptEdit . moveRectRight ( r . y , r . height ) ;
 				} else {
-					ptEdit . insert ( kc ) ;
-					if ( kc == '=' ) {
-						String ss = pageData . roLines . getline ( cy ) . toString ( ) ;
-						if ( cx <= ss . length ( ) && cx >= 3 ) {
+					Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
+					if ( ime != null ) {
+						Out param = new Out ( ) ;
+						ime . keyTyped ( env , param ) ;
+
+						if ( param . yield != null )
+						ptEdit . insertString ( param . yield ) ;
+						preeditText = param . preedit ;
+
+						if ( ! param . consumed )
+						ptEdit . insert ( kc ) ;
+					} else {
+						ptEdit . insert ( kc ) ;
+						if ( kc == '=' ) {
+							String ss = pageData . roLines . getline ( cy ) . toString ( ) ;
+							if ( cx <= ss . length ( ) && cx >= 3 )
 							try {
 								ss = ss . substring ( 0 , cx ) ;
-								if ( ss . endsWith ( "=" ) ) {
-									ss = ss . substring ( 0 , ss . length ( ) - 1 ) ;
-								}
+								if ( ss . endsWith ( "=" ) )
+								ss = ss . substring ( 0 , ss . length ( ) - 1 ) ;
 								ss = U . getMathExprTail ( ss ) ;
-								if ( ! ss . isEmpty ( ) ) {
-									ptEdit . insertString ( " " + U . evalMath ( ss ) ) ;
-								}
+								if ( ! ss . isEmpty ( ) )
+								ptEdit . insertString ( " " + U . evalMath ( ss ) ) ;
 							} catch ( Exception ex ) {
 								/* ignore */
 							}
 						}
 					}
 				}
+			} finally {
+				pageData . history . endAtom ( ) ;
 			}
-			pageData . history . endAtom ( ) ;
 		}
 	}
 
@@ -355,7 +377,7 @@ public class PlainPage {
 			if ( ui . cp . clickedName != null ) {
 				try {
 					processCommand ( Commands . valueOf ( ui . cp . clickedName ) ) ;
-					uiComp . repaint ( ) ;
+					repaint ( ) ;
 					mx = 0 ;
 					my = 0 ;
 					ui . cp . showCommandPanel = false ;
@@ -368,109 +390,79 @@ public class PlainPage {
 			return ;
 		} {
 			if ( isButtonDown ( 4 , evt ) || isButtonDown ( 5 , evt )
-				|| isButtonDown ( 6 , evt ) || isButtonDown ( 7 , evt ) ) {
-				return ;
-			}
+				|| isButtonDown ( 6 , evt ) || isButtonDown ( 7 , evt ) )
+			return ;
 		}
-		int my = evt . getY ( ) ;
-		if ( my > 0 && my < toolbarHeight ) {
-			if ( pageData . getFn ( ) != null ) {
-				U . setClipBoard ( pageData . getFn ( ) ) ;
-				ui . message ( "filename copied" ) ;
-				my = 0 ;
-				// uiComp.repaint();
-			} else if ( pageData . workPath != null ) {
-				U . setClipBoard ( pageData . workPath ) ;
-				ui . message ( "work path copied" ) ;
-				my = 0 ;
-			} else {
-				try {
-					if ( U . saveFile ( this ) ) {
-						ui . message ( "saved" ) ;
-					}
-				} catch ( Throwable e ) {
-					ui . message ( "err:" + e ) ;
-					e . printStackTrace ( ) ;
-				}
-			}
-		} else {
-			int mx = evt . getX ( ) ;
-			if ( mx > 0 && mx < ui . gutterWidth ) {
+		int my1 = evt . getY ( ) ;
+		if ( my1 > 0 && my1 < toolbarHeight )
+		if ( pageData . fileLoaded ) {
+			U . setClipBoard ( pageData . title ) ;
+			ui . message ( "filename copied" ) ;
+			my1 = 0 ;
+			// repaint();
+		} else if ( workPath != null ) {
+			U . setClipBoard ( workPath ) ;
+			ui . message ( "work path copied" ) ;
+			my1 = 0 ;
+		} else
+		try {
+			if ( U . saveFile ( this ) )
+			ui . message ( "saved" ) ;
+		} catch ( Throwable e ) {
+			ui . message ( "err:" + e ) ;
+			e . printStackTrace ( ) ;
+		}
+		else {
+			int mx1 = evt . getX ( ) ;
+			if ( mx1 > 0 && mx1 < ui . gutterWidth ) {
 				cursor . gotoLine ( ) ;
-				uiComp . repaint ( ) ;
+				repaint ( ) ;
 			}
 		}
 	}
 
 	public void mouseDragged ( MouseEvent evt ) { {
 			if ( isButtonDown ( 4 , evt ) || isButtonDown ( 5 , evt )
-				|| isButtonDown ( 6 , evt ) || isButtonDown ( 7 , evt ) ) {
-				return ;
-			}
+				|| isButtonDown ( 6 , evt ) || isButtonDown ( 7 , evt ) )
+			return ;
 		}
 		mx = evt . getX ( ) ;
 		my = evt . getY ( ) ;
 		mshift = true ;
-		uiComp . repaint ( ) ;
+		repaint ( ) ;
 	}
 
 	public void mouseMoved ( MouseEvent evt ) {
-		if ( ui . cp . showCommandPanel ) {
-			ui . cp . mouseMoved ( evt ) ;
-		}
+		if ( ui . cp . showCommandPanel )
+		ui . cp . mouseMoved ( evt ) ;
 	}
 
-	public void mousePressed ( MouseEvent evt ) {
-		if ( isButtonBack ( evt ) ) {
-			pageBack ( ) ;
-		} else if ( isButtonForward ( evt ) ) {
-			pageForward ( ) ;
-		} else {
+	public void mousePressed ( MouseEvent evt ) throws Exception {
+		if ( isButtonBack ( evt ) )
+		gotoFileLine ( uiComp . pageHis . back ( U . getLocString ( this ) ) , uiComp , false ) ;
+		else if ( isButtonForward ( evt ) )
+		gotoFileLine ( uiComp . pageHis . forward ( U . getLocString ( this ) ) , uiComp , false ) ;
+		else {
 			mx = evt . getX ( ) ;
 			my = evt . getY ( ) ;
 			mshift = evt . isShiftDown ( ) ;
 			mcount = evt . getClickCount ( ) ;
-			uiComp . repaint ( ) ;
+			repaint ( ) ;
 		}
-		// System.out.println("m press");
 	}
 
 	public void mouseWheelMoved ( MouseWheelEvent env ) {
 		int amount = env . getWheelRotation ( ) * env . getScrollAmount ( ) ;
 		if ( env . isControlDown ( ) ) { // scale
 			U . scale ( amount , ui ) ;
-			this . uiComp . repaint ( ) ;
-		} else if ( env . isAltDown ( ) ) { // horizon scroll
-			cursor . scrollHorizon ( amount ) ;
-		} else { // scroll
-			cursor . scroll ( amount ) ;
-		}
+			this . repaint ( ) ;
+		} else if ( env . isAltDown ( ) ) // horizon scroll
+		cursor . scrollHorizon ( amount ) ;
+		else // scroll
+		cursor . scroll ( amount ) ;
 	}
 
-	private void pageBack ( ) {
-		String s = uiComp . pageHis . back ( U . getLocString ( this ) ) ;
-		if ( s != null ) {
-			try {
-				U . gotoFileLine ( s , uiComp , false ) ;
-			} catch ( Throwable e ) {
-				ui . message ( "err:" + e ) ;
-				e . printStackTrace ( ) ;
-			}
-		}
-	}
-
-	private void pageForward ( ) {
-		String s = uiComp . pageHis . forward ( U . getLocString ( this ) ) ;
-		if ( s != null ) {
-			try {
-				U . gotoFileLine ( s , uiComp , false ) ;
-			} catch ( Throwable e ) {
-				ui . message ( "err:" + e ) ;
-				e . printStackTrace ( ) ;
-			}
-		}
-	}
-	/**
+	/*
 	 * Add support to on-the-spot pre-editing of input method like CJK IME, not
 	 * perfect(the current java implementation seems not support pre-edit window
 	 * following function), but keep up with what did as swing JTextComponent.
@@ -485,7 +477,7 @@ public class PlainPage {
 			ptEdit . insertString ( commit ) ;
 		}
 		this . preeditText = text ;
-		uiComp . repaint ( ) ;
+		repaint ( ) ;
 	}
 
 	void processCommand ( Commands cmd ) throws Exception {
@@ -500,28 +492,22 @@ public class PlainPage {
 			U . changePathSep ( pageData , cy ) ;
 			break ;
 			case findNext :
-			if ( ptFind . back ) {
-				ptFind . findPrev ( ptFind . word ) ;
-			} else {
-				ptFind . findNext ( ptFind . word ) ;
-			}
+			if ( ptFind . back )
+			ptFind . findPrev ( ptFind . word ) ;
+			else
+			ptFind . findNext ( ptFind . word ) ;
 			break ;
 			case findPrev :
-			if ( ! ptFind . back ) {
-				ptFind . findPrev ( ptFind . word ) ;
-			} else {
-				ptFind . findNext ( ptFind . word ) ;
-			}
+			if ( ! ptFind . back )
+			ptFind . findPrev ( ptFind . word ) ;
+			else
+			ptFind . findNext ( ptFind . word ) ;
 			break ;
 			case commandPanel :
 			ui . cp . showCommandPanel = true ;
 			break ;
 			case reloadWithEncoding :
-			if ( pageData . getTitle ( ) . equals ( U . titleOfPages ( uiComp ) ) ) {
-				pageData . setLines ( U . getPageListStrings ( uiComp ) ) ;
-			}
-			U . reloadWithEncodingByUser ( pageData . getFn ( ) , this ) ;
-			PlainPage . this . changedOutside = false ;
+			U . reloadWithEncodingByUser ( this ) ;
 			break ;
 			case moveLeft :
 			cursor . moveLeft ( ) ;
@@ -532,17 +518,17 @@ public class PlainPage {
 			focusCursor ( ) ;
 			break ;
 			case moveUp :
-			if ( readonly ) {
-				doMoveViewUp ( ) ;
-			} else {
+			if ( readonly )
+			doMoveViewUp ( ) ;
+			else {
 				cursor . moveUp ( ) ;
 				focusCursor ( ) ;
 			}
 			break ;
 			case moveDown :
-			if ( readonly ) {
-				doMoveViewDown ( ) ;
-			} else {
+			if ( readonly )
+			doMoveViewDown ( ) ;
+			else {
 				cursor . moveDown ( ) ;
 				focusCursor ( ) ;
 			}
@@ -556,17 +542,17 @@ public class PlainPage {
 			focusCursor ( ) ;
 			break ;
 			case movePageUp :
-			if ( readonly ) {
-				sy = Math . max ( 0 , sy - showLineCnt ) ;
-			} else {
+			if ( readonly )
+			sy = Math . max ( 0 , sy - showLineCnt ) ;
+			else {
 				cursor . movePageUp ( ) ;
 				focusCursor ( ) ;
 			}
 			break ;
 			case movePageDown :
-			if ( readonly ) {
-				sy = Math . min ( sy + showLineCnt , pageData . roLines . getLinesize ( ) - 1 ) ;
-			} else {
+			if ( readonly )
+			sy = Math . min ( sy + showLineCnt , pageData . roLines . getLinesize ( ) - 1 ) ;
+			else {
 				cursor . movePageDown ( ) ;
 				focusCursor ( ) ;
 			}
@@ -584,22 +570,19 @@ public class PlainPage {
 			break ;
 			case makeNoise :
 			ui . noise = ! ui . noise ;
-			if ( ui . noise ) {
-				U . startNoiseThread ( ui , uiComp ) ;
-			}
+			if ( ui . noise )
+			U . startNoiseThread ( ui , uiComp ) ;
 			break ;
 			case toggleFps :
 			ui . fpsOn = ! ui . fpsOn ;
 			break ;
 			case switchLineSeperator :
-			if ( pageData . lineSep . equals ( "\n" ) ) {
-				pageData . lineSep = "\r\n" ;
-			} else {
-				pageData . lineSep = "\n" ;
-			}
+			if ( pageData . lineSep . equals ( "\n" ) )
+			pageData . lineSep = "\r\n" ;
+			else
+			pageData . lineSep = "\n" ;
 			break ;
 			case wrapLines :
-			System . out . println ( "wrapLines!" ) ;
 			ptEdit . wrapLines ( cx ) ;
 			focusCursor ( ) ;
 			break ;
@@ -624,15 +607,13 @@ public class PlainPage {
 			break ;
 
 			case execute :
-			if ( cy < pageData . lines . size ( ) ) {
-				U . exec ( this , pageData . roLines . getline ( cy ) . toString ( ) ) ;
-			}
+			if ( cy < pageData . lines . size ( ) )
+			U . exec ( this , pageData . roLines . getline ( cy ) . toString ( ) ) ;
 			break ;
 			case hex :
 			String s = U . exportString ( ptSelection . getSelected ( ) , pageData . lineSep ) ;
-			if ( s != null && s . length ( ) > 0 ) {
-				U . showHexOfString ( s , PlainPage . this ) ;
-			}
+			if ( s != null && s . length ( ) > 0 )
+			U . showHexOfString ( s , PlainPage . this ) ;
 			break ;
 			case listFonts :
 			U . listFonts ( this ) ;
@@ -641,10 +622,8 @@ public class PlainPage {
 			ptSelection . copySelected ( ) ;
 			break ;
 			case paste :
-			if ( keepx == -1 ) { // use-case 2: paste same thing along lines
-				//				System.out.println("keepx2=" + cx);
-				keepx = cx ;
-			}
+			if ( keepx == -1 ) // use-case 2: paste same thing along lines
+			keepx = cx ;
 			ptEdit . insertString ( U . getClipBoard ( ) , true ) ;
 			break ;
 			case cut :
@@ -657,19 +636,17 @@ public class PlainPage {
 			ptSelection . selectAll ( ) ;
 			break ;
 			case deleteLine :
-			if ( ptSelection . isSelected ( ) ) {
-				ptEdit . deleteRect ( ptSelection . getSelectRect ( ) ) ;
-			} else {
-				ptEdit . deleteLine ( cy ) ;
-			}
+			if ( ptSelection . isSelected ( ) )
+			ptEdit . deleteRect ( ptSelection . getSelectRect ( ) ) ;
+			else
+			ptEdit . deleteLine ( cy ) ;
 			focusCursor ( ) ;
 			break ;
 			case openFile :
-			U . openFile ( this ) ;
+			U . listDirToNewPage ( this ) ;
 			break ;
 			case newPage :
-			PlainPage pp = new PlainPage (
-				uiComp , PageData . newEmpty ( "UNTITLED #" + U . randomID ( ) ) , this ) ;
+			PlainPage pp = new PlainPage ( uiComp , PageData . newUntitled ( ) , this ) ;
 			pp . ptSelection . selectAll ( ) ;
 			break ;
 			case newWindow :
@@ -677,9 +654,8 @@ public class PlainPage {
 
 			break ;
 			case save :
-			if ( U . saveFile ( this ) ) {
-				ui . message ( "saved" ) ;
-			}
+			if ( U . saveFile ( this ) )
+			ui . message ( "saved" ) ;
 			break ;
 			case gotoLine :
 			cursor . gotoLine ( ) ;
@@ -739,13 +715,13 @@ public class PlainPage {
 			case go :
 			if ( cy < pageData . lines . size ( ) ) {
 				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
-				doGo ( line , true , false ) ;
+				go ( line , false ) ;
 			}
 			break ;
-			case goInNewWindow : // not implement, hard
+			case goInNewWindow : // not work yet
 			if ( cy < pageData . lines . size ( ) ) {
 				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
-				doGo ( line , true , true ) ;
+				go ( line , true ) ;
 			}
 			break ;
 			case launch :
@@ -770,74 +746,54 @@ public class PlainPage {
 			}
 			break ;
 			case print :
-			new U . Print ( PlainPage . this ) . printPages ( ) ;
+			new Print ( PlainPage . this ) . printPages ( ) ;
 			break ;
 			case pageList :
-			U . switchToPageListPage ( this ) ;
+			showPageListPage ( uiComp ) ;
 			break ;
 			case quickSwitchPage :
-			// U.switchPageInOrder(this);
-			// U.switchToLastPage(this);
-			doGo ( uiComp . pageHis . back ( U . getLocString ( this ) ) , false , false ) ;
+			gotoFileLine ( uiComp . pageHis . back ( U . getLocString ( this ) ) , uiComp , true ) ;
 			break ;
 			case toggleIME :
 			Ime . nextIme ( ) ;
 			Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-			if ( ime != null ) {
-				ime . setEnabled ( true ) ;
-			}
+			if ( ime != null )
+			ime . setEnabled ( true ) ;
 			break ;
 			case ShellCommand :
 			Shell . run ( PlainPage . this , cy ) ;
 			break ;
 			case pageForward :
-			pageForward ( ) ;
+			gotoFileLine ( uiComp . pageHis . forward ( U . getLocString ( this ) ) , uiComp , false ) ;
 			break ;
 			case pageBack :
-			pageBack ( ) ;
-			break ;
-			case mathEval :
-			String ss = pageData . roLines . getline ( cy ) . toString ( ) ;
-			if ( cx <= ss . length ( ) && cx >= 3 ) {
-				try {
-					ss = ss . substring ( 0 , cx ) ;
-					if ( ss . endsWith ( "=" ) ) {
-						ss = ss . substring ( 0 , ss . length ( ) - 1 ) ;
-					}
-					ss = U . getMathExprTail ( ss ) ;
-					if ( ! ss . isEmpty ( ) ) {
-						ptEdit . insertString ( " = " + U . evalMath ( ss ) ) ;
-					}
-				} catch ( Exception ex ) {
-					/* ignore */
-				}
-			}
+			gotoFileLine ( uiComp . pageHis . back ( U . getLocString ( this ) ) , uiComp , false ) ;
 			break ;
 			default :
 			ui . message ( "unprocessed Command:" + cmd ) ;
 		}
 	}
 
+	public void repaint ( ) {
+		SwingUtilities . invokeLater ( ( ) -> uiComp . repaint ( ) ) ;
+	}
+
 	private void unknownCommand ( KeyEvent env ) {
 		StringBuilder sb = new StringBuilder ( ) ;
-		if ( env . isControlDown ( ) ) {
-			sb . append ( "Ctrl" ) ;
-		}
+		if ( env . isControlDown ( ) )
+		sb . append ( "Ctrl" ) ;
 		if ( env . isAltDown ( ) ) {
-			if ( sb . length ( ) > 0 ) {
-				sb . append ( "-" ) ;
-			}
+			if ( sb . length ( ) > 0 )
+			sb . append ( "-" ) ;
 			sb . append ( "Alt" ) ;
 		}
 		if ( env . isShiftDown ( ) ) {
-			if ( sb . length ( ) > 0 ) {
-				sb . append ( "-" ) ;
-			}
+			if ( sb . length ( ) > 0 )
+			sb . append ( "-" ) ;
 			sb . append ( "Shift" ) ;
 		}
-		if ( sb . length ( ) > 0 ) {
-			sb . append ( "-" ) ;
-		}
+		if ( sb . length ( ) > 0 )
+		sb . append ( "-" ) ;
 		sb . append ( KeyEvent . getKeyText ( env . getKeyCode ( ) ) ) ;
 		ui . message ( "Unknow Command:" + sb ) ;
 	}
@@ -849,6 +805,7 @@ public class PlainPage {
 		}
 		ui . xpaint ( g , size ) ;
 	}
+
 	class Cursor {
 		void gotoLine ( ) {
 			String s = JOptionPane . showInputDialog ( uiComp , "Goto Line" ) ;
@@ -858,9 +815,8 @@ public class PlainPage {
 			} catch ( Exception e ) {
 				line = -1 ;
 			}
-			if ( line > pageData . roLines . getLinesize ( ) ) {
-				line = -1 ;
-			}
+			if ( line > pageData . roLines . getLinesize ( ) )
+			line = -1 ;
 			if ( line > 0 ) {
 				line -= 1 ;
 				sy = Math . max ( 0 , line - showLineCnt / 2 + 1 ) ;
@@ -872,16 +828,13 @@ public class PlainPage {
 
 		void moveDown ( ) {
 			cy += 1 ;
-			if ( cy >= pageData . roLines . getLinesize ( ) ) {
-				if ( rectSelectMode ) {
-					pageData . editRec . insertEmptyLine ( cy ) ;
-					if ( cx > 0 ) {
-						pageData . editRec . insertInLine ( cy , 0 , U . spaces ( cx ) ) ;
-					}
-				} else {
-					cy = pageData . roLines . getLinesize ( ) - 1 ;
-				}
-			}
+			if ( cy >= pageData . roLines . getLinesize ( ) )
+			if ( rectSelectMode ) {
+				pageData . editRec . insertEmptyLine ( cy ) ;
+				if ( cx > 0 )
+				pageData . editRec . insertInLine ( cy , 0 , U . spaces ( cx ) ) ;
+			} else
+			cy = pageData . roLines . getLinesize ( ) - 1 ;
 			keepX ( ) ;
 		}
 
@@ -889,14 +842,12 @@ public class PlainPage {
 			keepx = -1 ;
 			CharSequence line = pageData . roLines . getline ( cy ) ;
 			int p1 = line . length ( ) ;
-			while ( p1 > 0 && U . isSpaceChar ( line . charAt ( p1 - 1 ) ) ) {
-				p1 -- ;
-			}
-			if ( cx < p1 || cx >= line . length ( ) ) {
-				cx = p1 ;
-			} else {
-				cx = Integer . MAX_VALUE ;
-			}
+			while ( p1 > 0 && U . isSpaceChar ( line . charAt ( p1 - 1 ) ) )
+			p1 -- ;
+			if ( cx < p1 || cx >= line . length ( ) )
+			cx = p1 ;
+			else
+			cx = Integer . MAX_VALUE ;
 		}
 
 		void moveHome ( ) {
@@ -904,27 +855,23 @@ public class PlainPage {
 			CharSequence line = pageData . roLines . getline ( cy ) ;
 			int p1 = 0 ;
 			int len = line . length ( ) ;
-			while ( p1 < len - 1 && U . isSpaceChar ( line . charAt ( p1 ) ) ) {
-				p1 ++ ;
-			}
-			if ( cx > p1 || cx == 0 ) {
-				cx = p1 ;
-			} else {
-				cx = 0 ;
-			}
+			while ( p1 < len - 1 && U . isSpaceChar ( line . charAt ( p1 ) ) )
+			p1 ++ ;
+			if ( cx > p1 || cx == 0 )
+			cx = p1 ;
+			else
+			cx = 0 ;
 		}
 
 		void moveLeft ( ) {
 			keepx = -1 ;
 			cx -= 1 ;
-			if ( cx < 0 ) {
-				if ( cy > 0 && ! ptSelection . isRectSelecting ( ) ) {
-					cy -= 1 ;
-					cx = pageData . roLines . getline ( cy ) . length ( ) ;
-				} else {
-					cx = 0 ;
-				}
-			}
+			if ( cx < 0 )
+			if ( cy > 0 && ! ptSelection . isRectSelecting ( ) ) {
+				cy -= 1 ;
+				cx = pageData . roLines . getline ( cy ) . length ( ) ;
+			} else
+			cx = 0 ;
 		}
 
 		void moveLeftWord ( ) {
@@ -932,64 +879,56 @@ public class PlainPage {
 			CharSequence line = pageData . roLines . getline ( cy ) ;
 			cx = Math . max ( 0 , cx - 1 ) ;
 			char ch1 = U . charAtWhenMove ( line , cx ) ;
-			while ( true ) {
-				if ( cx <= 0 ) {
-					if ( cy <= 0 ) {
-						break ;
-					} else {
-						cy -- ;
-						line = pageData . roLines . getline ( cy ) ;
-						cx = Math . max ( 0 , line . length ( ) - 1 ) ;
-					}
-				} else {
-					cx -- ;
-					if ( U . isSkipChar ( line . charAt ( cx ) , ch1 ) ) {
-						continue ;
-					} else {
-						cx ++ ;
-						break ;
-					}
+			while ( true )
+			if ( cx <= 0 )
+			if ( cy <= 0 )
+			break ;
+			else {
+				cy -- ;
+				line = pageData . roLines . getline ( cy ) ;
+				cx = Math . max ( 0 , line . length ( ) - 1 ) ;
+			}
+			else {
+				cx -- ;
+				if ( U . isSkipChar ( line . charAt ( cx ) , ch1 ) )
+				continue ;
+				else {
+					cx ++ ;
+					break ;
 				}
 			}
 		}
 
 		void movePageDown ( ) {
 			cy += showLineCnt ;
-			if ( cy >= pageData . roLines . getLinesize ( ) ) {
-				if ( rectSelectMode ) {
-					String SP = U . spaces ( cx ) ;
-					int cnt = cy - pageData . roLines . getLinesize ( ) + 1 ;
-					int p = pageData . roLines . getLinesize ( ) ;
-					for ( int i = 0 ; i < cnt ; i ++ ) {
-						pageData . editRec . insertEmptyLine ( p ) ;
-						if ( cx > 0 ) {
-							pageData . editRec . insertInLine ( p , 0 , SP ) ;
-						}
-					}
-				} else {
-					cy = pageData . roLines . getLinesize ( ) - 1 ;
+			if ( cy >= pageData . roLines . getLinesize ( ) )
+			if ( rectSelectMode ) {
+				String SP = U . spaces ( cx ) ;
+				int cnt = cy - pageData . roLines . getLinesize ( ) + 1 ;
+				int p = pageData . roLines . getLinesize ( ) ;
+				for ( int i = 0 ; i < cnt ; i ++ ) {
+					pageData . editRec . insertEmptyLine ( p ) ;
+					if ( cx > 0 )
+					pageData . editRec . insertInLine ( p , 0 , SP ) ;
 				}
-			}
+			} else
+			cy = pageData . roLines . getLinesize ( ) - 1 ;
 			keepX ( ) ;
 		}
 
 		void keepX ( ) {
-			if ( rectSelectMode ) {
-				return ;
-			}
-			if ( keepx == -1 ) {
-				keepx = cx ;
-				//				System.out.println("keepx=" + keepx);
-			} else {
-				cx = Math . min ( keepx , pageData . roLines . getline ( cy ) . length ( ) ) ;
-			}
+			if ( rectSelectMode )
+			return ;
+			if ( keepx == -1 )
+			keepx = cx ; //				System.out.println("keepx=" + keepx);
+			else
+			cx = Math . min ( keepx , pageData . roLines . getline ( cy ) . length ( ) ) ;
 		}
 
 		void movePageUp ( ) {
 			cy -= showLineCnt ;
-			if ( cy < 0 ) {
-				cy = 0 ;
-			}
+			if ( cy < 0 )
+			cy = 0 ;
 			keepX ( ) ;
 		}
 
@@ -997,9 +936,8 @@ public class PlainPage {
 			keepx = -1 ;
 			cx += 1 ;
 			if ( ptSelection . isRectSelecting ( ) ) {
-				if ( cx > pageData . roLines . getline ( cy ) . length ( ) ) {
-					ptEdit . setLength ( cy , cx ) ;
-				}
+				if ( cx > pageData . roLines . getline ( cy ) . length ( ) )
+				ptEdit . setLength ( cy , cx ) ;
 			} else if ( cx > pageData . roLines . getline ( cy ) . length ( )
 				&& cy < pageData . roLines . getLinesize ( ) - 1 ) {
 				cy += 1 ;
@@ -1014,14 +952,13 @@ public class PlainPage {
 			cx = Math . min ( line . length ( ) , cx + 1 ) ;
 			while ( U . isSkipChar ( U . charAtWhenMove ( line , cx ) , ch1 ) ) {
 				cx = Math . min ( line . length ( ) , cx + 1 ) ;
-				if ( cx >= line . length ( ) ) {
-					if ( cy >= pageData . roLines . getLinesize ( ) - 1 ) {
-						break ;
-					} else {
-						cy ++ ;
-						line = pageData . roLines . getline ( cy ) ;
-						cx = 0 ;
-					}
+				if ( cx >= line . length ( ) )
+				if ( cy >= pageData . roLines . getLinesize ( ) - 1 )
+				break ;
+				else {
+					cy ++ ;
+					line = pageData . roLines . getline ( cy ) ;
+					cx = 0 ;
 				}
 			}
 		}
@@ -1033,54 +970,49 @@ public class PlainPage {
 				char c = pageData . roLines . getline ( cy ) . charAt ( cx - 1 ) ;
 				String pair = "(){}[]<>" ;
 				int p1 = pair . indexOf ( c ) ;
-				if ( p1 >= 0 ) {
-					if ( p1 % 2 == 0 ) {
-						PlainPage . this . ui . commentor . moveToPairMark (
-							cx - 1 , cy , pair . charAt ( p1 + 1 ) , c , 1 ) ;
-					} else {
-						PlainPage . this . ui . commentor . moveToPairMark (
-							cx - 1 , cy , pair . charAt ( p1 - 1 ) , c , -1 ) ;
-					}
-				}
+				if ( p1 >= 0 )
+				if ( p1 % 2 == 0 )
+				PlainPage . this . ui . pairMarker . moveToPairMark (
+					cx - 1 , cy , pair . charAt ( p1 + 1 ) , c , 1 ) ;
+				else
+				PlainPage . this . ui . pairMarker . moveToPairMark (
+					cx - 1 , cy , pair . charAt ( p1 - 1 ) , c , -1 ) ;
 			}
 		}
 
 		void moveUp ( ) {
 			cy -= 1 ;
-			if ( cy < 0 ) {
-				cy = 0 ;
-			}
+			if ( cy < 0 )
+			cy = 0 ;
 			keepX ( ) ;
 		}
 
 		void scroll ( int amount ) {
 			sy += amount ;
-			if ( sy >= pageData . roLines . getLinesize ( ) ) {
-				sy = pageData . roLines . getLinesize ( ) - 1 ;
-			}
-			if ( sy < 0 ) {
-				sy = 0 ;
-			}
-			uiComp . repaint ( ) ;
+			if ( sy >= pageData . roLines . getLinesize ( ) )
+			sy = pageData . roLines . getLinesize ( ) - 1 ;
+			if ( sy < 0 )
+			sy = 0 ;
+			repaint ( ) ;
 		}
 
 		void scrollHorizon ( int amount ) {
 			sx += amount ;
-			if ( sx < 0 ) {
-				sx = 0 ;
-			}
-			uiComp . repaint ( ) ;
+			if ( sx < 0 )
+			sx = 0 ;
+			repaint ( ) ;
 		}
 
-		void setSafePos ( int x , int y , boolean record ) {
-			cy = Math . max ( 0 , Math . min ( pageData . roLines . getLinesize ( ) - 1 , y ) ) ;
-			cx = Math . max ( 0 , Math . min ( pageData . roLines . getline ( cy ) . length ( ) , x ) ) ;
+		void setSafePos ( int x , int y ) {
+			cy = U . between ( y , 0 , pageData . roLines . getLinesize ( ) - 1 ) ;
+			cx = U . between ( x , 0 , pageData . roLines . getline ( cy ) . length ( ) ) ;
 		}
 
 		public void doMoveUpLangLevel ( ) {
-			PlainPage . this . ui . commentor . moveToPairMark ( cx - 1 , cy , '{' , '}' , -1 ) ;
+			PlainPage . this . ui . pairMarker . moveToPairMark ( cx - 1 , cy , '{' , '}' , -1 ) ;
 		}
 	}
+
 	public class EasyEdit {
 		public synchronized void append ( String s ) {
 			cy = pageData . roLines . getLinesize ( ) - 1 ;
@@ -1088,90 +1020,8 @@ public class PlainPage {
 			insertString ( s ) ;
 		}
 
-		//		public void consoleAdjustToLastLine() {
-		//			int size = pageData.lines.size();
-		//			if (cy != size - 1) {
-		//				cy = size - 1;
-		//				cx = pageData.lines.get(size - 1).length();
-		//				focusCursor();
-		//				uiComp.repaint();
-		//			}
-		//		}
-		//		public void consoleAppend(String s) {
-		//			synchronized (console) {
-		//				int size = pageData.lines.size();
-		//				CharSequence lastLine = pageData.lines.get(size -
-		//1); 				pageData.lines.remove(size - 1); 				cy = pageData.roLines.getLinesize() -
-		//1; 				cx = pageData.roLines.getline(cy).length(); 				insertString(s);
-		//				pageData.lines.add(lastLine);
-		//			}
-		//		}
-		//		public void consoleInsertChar(char ch) {
-		//			synchronized (console) {
-		//				consoleAdjustToLastLine();
-		//				if (ch == KeyEvent.VK_ENTER) {
-		//					consoleSubmitLastLine();
-		//
-		//				} else if (ch == KeyEvent.VK_BACK_SPACE) {
-		//					if (cx > 0) {
-		//						pageData.editRec.deleteInLine(cy, cx - 1,
-		//cx); 						cx -= 1;
-		//					}
-		//				} else if (ch == KeyEvent.VK_DELETE) {
-		//					if (cx < pageData.roLines.getline(cy).length())
-		//{ 						pageData.editRec.deleteInLine(cy, cx, cx + 1);
-		//					}
-		//				} else if (ch == KeyEvent.VK_ESCAPE) {
-		//					int size =
-		//pageData.roLines.getline(cy).length(); 					pageData.editRec.deleteInLine(cy,
-		//0, size); 				} else { 					pageData.editRec.insertInLine(cy, cx, "" + ch); 					cx +=
-		//1;
-		//				}
-		//			}
-		//			focusCursor();
-		//			uiComp.repaint();
-		//
-		//		}
-		//
-		//		public void consoleSubmitLastLine() {
-		//			cy = pageData.roLines.getLinesize() - 1;
-		//			String sb = pageData.roLines.getline(cy).toString();
-		//			if (sb.trim().length() == 0) {
-		//				consoleAppend("\n");
-		//			}
-		//			pageData.editRec.deleteLines(cy, cy + 1);
-		//			cx = 0;
-		//			sb += "\n";
-		//			console.submit(sb);
-		//		}
-		//
-		//		public void consoleUserInput(List<CharSequence> ss) {
-		//			synchronized (console) {
-		//				consoleAdjustToLastLine();
-		//				int len = ss.size();
-		//				if (len == 1) {
-		//					pageData.editRec.insertInLine(cy, cx,
-		//ss.get(0)); 					cx += ss.get(0).length(); 				} else {
-		//					pageData.editRec.deleteInLine(cy, cx,
-		//Integer.MAX_VALUE); 					pageData.editRec.insertInLine(cy, cx, ss.get(0)); 					for
-		//(int i = 1; i < len; i++) { 						consoleSubmitLastLine(); 						cy++;
-		//						pageData.editRec.insertEmptyLine(cy);
-		//						pageData.editRec.insertInLine(cy, 0,
-		//ss.get(i));
-		//					}
-		//					cx = ss.get(len - 1).length();
-		//				}
-		//			}
-		//			focusCursor();
-		//		}
 		public void deleteLine ( int cy ) {
 			deleteLineRange ( cy , cy + 1 ) ;
-			// cx = 0;
-			// int len = pageData.roLines.getline(cy).length();
-			// if (len > 0) {
-			// pageData.editRec.deleteInLine(cy, 0, len);
-			// }
-			// pageData.editRec.deleteEmptyLine(cy);
 		}
 
 		public void deleteLineRange ( int start , int end ) {
@@ -1184,26 +1034,22 @@ public class PlainPage {
 			int x2 = r . width ;
 			int y2 = r . height ;
 			if ( rectSelectMode ) {
-				for ( int i = y1 ; i <= y2 ; i ++ ) {
-					pageData . editRec . deleteInLine ( i , x1 , x2 ) ;
-				}
+				for ( int i = y1 ; i <= y2 ; i ++ )
+				pageData . editRec . deleteInLine ( i , x1 , x2 ) ;
 				selectstartx = x1 ;
 				selectstopx = x1 ;
-			} else {
-				if ( y1 == y2 && x1 < x2 ) {
-					pageData . editRec . deleteInLine ( y1 , x1 , x2 ) ;
-				} else if ( y1 < y2 ) {
-					pageData . editRec . deleteInLine ( y1 , x1 , Integer . MAX_VALUE ) ;
-					pageData . editRec . deleteInLine ( y2 , 0 , x2 ) ;
-					deleteLineRange ( y1 + 1 , y2 ) ;
-					pageData . editRec . mergeLine ( y1 ) ;
-				}
+			} else if ( y1 == y2 && x1 < x2 )
+			pageData . editRec . deleteInLine ( y1 , x1 , x2 ) ;
+			else if ( y1 < y2 ) {
+				pageData . editRec . deleteInLine ( y1 , x1 , Integer . MAX_VALUE ) ;
+				pageData . editRec . deleteInLine ( y2 , 0 , x2 ) ;
+				deleteLineRange ( y1 + 1 , y2 ) ;
+				pageData . editRec . mergeLine ( y1 ) ;
 			}
 			cx = x1 ;
 			cy = y1 ;
-			if ( y2 - y1 > 400 ) {
-				U . gc ( ) ;
-			}
+			if ( y2 - y1 > 400 )
+			U . gc ( ) ;
 			focusCursor ( ) ;
 		}
 
@@ -1215,22 +1061,23 @@ public class PlainPage {
 			deleteRect ( new Rectangle ( x0 , y0 , x2 , y2 ) ) ;
 		}
 
+		String getIndent ( String s ) {
+			int p = 0 ;
+			while ( p < s . length ( ) && ( s . charAt ( p ) == ' ' || s . charAt ( p ) == '\t' ) )
+			p += 1 ;
+			return s . substring ( 0 , p ) ;
+		}
+
 		public void insert ( char ch ) {
-			//			if (console != null) {
-			//				consoleInsertChar(ch);
-			//				return;
-			//			}
 			// Fix cy here! ?
-			if ( cy < 0 ) {
-				cy = 0 ;
-			}
+			if ( cy < 0 )
+			cy = 0 ;
 
 			if ( ch == KeyEvent . VK_ENTER ) {
-				if ( ptSelection . isSelected ( ) ) {
-					deleteRect ( ptSelection . getSelectRect ( ) ) ;
-				}
+				if ( ptSelection . isSelected ( ) )
+				deleteRect ( ptSelection . getSelectRect ( ) ) ;
 				CharSequence sb = pageData . roLines . getline ( cy ) ;
-				String indent = U . getIndent ( sb . toString ( ) ) ;
+				String indent = getIndent ( sb . toString ( ) ) ;
 				CharSequence s = sb . subSequence ( cx , sb . length ( ) ) ;
 				pageData . editRec . insertEmptyLine ( cy + 1 ) ;
 				pageData . editRec . insertInLine ( cy + 1 , 0 , indent + U . trimLeft ( s ) ) ;
@@ -1238,64 +1085,47 @@ public class PlainPage {
 				cy += 1 ;
 				cx = indent . length ( ) ;
 			} else if ( ch == KeyEvent . VK_BACK_SPACE ) {
-				if ( ptSelection . isSelected ( ) ) {
-					deleteRect ( ptSelection . getSelectRect ( ) ) ;
-				} else {
-					if ( rectSelectMode ) {
-						if ( cx > 0 ) {
-							Rectangle r = ptSelection . getSelectRect ( ) ;
-							for ( int i = r . y ; i <= r . height ; i ++ ) {
-								pageData . editRec . deleteInLine ( i , cx - 1 , cx ) ;
-							}
-							cx -- ;
-							selectstartx = cx ;
-							selectstopx = cx ;
-						}
-					} else {
-						if ( cx > 0 ) {
-							pageData . editRec . deleteInLine ( cy , cx - 1 , cx ) ;
-							cx -= 1 ;
-						} else {
-							if ( cy > 0 ) {
-								cx = pageData . roLines . getline ( cy - 1 ) . length ( ) ;
-								pageData . editRec . mergeLine ( cy - 1 ) ;
-								cy -= 1 ;
-							}
-						}
-					}
-				}
-			} else if ( ch == KeyEvent . VK_DELETE ) {
-				if ( ptSelection . isSelected ( ) ) {
-					deleteRect ( ptSelection . getSelectRect ( ) ) ;
-				} else {
-					if ( rectSelectMode ) {
+				if ( ptSelection . isSelected ( ) )
+				deleteRect ( ptSelection . getSelectRect ( ) ) ;
+				else if ( rectSelectMode ) {
+					if ( cx > 0 ) {
 						Rectangle r = ptSelection . getSelectRect ( ) ;
-						for ( int i = r . y ; i <= r . height ; i ++ ) {
-							pageData . editRec . deleteInLine ( i , cx , cx + 1 ) ;
-						}
+						for ( int i = r . y ; i <= r . height ; i ++ )
+						pageData . editRec . deleteInLine ( i , cx - 1 , cx ) ;
+						cx -- ;
 						selectstartx = cx ;
 						selectstopx = cx ;
-					} else {
-						if ( cx < pageData . roLines . getline ( cy ) . length ( ) ) {
-							pageData . editRec . deleteInLine ( cy , cx , cx + 1 ) ;
-						} else {
-							if ( cy < pageData . roLines . getLinesize ( ) - 1 ) {
-								pageData . editRec . mergeLine ( cy ) ;
-							}
-						}
 					}
+				} else if ( cx > 0 ) {
+					pageData . editRec . deleteInLine ( cy , cx - 1 , cx ) ;
+					cx -= 1 ;
+				} else if ( cy > 0 ) {
+					cx = pageData . roLines . getline ( cy - 1 ) . length ( ) ;
+					pageData . editRec . mergeLine ( cy - 1 ) ;
+					cy -= 1 ;
 				}
-			} else if ( ch == KeyEvent . VK_ESCAPE ) {
-				ptSelection . cancelSelect ( ) ;
-			} else {
-				if ( ptSelection . isSelected ( ) ) {
-					deleteRect ( ptSelection . getSelectRect ( ) ) ;
-				}
+			} else if ( ch == KeyEvent . VK_DELETE ) {
+				if ( ptSelection . isSelected ( ) )
+				deleteRect ( ptSelection . getSelectRect ( ) ) ;
+				else if ( rectSelectMode ) {
+					Rectangle r = ptSelection . getSelectRect ( ) ;
+					for ( int i = r . y ; i <= r . height ; i ++ )
+					pageData . editRec . deleteInLine ( i , cx , cx + 1 ) ;
+					selectstartx = cx ;
+					selectstopx = cx ;
+				} else if ( cx < pageData . roLines . getline ( cy ) . length ( ) )
+				pageData . editRec . deleteInLine ( cy , cx , cx + 1 ) ;
+				else if ( cy < pageData . roLines . getLinesize ( ) - 1 )
+				pageData . editRec . mergeLine ( cy ) ;
+			} else if ( ch == KeyEvent . VK_ESCAPE )
+			ptSelection . cancelSelect ( ) ;
+			else {
+				if ( ptSelection . isSelected ( ) )
+				deleteRect ( ptSelection . getSelectRect ( ) ) ;
 				if ( rectSelectMode ) {
 					Rectangle r = ptSelection . getSelectRect ( ) ;
-					for ( int i = r . y ; i <= r . height ; i ++ ) {
-						pageData . editRec . insertInLine ( i , cx , "" + ch ) ;
-					}
+					for ( int i = r . y ; i <= r . height ; i ++ )
+					pageData . editRec . insertInLine ( i , cx , "" + ch ) ;
 					cx += 1 ;
 					selectstartx = cx ;
 					selectstopx = cx ;
@@ -1305,25 +1135,18 @@ public class PlainPage {
 				}
 			}
 			focusCursor ( ) ;
-			if ( ! rectSelectMode ) {
-				ptSelection . cancelSelect ( ) ;
-			}
-			uiComp . repaint ( ) ;
+			if ( ! rectSelectMode )
+			ptSelection . cancelSelect ( ) ;
+			repaint ( ) ;
 		}
 
 		public void insertString ( List < CharSequence > ss , boolean userInput ) {
-			//			if (userInput && console != null) {
-			//				consoleUserInput(ss);
-			//				return;
-			//			}
 			// Fix cy here! ?
-			if ( cy < 0 ) {
-				cy = 0 ;
-			}
+			if ( cy < 0 )
+			cy = 0 ;
 
-			if ( ptSelection . isSelected ( ) ) {
-				ptEdit . deleteRect ( ptSelection . getSelectRect ( ) ) ;
-			}
+			if ( ptSelection . isSelected ( ) )
+			ptEdit . deleteRect ( ptSelection . getSelectRect ( ) ) ;
 			int len = ss . size ( ) ;
 			if ( rectSelectMode ) {
 				Rectangle rect = ptSelection . getSelectRect ( ) ;
@@ -1332,9 +1155,8 @@ public class PlainPage {
 					CharSequence s1 = ss . get ( pi ) ;
 					pageData . editRec . insertInLine ( iy , cx , s1 ) ;
 					pi ++ ;
-					if ( pi >= len ) {
-						pi = 0 ;
-					}
+					if ( pi >= len )
+					pi = 0 ;
 				}
 				if ( len == 1 ) {
 					selectstartx += ss . get ( 0 ) . length ( ) ;
@@ -1361,9 +1183,9 @@ public class PlainPage {
 				}
 				ptSelection . cancelSelect ( ) ;
 			}
-			if ( len >= 5 && ui . comment == null ) {
-				isCommentChecked = true ;
-				U . startThread ( new Thread ( ) {
+			if ( len >= 5 && pageData . comment == null ) {
+				pageData . isCommentChecked = true ;
+				U . startDaemonThread ( new Thread ( ) {
 						@ Override
 						public void run ( ) {
 							U . guessComment ( PlainPage . this ) ;
@@ -1383,13 +1205,11 @@ public class PlainPage {
 
 		public void moveLineLeft ( int cy ) {
 			String s = pageData . roLines . getline ( cy ) . toString ( ) ;
-			if ( s . length ( ) > 0 && ( s . charAt ( 0 ) == '\t' || s . charAt ( 0 ) == ' ' ) ) {
-				pageData . editRec . deleteInLine ( cy , 0 , 1 ) ;
-			}
+			if ( s . length ( ) > 0 && ( s . charAt ( 0 ) == '\t' || s . charAt ( 0 ) == ' ' ) )
+			pageData . editRec . deleteInLine ( cy , 0 , 1 ) ;
 			cx -= 1 ;
-			if ( cx < 0 ) {
-				cx = 0 ;
-			}
+			if ( cx < 0 )
+			cx = 0 ;
 		}
 
 		public void moveLineRight ( int cy ) {
@@ -1398,22 +1218,19 @@ public class PlainPage {
 		}
 
 		public void moveRectLeft ( int from , int to ) {
-			for ( int i = from ; i <= to ; i ++ ) {
-				moveLineLeft ( i ) ;
-			}
+			for ( int i = from ; i <= to ; i ++ )
+			moveLineLeft ( i ) ;
 		}
 
 		public void moveRectRight ( int from , int to ) {
-			for ( int i = from ; i <= to ; i ++ ) {
-				moveLineRight ( i ) ;
-			}
+			for ( int i = from ; i <= to ; i ++ )
+			moveLineRight ( i ) ;
 		}
 
 		public void setLength ( int cy , int cx ) {
 			int oldLen = pageData . roLines . getline ( cy ) . length ( ) ;
-			if ( cx - oldLen > 0 ) {
-				pageData . editRec . insertInLine ( cy , oldLen , U . spaces ( cx - oldLen ) ) ;
-			}
+			if ( cx - oldLen > 0 )
+			pageData . editRec . insertInLine ( cy , oldLen , U . spaces ( cx - oldLen ) ) ;
 		}
 
 		public void wrapLines ( int cx ) throws Exception {
@@ -1421,43 +1238,39 @@ public class PlainPage {
 			{
 				int len = 0 ;
 				CharSequence sb = pageData . roLines . getInLine ( cy , 0 , cx ) ;
-				for ( int i = 0 ; i < sb . length ( ) ; i ++ ) {
-					len += ( sb . charAt ( i ) > 255 ) ? 2 : 1 ;
-				}
+				for ( int i = 0 ; i < sb . length ( ) ; i ++ )
+				len += ( sb . charAt ( i ) > 255 ) ? 2 : 1 ;
 				lineLen = Math . max ( 10 , len ) ;
 			}
 			ui . message ( "wrapLine at " + lineLen ) ;
-			if ( ptSelection . isSelected ( ) ) {
-				ptSelection . cancelSelect ( ) ;
-			}
+			if ( ptSelection . isSelected ( ) )
+			ptSelection . cancelSelect ( ) ;
 			List < CharSequence > newtext = new ArrayList < CharSequence > ( ) ;
-			for ( int y = 0 ; y < pageData . lines . size ( ) ; y ++ ) {
-				if ( pageData . lines . get ( y ) . length ( ) * 2 > lineLen ) {
-					int len = 0 ;
-					CharSequence sb = pageData . roLines . getline ( y ) ;
-					int start = 0 ;
-					for ( int i = 0 ; i < sb . length ( ) ; i ++ ) {
-						len += ( sb . charAt ( i ) > 255 ) ? 2 : 1 ;
-						if ( len >= lineLen ) {
-							newtext . add ( sb . subSequence ( start , i + 1 ) . toString ( ) ) ;
-							start = i + 1 ;
-							len = 0 ;
-						}
+			for ( int y = 0 ; y < pageData . lines . size ( ) ; y ++ )
+			if ( pageData . lines . get ( y ) . length ( ) * 2 > lineLen ) {
+				int len = 0 ;
+				CharSequence sb = pageData . roLines . getline ( y ) ;
+				int start = 0 ;
+				for ( int i = 0 ; i < sb . length ( ) ; i ++ ) {
+					len += ( sb . charAt ( i ) > 255 ) ? 2 : 1 ;
+					if ( len >= lineLen ) {
+						newtext . add ( sb . subSequence ( start , i + 1 ) . toString ( ) ) ;
+						start = i + 1 ;
+						len = 0 ;
 					}
-					if ( start < sb . length ( ) ) {
-						newtext . add ( sb . subSequence ( start , sb . length ( ) ) . toString ( ) ) ;
-					}
-				} else {
-					newtext . add ( pageData . lines . get ( y ) . toString ( ) ) ;
 				}
-			}
-			String title = "wrapped " + pageData . getTitle ( ) + " #" + U . randomID ( ) ;
-			PlainPage p2 = new PlainPage ( uiComp , PageData . newEmpty ( title ) , PlainPage . this ) ;
-			p2 . pageData . setLines ( newtext ) ;
+				if ( start < sb . length ( ) )
+				newtext . add ( sb . subSequence ( start , sb . length ( ) ) . toString ( ) ) ;
+			} else
+			newtext . add ( pageData . lines . get ( y ) . toString ( ) ) ;
+			String title = "wrapped " + pageData . title + " #" + U . randomID ( ) ;
+			PlainPage p2 = new PlainPage ( uiComp , PageData . fromTitle ( title ) , PlainPage . this ) ;
+			p2 . pageData . resetLines ( newtext ) ;
 		}
 	}
+
 	public class Paint {
-		class Comment {
+		class PairMark {
 			void markBox ( Graphics2D g2 , int x , int y ) {
 				if ( y >= sy && y <= sy + showLineCnt && x >= sx ) {
 					CharSequence sb = pageData . roLines . getline ( y ) ;
@@ -1511,15 +1324,75 @@ public class PlainPage {
 				}
 			}
 
+			void findchar ( PlainPage page , char ch , int inc , int [ ] c1 , char chx ) {
+				int cx1 = c1 [ 0 ] ;
+				int cy1 = c1 [ 1 ] ;
+				CharSequence csb = page . pageData . roLines . getline ( cy1 ) ;
+				int lv = 1 ;
+				while ( true )
+				if ( inc == -1 ) {
+					cx1 -- ;
+					if ( cx1 < 0 ) {
+						cy1 -- ;
+						if ( cy1 < 0 ) {
+							c1 [ 0 ] = -1 ;
+							c1 [ 1 ] = -1 ;
+							return ;
+						} else {
+							csb = page . pageData . roLines . getline ( cy1 ) ;
+							cx1 = csb . length ( ) - 1 ;
+							if ( cx1 < 0 )
+							continue ;
+						}
+					}
+					char ch2 = csb . charAt ( cx1 ) ;
+					if ( ch2 == chx )
+					lv ++ ;
+					else if ( ch2 == ch ) {
+						lv -- ;
+						if ( lv == 0 ) {
+							c1 [ 0 ] = cx1 ;
+							c1 [ 1 ] = cy1 ;
+							return ;
+						}
+					}
+				} else {
+					cx1 ++ ;
+					if ( cx1 >= csb . length ( ) ) {
+						cy1 ++ ;
+						if ( cy1 >= page . pageData . roLines . getLinesize ( ) ) {
+							c1 [ 0 ] = -1 ;
+							c1 [ 1 ] = -1 ;
+							return ;
+						} else {
+							csb = page . pageData . roLines . getline ( cy1 ) ;
+							cx1 = 0 ;
+							if ( cx1 >= csb . length ( ) )
+							continue ;
+						}
+					}
+					char ch2 = csb . charAt ( cx1 ) ;
+					if ( ch2 == chx )
+					lv ++ ;
+					else if ( ch2 == ch ) {
+						lv -- ;
+						if ( lv == 0 ) {
+							c1 [ 0 ] = cx1 ;
+							c1 [ 1 ] = cy1 ;
+							return ;
+						}
+					}
+				}
+			}
+
 			void moveToPairMark ( int cx2 , int cy2 , char ch , char ch2 , int inc ) {
 				int [ ] c1 = new int [ ] { cx2 , cy2 } ;
-				U . findchar ( PlainPage . this , ch , inc , c1 , ch2 ) ;
+				findchar ( PlainPage . this , ch , inc , c1 , ch2 ) ;
 				if ( c1 [ 0 ] >= 0 ) { // found
 					cx = c1 [ 0 ] + 1 ;
 					int delta = Math . abs ( cy - c1 [ 1 ] ) ;
-					if ( delta >= 10 ) {
-						ui . message ( String . format ( "moved across %,d lines" , delta ) ) ;
-					}
+					if ( delta >= 10 )
+					ui . message ( String . format ( "moved across %,d lines" , delta ) ) ;
 					cy = c1 [ 1 ] ;
 					focusCursor ( ) ;
 				}
@@ -1528,13 +1401,12 @@ public class PlainPage {
 			void pairMark ( Graphics2D g2 , int cx2 , int cy2 , char ch , char ch2 ,
 				int inc ) {
 				int [ ] c1 = new int [ ] { cx2 , cy2 } ;
-				U . findchar ( PlainPage . this , ch , inc , c1 , ch2 ) ;
+				findchar ( PlainPage . this , ch , inc , c1 , ch2 ) ;
 				if ( c1 [ 0 ] >= 0 ) { // found
 					markBox ( g2 , cx2 , cy2 ) ;
 					markBox ( g2 , c1 [ 0 ] , c1 [ 1 ] ) ;
-					if ( cy2 != c1 [ 1 ] ) {
-						markGutLine ( g2 , cy2 , c1 [ 1 ] ) ;
-					}
+					if ( cy2 != c1 [ 1 ] )
+					markGutLine ( g2 , cy2 , c1 [ 1 ] ) ;
 				}
 			}
 		}
@@ -1554,8 +1426,8 @@ public class PlainPage {
 		 */
 		int [ ] [ ] ColorModes = null ;
 		Color colorNormal = Color . BLACK ;
-		String [ ] comment = null ;
-		Comment commentor = new Comment ( ) ;
+
+		PairMark pairMarker = new PairMark ( ) ;
 		CommandPanelPaint cp = new CommandPanelPaint ( PlainPage . this ) ;
 		Dimension dim ;
 
@@ -1586,8 +1458,8 @@ public class PlainPage {
 
 		Paint ( ) {
 			try {
-				U . TAB_WIDTH = U . Config . readTabWidth ( ) ;
-				int cm = U . Config . getDefaultColorMode ( ) ;
+				U . TAB_WIDTH = Conf . readTabWidth ( ) ;
+				int cm = Conf . getDefaultColorMode ( ) ;
 				applyColorMode ( cm ) ;
 			} catch ( IOException e ) {
 				e . printStackTrace ( ) ;
@@ -1595,13 +1467,11 @@ public class PlainPage {
 		}
 
 		public void applyColorMode ( int i ) throws IOException {
-			if ( ColorModes == null || U . Config . configChanged ( ) ) {
-				ColorModes = U . Config . loadColorModes ( ) ;
-			}
+			if ( ColorModes == null )
+			ColorModes = Conf . loadColorModes ( ) ;
 
-			if ( i >= ColorModes . length ) {
-				i = 0 ;
-			}
+			if ( i >= ColorModes . length )
+			i = 0 ;
 			colorMode = i ;
 			int [ ] cm = ColorModes [ i ] ;
 			colorBg = new Color ( cm [ 0 ] ) ;
@@ -1624,9 +1494,8 @@ public class PlainPage {
 				g3 . scale ( scalev , scalev ) ;
 				g3 . setColor ( colorGutNumber ) ;
 				for ( int i = 0 ; i < showLineCnt ; i ++ ) {
-					if ( sy + i + 1 > pageData . roLines . getLinesize ( ) ) {
-						break ;
-					}
+					if ( sy + i + 1 > pageData . roLines . getLinesize ( ) )
+					break ;
 					U . drawStringShrink ( g3 , fontList , "" + ( sy + i + 1 ) , 0 ,
 						( lineHeight + ( lineHeight + lineGap ) * i ) ,
 						gutterWidth / scalev ) ;
@@ -1635,9 +1504,8 @@ public class PlainPage {
 			} else { // zoom out not scale gutter font
 				g2 . setColor ( colorGutNumber ) ;
 				for ( int i = 0 ; i < showLineCnt ; i ++ ) {
-					if ( sy + i + 1 > pageData . roLines . getLinesize ( ) ) {
-						break ;
-					}
+					if ( sy + i + 1 > pageData . roLines . getLinesize ( ) )
+					break ;
 					U . drawStringShrink (
 						g2 , fontList , "" + ( sy + i + 1 ) , 0 ,
 						( int ) ( scalev * ( lineHeight + ( lineHeight + lineGap ) * i ) ) ,
@@ -1662,15 +1530,13 @@ public class PlainPage {
 			int scry = y1 - sy ;
 			if ( scry < showLineCnt ) {
 				CharSequence s = pageData . roLines . getline ( y1 ) ;
-				if ( sx > s . length ( ) ) {
-					return ;
-				}
+				if ( sx > s . length ( ) )
+				return ;
 				s = U . subs ( s , sx , s . length ( ) ) ;
 				x1 -= sx ;
 				x2 -= sx ;
-				if ( x1 < 0 ) {
-					x1 = 0 ;
-				}
+				if ( x1 < 0 )
+				x1 = 0 ;
 				x1 = Math . min ( x1 , s . length ( ) ) ;
 				boolean full = x2 > s . length ( ) ;
 				x2 = Math . min ( x2 , s . length ( ) ) ;
@@ -1695,10 +1561,9 @@ public class PlainPage {
 		void drawSelectLine ( Graphics2D g2 , int y1 , int y2 ) {
 			int scry = U . between ( y1 - sy , 0 , showLineCnt ) ;
 			int scry2 = U . between ( y2 - sy , 0 , showLineCnt ) ;
-			if ( y1 < y2 ) {
-				g2 . fillRect ( 0 , scry * ( lineHeight + lineGap ) , getMaxW2 ( ) ,
-					( lineHeight + lineGap ) * ( scry2 - scry ) ) ;
-			}
+			if ( y1 < y2 )
+			g2 . fillRect ( 0 , scry * ( lineHeight + lineGap ) , getMaxW2 ( ) ,
+				( lineHeight + lineGap ) * ( scry2 - scry ) ) ;
 		}
 
 		private void drawSelfDispMessages ( Graphics2D g ) {
@@ -1737,7 +1602,7 @@ public class PlainPage {
 			boolean isRealDraw , int maxw ) {
 			int w ;
 			if ( inComment ) {
-				int p1 = U . indexOf ( s , commentClose , 0 , false ) ;
+				int p1 = FindAndReplace . indexOfSeq ( s , commentClose , 0 , false ) ;
 				if ( p1 >= 0 ) {
 					inComment = false ;
 					CharSequence s1 = s . subSequence ( 0 , p1 + commentClose . length ( ) ) ;
@@ -1747,25 +1612,22 @@ public class PlainPage {
 						outDrawCharCnt , isRealDraw , maxw ) ;
 					w = w1 + drawText ( g2 , fonts , s2 , x + w1 , y , false , isCurrentLine ,
 						outDrawCharCnt , isRealDraw , maxw ) ;
-				} else {
-					w = drawText ( g2 , fonts , s , x , y , true , isCurrentLine , outDrawCharCnt ,
-						isRealDraw , maxw ) ;
-				}
+				} else
+				w = drawText ( g2 , fonts , s , x , y , true , isCurrentLine , outDrawCharCnt ,
+					isRealDraw , maxw ) ;
 			} else {
 				int commentPos = getCommentPos ( s ) ;
 				if ( commentPos >= 0 ) {
 					CharSequence s1 = s . subSequence ( 0 , commentPos ) ;
 					CharSequence s2 = s . subSequence ( commentPos , s . length ( ) ) ;
 					if ( inComment ) {
-						int p1 = U . indexOf ( s2 , commentClose , commentStart . length ( ) , false ) ;
+						int p1 = FindAndReplace . indexOfSeq ( s2 , commentClose , commentStart . length ( ) , false ) ;
 						if ( p1 >= 0 ) {
 							CharSequence s2a = s2 . subSequence ( 0 , p1 + commentClose . length ( ) ) ;
-							CharSequence s2b
-							= s2 . subSequence ( p1 + commentClose . length ( ) , s2 . length ( ) ) ;
+							CharSequence s2b = s2 . subSequence ( p1 + commentClose . length ( ) , s2 . length ( ) ) ;
 							int w1 = drawText ( g2 , fonts , s1 , x , y , false , isCurrentLine ,
 								outDrawCharCnt , isRealDraw , maxw ) ;
-							int w2
-							= w1 + drawText ( g2 , fonts , s2a , x + w1 , y , true , isCurrentLine ,
+							int w2 = w1 + drawText ( g2 , fonts , s2a , x + w1 , y , true , isCurrentLine ,
 								outDrawCharCnt , isRealDraw , maxw ) ;
 							w = w2 + drawText ( g2 , fonts , s2b , x + w2 , y , false , isCurrentLine ,
 								outDrawCharCnt , isRealDraw , maxw ) ;
@@ -1782,10 +1644,9 @@ public class PlainPage {
 						w = w1 + drawText ( g2 , fonts , s2 , x + w1 , y , true , isCurrentLine ,
 							outDrawCharCnt , isRealDraw , maxw ) ;
 					}
-				} else {
-					w = drawText ( g2 , fonts , s , x , y , false , isCurrentLine , outDrawCharCnt ,
-						isRealDraw , maxw ) ;
-				}
+				} else
+				w = drawText ( g2 , fonts , s , x , y , false , isCurrentLine , outDrawCharCnt ,
+					isRealDraw , maxw ) ;
 			}
 			return w ;
 		}
@@ -1794,53 +1655,42 @@ public class PlainPage {
 			boolean isComment , boolean isCurrentLine , int [ ] outDrawCharCnt ,
 			boolean isRealDraw , int maxw ) {
 			int w = 0 ;
-			if ( x + w >= maxw ) {
-				return w ;
-			}
+			if ( x + w >= maxw )
+			return w ;
 			List < CharSequence > s1x = U . splitToken ( s ) ;
 
 			for ( CharSequence s1c : s1x ) {
 				String s1 = s1c . toString ( ) ;
 				if ( s1 . equals ( "\t" ) ) {
-					if ( isRealDraw ) {
-						g2 . drawImage ( U . tabImg , x + w , y - lineHeight , null ) ;
-					}
+					if ( isRealDraw )
+					g2 . drawImage ( U . tabImg , x + w , y - lineHeight , null ) ;
 					w += U . TAB_WIDTH ;
-					if ( outDrawCharCnt != null && x + w < maxw ) {
-						outDrawCharCnt [ 0 ] += s1 . length ( ) ;
-					}
+					if ( outDrawCharCnt != null && x + w < maxw )
+					outDrawCharCnt [ 0 ] += s1 . length ( ) ;
+				} else if ( isComment ) {
+					int w1 = U . drawTwoColor ( g2 , fonts , s1 , x + w , y , colorComment ,
+						colorComment2 , 1 , maxw ) ;
+					if ( outDrawCharCnt != null )
+					if ( x + w + w1 <= maxw )
+					outDrawCharCnt [ 0 ] += s1 . length ( ) ;
+					else
+					outDrawCharCnt [ 0 ]
+					+= U . exactRemainChar ( g2 , fonts , s1 , maxw - x - w ) ;
+					w += w1 ;
 				} else {
-					if ( isComment ) {
-						int w1 = U . drawTwoColor ( g2 , fonts , s1 , x + w , y , colorComment ,
-							colorComment2 , 1 , maxw ) ;
-						if ( outDrawCharCnt != null ) {
-							if ( x + w + w1 <= maxw ) {
-								outDrawCharCnt [ 0 ] += s1 . length ( ) ;
-							} else {
-								outDrawCharCnt [ 0 ]
-								+= U . exactRemainChar ( g2 , fonts , s1 , maxw - x - w ) ;
-							}
-						}
-						w += w1 ;
-					} else {
-						if ( isRealDraw ) {
-							U . getHighLightID ( s1 , g2 , colorKeyword , colorDigit , colorNormal ) ;
-						}
-						int w1 = U . drawString ( g2 , fontList , s1 , x + w , y , maxw ) ;
-						if ( outDrawCharCnt != null ) {
-							if ( x + w + w1 <= maxw ) {
-								outDrawCharCnt [ 0 ] += s1 . length ( ) ;
-							} else {
-								outDrawCharCnt [ 0 ]
-								+= U . exactRemainChar ( g2 , fonts , s1 , maxw - x - w ) ;
-							}
-						}
-						w += w1 ;
-					}
+					if ( isRealDraw )
+					U . getHighLightID ( s1 , g2 , colorKeyword , colorDigit , colorNormal ) ;
+					int w1 = U . drawString ( g2 , fontList , s1 , x + w , y , maxw ) ;
+					if ( outDrawCharCnt != null )
+					if ( x + w + w1 <= maxw )
+					outDrawCharCnt [ 0 ] += s1 . length ( ) ;
+					else
+					outDrawCharCnt [ 0 ]
+					+= U . exactRemainChar ( g2 , fonts , s1 , maxw - x - w ) ;
+					w += w1 ;
 				}
-				if ( x + w >= maxw ) {
-					break ;
-				}
+				if ( x + w >= maxw )
+				break ;
 			}
 
 			return w ;
@@ -1850,9 +1700,8 @@ public class PlainPage {
 			int y = sy ;
 			int py = lineHeight ;
 			for ( int i = 0 ; i < showLineCnt ; i ++ ) {
-				if ( y >= pageData . roLines . getLinesize ( ) ) {
-					break ;
-				}
+				if ( y >= pageData . roLines . getLinesize ( ) )
+				break ;
 				CharSequence sb = pageData . roLines . getline ( y ) ;
 				if ( sx < sb . length ( ) ) {
 					g2 . setColor ( colorNormal ) ;
@@ -1863,9 +1712,8 @@ public class PlainPage {
 					= drawStringLine ( g2 , fonts , s , 0 , py , y == cy , null , true , maxw ) ;
 					// U.strWidth(g2,s,TAB_WIDTH);
 					drawReturn ( g2 , w , py ) ;
-				} else {
-					drawReturn ( g2 , 0 , py ) ;
-				}
+				} else
+				drawReturn ( g2 , 0 , py ) ;
 				y += 1 ;
 				py += lineHeight + lineGap ;
 			}
@@ -1873,56 +1721,47 @@ public class PlainPage {
 
 		void drawToolbar ( Graphics2D g2 ) {
 			Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-			int lines = pageData . roLines . getLinesize ( ) ;
+			ReadonlyLines lines = pageData . roLines ;
+			int lineCnt = pageData . roLines . getLinesize ( ) ;
 			int curPer = 0 ;
-			if ( lines > 20 ) {
-				curPer = 100 * cy / lines ;
-			}
+			if ( lineCnt > 20 )
+			curPer = 100 * cy / lineCnt ;
 			String s1 = String . format (
-				"%s %s %s%s L:%s%d X:%d undo:%d%s %s%s%s%s <F1>:Help%s" ,
-				( changedOutside ? " [ChangedOutside!]" : "" ) ,
-				( pageData . encoding == null ? "-" : pageData . encoding ) , //
-				( pageData . lineSep . equals ( "\n" ) ? "U" : "W" ) ,
+				"%s %s %s%s L:%s%d X:%d undo:%d%s %s%s%s%s <F1>:Help%s" , //
+				( pageData . changedOutside ? " [ChangedOutside!]" : "" ) , //
+				( pageData . encoding == null ? "" : pageData . encoding ) , //
+				( pageData . lineSep . equals ( "\n" ) ? "U" : "W" ) , //
 				( rectSelectMode ? " R " : "" ) , //
-				( curPer == 0 ? "" : "" + curPer + "%" ) , lines , ( cx + 1 ) ,
+				( curPer == 0 ? "" : "" + curPer + "%" ) , lineCnt , ( cx + 1 ) , //
 				pageData . history . size ( ) , //
-				( ime == null ? "" : " " + ime . getImeName ( ) ) ,
-				( pageData . getFn ( ) == null ? "-" : pageData . getFn ( ) ) , //
-				( readonly ? " ro" : "" ) , pageData . gzip ? " Z" : "" ,
-				( pageData . workPath != null
-					&& ( console != null || pageData . getFn ( ) == null ) )
-				? " CWD:" + pageData . workPath
-				: "" ,
-				console == null
-				? ""
-				: " " + pageData . roLines . getline ( pageData . roLines . getLinesize ( )
-					- 1 ) // console live
+				( ime == null ? "" : " " + ime . getImeName ( ) ) , //
+				( pageData . title ) , //
+				( readonly ? " ro" : "" ) , pageData . gzip ? " Z" : "" , //
+				( pageData . fileLoaded ? "" : " WD:" + workPath ) , //
+				( console == null ? "" : " " + lines . getline ( lineCnt - 1 ) ) // console live
 			) ;
 			g2 . setColor ( colorGutMark1 ) ;
 			U . drawString ( g2 , fontList , s1 , 2 , lineHeight + 2 , dim . width ) ;
 			g2 . setColor ( colorGutMark2 ) ;
-			nextXToolBar
-			= 2 + U . drawString ( g2 , fontList , s1 , 1 , lineHeight + 1 , dim . width ) ;
-			if ( msg != null ) {
-				if ( System . currentTimeMillis ( ) - msgtime > MSG_VANISH_TIME ) {
-					msg = null ;
-				} else {
-					int w = U . stringWidth ( g2 , fontList , msg , dim . width ) ;
-					g2 . setColor ( new Color ( 0xee6666 ) ) ;
-					g2 . fillRect ( dim . width - w , 0 , dim . width , lineHeight + lineGap ) ;
-					g2 . setColor ( Color . YELLOW ) ;
-					U . drawString ( g2 , fontList , msg , dim . width - w , lineHeight , dim . width ) ;
-				}
+			nextXToolBar = 2 + U . drawString ( g2 , fontList , s1 , 1 , lineHeight + 1 , dim . width ) ;
+			if ( msg != null )
+			if ( System . currentTimeMillis ( ) - msgtime > MSG_VANISH_TIME ) msg = null ;
+			else {
+				int w = U . stringWidth ( g2 , fontList , msg , dim . width ) ;
+				g2 . setColor ( new Color ( 0xee6666 ) ) ;
+				g2 . fillRect ( dim . width - w , 0 , dim . width , lineHeight + lineGap ) ;
+				g2 . setColor ( Color . YELLOW ) ;
+				U . drawString ( g2 , fontList , msg , dim . width - w , lineHeight , dim . width ) ;
 			}
 		}
 
 		private int getCommentPos ( CharSequence s ) {
-			if ( comment == null ) {
+			if ( pageData . comment == null ) {
 				inComment = false ;
 				return -1 ;
 			}
-			for ( String c : comment ) {
-				int p = U . indexOf ( s , c , 0 , false ) ;
+			for ( String c : pageData . comment ) {
+				int p = FindAndReplace . indexOfSeq ( s , c , 0 , false ) ;
 				if ( p >= 0 ) {
 					if ( "/*" . equals ( c ) ) {
 						inComment = true ;
@@ -1943,15 +1782,14 @@ public class PlainPage {
 		public void message ( final String s ) {
 			msg = s ;
 			msgtime = System . currentTimeMillis ( ) ;
-			uiComp . repaint ( ) ;
+			repaint ( ) ;
 			U . repaintAfter ( MSG_VANISH_TIME , uiComp ) ;
 			System . out . println ( s ) ;
 		}
 
 		void setNextColorMode ( ) {
-			if ( ++ colorMode >= ColorModes . length ) {
-				colorMode = 0 ;
-			}
+			if ( ++ colorMode >= ColorModes . length )
+			colorMode = 0 ;
 		}
 
 		void xpaint ( Graphics g , Dimension size ) {
@@ -1961,15 +1799,13 @@ public class PlainPage {
 
 			g2 . setRenderingHint ( RenderingHints . KEY_TEXT_ANTIALIASING ,
 				uiComp . config . VALUE_TEXT_ANTIALIAS ) ;
-			if ( fontList == null ) {
-				fontList = U . defaultFontList ;
-			}
+			if ( fontList == null )
+			fontList = Conf . defaultFontList ;
 			lineHeight = fontList . getlineHeight ( ) ;
 			this . dim = size ;
 			Graphics2D g3 = null ;
-			if ( fpsOn ) {
-				g3 = ( Graphics2D ) g2 . create ( ) ;
-			}
+			if ( fpsOn )
+			g3 = ( Graphics2D ) g2 . create ( ) ;
 			boolean needRepaint = false ;
 
 			try {
@@ -1978,9 +1814,9 @@ public class PlainPage {
 					return ;
 				}
 
-				if ( ! isCommentChecked ) { // find comment pattern
-					isCommentChecked = true ;
-					U . startThread ( new Thread ( ) {
+				if ( ! pageData . isCommentChecked ) { // find comment pattern
+					pageData . isCommentChecked = true ;
+					U . startDaemonThread ( new Thread ( ) {
 							@ Override
 							public void run ( ) {
 								U . guessComment ( PlainPage . this ) ;
@@ -1994,16 +1830,14 @@ public class PlainPage {
 				final int maxw = dim . width - gutterWidth ;
 				final int maxw2 = ( int ) ( maxw / scalev ) ;
 				{ // change cy if needed
-					if ( cy >= pageData . roLines . getLinesize ( ) ) {
-						cy = Math . max ( 0 , pageData . roLines . getLinesize ( ) - 1 ) ;
-					}
+					if ( cy >= pageData . roLines . getLinesize ( ) )
+					cy = Math . max ( 0 , pageData . roLines . getLinesize ( ) - 1 ) ;
 				}
 
 				g2 . setColor ( colorBg ) ;
 				g2 . fillRect ( 0 , 0 , size . width , size . height ) ;
-				if ( noise ) {
-					U . paintNoise ( g2 , dim ) ;
-				}
+				if ( noise )
+				U . paintNoise ( g2 , dim ) ;
 
 				// draw toolbar
 				drawToolbar ( g2 ) ;
@@ -2023,14 +1857,13 @@ public class PlainPage {
 				Graphics2D g0 = ( Graphics2D ) g2 . create ( ) ;
 				g0 . setClip ( 0 , 0 , 0 , 0 ) ; // quick hack to not do real draw
 				// change sx if needed
-				if ( ptSelection . isRectSelecting ( ) ) {
-					ptEdit . setLength ( cy , cx ) ;
-				} else {
-					cx = Math . min ( pageData . roLines . getline ( cy ) . length ( ) , cx ) ;
-				}
-				if ( sx + 6 > cx && sx > 0 ) {
-					sx = Math . max ( 0 , cx - 6 ) ; // scroll left
-				} else {
+				if ( ptSelection . isRectSelecting ( ) )
+				ptEdit . setLength ( cy , cx ) ;
+				else
+				cx = Math . min ( pageData . roLines . getline ( cy ) . length ( ) , cx ) ;
+				if ( sx + 6 > cx && sx > 0 )
+				sx = Math . max ( 0 , cx - 6 ) ; // scroll left
+				else {
 					//    sx = Math.max(0, Math.max(sx, cx - charCntInLine + 10));
 					CharSequence sb = pageData . roLines . getline ( cy ) ;
 					CharSequence s = U . subs (
@@ -2041,7 +1874,7 @@ public class PlainPage {
 					int q = wc [ 0 ] ;
 					if ( q < s . length ( ) && ( cx - sx > q - 3 ) ) {
 						sx = Math . max ( sx + 3 , cx - q + 3 ) ;
-						sx = Math . max ( 0 , Math . min ( sx , sb . length ( ) - 1 ) ) ;
+						sx = U . between ( sx , 0 , sb . length ( ) - 1 ) ;
 					}
 				}
 				boolean mousePos = false ;
@@ -2052,9 +1885,8 @@ public class PlainPage {
 					mx = ( int ) ( mx / scalev ) ;
 					my = ( int ) ( my / scalev ) ;
 					cy = sy + my / ( lineHeight + lineGap ) ;
-					if ( cy >= pageData . roLines . getLinesize ( ) ) {
-						cy = pageData . roLines . getLinesize ( ) - 1 ;
-					}
+					if ( cy >= pageData . roLines . getLinesize ( ) )
+					cy = pageData . roLines . getLinesize ( ) - 1 ;
 					mousePos = true ;
 				}
 
@@ -2087,19 +1919,16 @@ public class PlainPage {
 				g2 . setColor ( colorNormal ) ;
 				drawTextLines ( g2 , fontList , ( int ) ( maxw / scalev ) ) ;
 
-				if ( true ) { // (){}[]<> pair marking
-					if ( cx - 1 < pageData . roLines . getline ( cy ) . length ( ) && cx - 1 >= 0 ) {
-						char c = pageData . roLines . getline ( cy ) . charAt ( cx - 1 ) ;
-						String pair = "(){}[]<>" ;
-						int p1 = pair . indexOf ( c ) ;
-						if ( p1 >= 0 ) {
-							if ( p1 % 2 == 0 ) {
-								commentor . pairMark ( g2 , cx - 1 , cy , pair . charAt ( p1 + 1 ) , c , 1 ) ;
-							} else {
-								commentor . pairMark ( g2 , cx - 1 , cy , pair . charAt ( p1 - 1 ) , c , -1 ) ;
-							}
-						}
-					}
+				if ( true ) // (){}[]<> pair marking
+				if ( cx - 1 < pageData . roLines . getline ( cy ) . length ( ) && cx - 1 >= 0 ) {
+					char c = pageData . roLines . getline ( cy ) . charAt ( cx - 1 ) ;
+					String pair = "(){}[]<>" ;
+					int p1 = pair . indexOf ( c ) ;
+					if ( p1 >= 0 )
+					if ( p1 % 2 == 0 )
+					pairMarker . pairMark ( g2 , cx - 1 , cy , pair . charAt ( p1 + 1 ) , c , 1 ) ;
+					else
+					pairMarker . pairMark ( g2 , cx - 1 , cy , pair . charAt ( p1 - 1 ) , c , -1 ) ;
 				}
 				// draw cursor
 				if ( cy >= sy && cy <= sy + showLineCnt ) {
@@ -2126,10 +1955,9 @@ public class PlainPage {
 							maxw2 ) ;
 					}
 
-					if ( ime != null ) {
-						ime . paint ( g2 , fontList , w , y0 + lineHeight + lineGap ,
-							g2 . getClipBounds ( ) ) ;
-					}
+					if ( ime != null )
+					ime . paint ( g2 , fontList , w , y0 + lineHeight + lineGap ,
+						g2 . getClipBounds ( ) ) ;
 				}
 
 				if ( aboutOn ) { // about info
@@ -2145,26 +1973,21 @@ public class PlainPage {
 				if ( fpsOn ) {
 					long t2 = System . currentTimeMillis ( ) ;
 					int v = ( int ) ( t2 - fpsT1 ) ;
-					if ( v == 0 ) {
-						drawNextToolbarText ( g3 , "↻∞" ) ;
-					} else {
+					if ( v == 0 )
+					drawNextToolbarText ( g3 , "↻∞" ) ;
+					else {
 						float fps = 1000f / v ;
-						if ( fps >= 1 ) {
-							drawNextToolbarText ( g3 , "↻" + ( int ) fps ) ;
-						} else {
-							drawNextToolbarText ( g3 , String . format ( "↻%.3f" , fps ) ) ;
-						}
+						if ( fps >= 1 )
+						drawNextToolbarText ( g3 , "↻" + ( int ) fps ) ;
+						else
+						drawNextToolbarText ( g3 , String . format ( "↻%.3f" , fps ) ) ;
 					}
-					if ( g3 != null ) {
-						g3 . dispose ( ) ;
-					}
+					if ( g3 != null )
+					g3 . dispose ( ) ;
 				}
 			}
-			if ( needRepaint ) {
-				SwingUtilities . invokeLater ( ( ) -> {
-						uiComp . repaint ( ) ;
-					} ) ;
-			}
+			if ( needRepaint )
+			repaint ( ) ;
 		}
 
 		private void drawSelectionBackground ( Graphics2D g ) {
@@ -2182,22 +2005,21 @@ public class PlainPage {
 				int y2 = r . height ;
 				int start = Math . max ( sy , y1 ) ;
 				int end = Math . min ( sy + showLineCnt + 1 , y2 ) ;
-				for ( int i = start ; i <= end ; i ++ ) {
-					// g2.setColor(Color.BLUE);
-					// g2.setXORMode(new Color(0xf0f030));
-					drawSelect ( g2 , i , x1 , x2 ) ;
-				}
+				for ( int i = start ; i <= end ; i ++ )
+				// g2.setColor(Color.BLUE);
+				// g2.setXORMode(new Color(0xf0f030));
+				drawSelect ( g2 , i , x1 , x2 ) ;
 			} else { // select mode
 				Rectangle r = ptSelection . getSelectRect ( ) ;
 				int x1 = r . x ;
 				int y1 = r . y ;
 				int x2 = r . width ;
 				int y2 = r . height ;
-				if ( y1 == y2 && x1 < x2 ) {
-					// g2.setColor(Color.BLUE);
-					// g2.setXORMode(new Color(0xf0f030));
-					drawSelect ( g2 , y1 , x1 , x2 ) ;
-				} else if ( y1 < y2 ) {
+				if ( y1 == y2 && x1 < x2 )
+				// g2.setColor(Color.BLUE);
+				// g2.setXORMode(new Color(0xf0f030));
+				drawSelect ( g2 , y1 , x1 , x2 ) ;
+				else if ( y1 < y2 ) {
 					// g2.setColor(Color.BLUE);
 					// g2.setXORMode(new Color(0xf0f030));
 					drawSelect ( g2 , y1 , x1 , Integer . MAX_VALUE ) ;
@@ -2228,14 +2050,14 @@ public class PlainPage {
 
 		private Color dissRed ( Color c ) {
 			int r = c . getRed ( ) ;
-			if ( r < 100 ) {
-				r = 220 ;
-			} else {
-				r = 30 ;
-			}
+			if ( r < 100 )
+			r = 220 ;
+			else
+			r = 30 ;
 			return new Color ( r , c . getGreen ( ) , c . getBlue ( ) ) ;
 		}
 	}
+
 	public class Selection {
 		public void cancelSelect ( ) {
 			selectstartx = cx ;
@@ -2278,21 +2100,19 @@ public class PlainPage {
 					x1 = x2 ;
 					x2 = t ;
 				}
+			} else if ( selectstopy < selectstarty ) {
+				y1 = selectstopy ;
+				y2 = selectstarty ;
+				x1 = selectstopx ;
+				x2 = selectstartx ;
 			} else {
-				if ( selectstopy < selectstarty ) {
-					y1 = selectstopy ;
-					y2 = selectstarty ;
+				y2 = selectstopy ;
+				y1 = selectstarty ;
+				x2 = selectstopx ;
+				x1 = selectstartx ;
+				if ( x1 > x2 && y1 == y2 ) {
 					x1 = selectstopx ;
 					x2 = selectstartx ;
-				} else {
-					y2 = selectstopy ;
-					y1 = selectstarty ;
-					x2 = selectstopx ;
-					x1 = selectstartx ;
-					if ( x1 > x2 && y1 == y2 ) {
-						x1 = selectstopx ;
-						x2 = selectstartx ;
-					}
 				}
 			}
 			return new Rectangle ( x1 , y1 , x2 , y2 ) ;
@@ -2308,14 +2128,13 @@ public class PlainPage {
 			int y1 = r . y ;
 			int x2 = r . width ;
 			int y2 = r . height ;
-			if ( rectSelectMode ) {
-				return x1 < x2 ;
-			} else {
-				if ( y1 == y2 && x1 < x2 ) {
-					return true ;
-				} else if ( y1 < y2 ) {
-					return true ;
-				}
+			if ( rectSelectMode )
+			return x1 < x2 ;
+			else {
+				if ( y1 == y2 && x1 < x2 )
+				return true ;
+				else if ( y1 < y2 )
+				return true ;
 				return false ;
 			}
 		}
@@ -2329,17 +2148,13 @@ public class PlainPage {
 			if ( mcount == 2 ) {
 				int x1 = cx ;
 				int x2 = cx ;
-				if ( sb . length ( ) > x1 && Character . isJavaIdentifierPart ( sb . charAt ( x1 ) ) ) {
-					while ( x1 > 0 && Character . isJavaIdentifierPart ( sb . charAt ( x1 - 1 ) ) ) {
-						x1 -= 1 ;
-					}
-				}
-				if ( sb . length ( ) > x2 && Character . isJavaIdentifierPart ( sb . charAt ( x2 ) ) ) {
-					while ( x2 < sb . length ( ) - 1
-						&& Character . isJavaIdentifierPart ( sb . charAt ( x2 + 1 ) ) ) {
-						x2 += 1 ;
-					}
-				}
+				if ( sb . length ( ) > x1 && Character . isJavaIdentifierPart ( sb . charAt ( x1 ) ) )
+				while ( x1 > 0 && Character . isJavaIdentifierPart ( sb . charAt ( x1 - 1 ) ) )
+				x1 -= 1 ;
+				if ( sb . length ( ) > x2 && Character . isJavaIdentifierPart ( sb . charAt ( x2 ) ) )
+				while ( x2 < sb . length ( ) - 1
+					&& Character . isJavaIdentifierPart ( sb . charAt ( x2 + 1 ) ) )
+				x2 += 1 ;
 				selectstartx = x1 ;
 				selectstarty = cy ;
 				selectstopx = x2 + 1 ;
@@ -2349,23 +2164,20 @@ public class PlainPage {
 				selectstarty = cy ;
 				selectstopx = sb . length ( ) ;
 				selectstopy = cy ;
-			} else {
-				if ( mshift ) {
-					selectstopx = cx ;
-					selectstopy = cy ;
-					if ( cy == sy && cy > 0 ) {
-						sy -- ;
-						return true ;
-					} else if ( cy >= sy + showLineCnt - 1
-						&& sy + 1 + showLineCnt / 2
-						< pageData . roLines . getLinesize ( ) - 1 ) {
-						sy ++ ;
-						return true ;
-					}
-				} else {
-					cancelSelect ( ) ;
+			} else if ( mshift ) {
+				selectstopx = cx ;
+				selectstopy = cy ;
+				if ( cy == sy && cy > 0 ) {
+					sy -- ;
+					return true ;
+				} else if ( cy >= sy + showLineCnt - 1
+					&& sy + 1 + showLineCnt / 2
+					< pageData . roLines . getLinesize ( ) - 1 ) {
+					sy ++ ;
+					return true ;
 				}
-			}
+			} else
+			cancelSelect ( ) ;
 			return false ;
 		}
 
@@ -2373,9 +2185,8 @@ public class PlainPage {
 			selectstartx = 0 ;
 			selectstarty = 0 ;
 			selectstopy = pageData . roLines . getLinesize ( ) - 1 ;
-			if ( selectstopy < 0 ) {
-				selectstopy = 0 ;
-			}
+			if ( selectstopy < 0 )
+			selectstopy = 0 ;
 			selectstopx = pageData . roLines . getline ( selectstopy ) . length ( ) ;
 		}
 
@@ -2394,9 +2205,8 @@ public class PlainPage {
 			selectstartx = 0 ;
 			selectstarty = cy ;
 			selectstopy = cy ;
-			if ( selectstopy < 0 ) {
-				selectstopy = 0 ;
-			}
+			if ( selectstopy < 0 )
+			selectstopy = 0 ;
 			selectstopx = pageData . roLines . getline ( selectstopy ) . length ( ) ;
 			copySelected ( ) ;
 		}

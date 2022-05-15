@@ -31,23 +31,19 @@ public class Console {
 		final long t1 = System . currentTimeMillis ( ) ;
 		finished = false ;
 		EditorPanel ep = parentUI ;
-		PlainPage pp = parentUI . getPage ( ) ;
-		this . pp = pp ;
-		if ( pp . fontList == null || pp . fontList == U . defaultFontList ) {
-			pp . fontList = U . defaultConsoleFonts ;
-		}
+		this . pp = parentUI . page ;
+		if ( pp . fontList == null || pp . fontList == Conf . defaultFontList )
+		pp . fontList = Conf . defaultConsoleFonts ;
 		pp . console = this ;
 		ep . changeTitle ( ) ;
 		final String id = String . format ( "[%s] %s\n" , dir . getAbsolutePath ( ) , cmd ) ;
 		{
 			PageData pageData = pp . pageData ;
 			pageData . encoding = System . getProperty ( "sun.jnu.encoding" ) ;
-			if ( pageData . encoding == null ) {
-				pageData . encoding = "UTF-8" ;
-			}
-			if ( dir != null ) {
-				pageData . workPath = dir . getAbsolutePath ( ) ;
-			}
+			if ( pageData . encoding == null )
+			pageData . encoding = U . UTF8 ;
+			if ( dir != null )
+			pp . workPath = dir . getAbsolutePath ( ) ;
 			pp . ptEdit . append ( id ) ;
 		}
 		U . attach ( pp , stdout ) ;
@@ -59,6 +55,7 @@ public class Console {
 							proc . exitValue ( ) ,
 							System . currentTimeMillis ( ) - t1 , id ) ) ;
 					finished = true ;
+					pp . adjustCursor ( ) ;
 					pp . uiComp . repaint ( ) ;
 				} catch ( InterruptedException e ) {
 					pp . pageData . editRec . appendLine ( "Interrupted:" + e ) ;
@@ -66,15 +63,6 @@ public class Console {
 			} ) . start ( ) ;
 	}
 
-	//	public void submit(String s) {
-	//		try {
-	//			out.write(s.getBytes(pp.pageData.encoding));
-	//			out.flush();
-	//		} catch (Exception e) {
-	//			e.printStackTrace();
-	//			pp.ptEdit.consoleAppend(e.toString());
-	//		}
-	//	}
 	public static String filterSimpleTTY ( String s ) {
 		while ( true ) { {
 				String k1 = "[" ;
@@ -91,14 +79,4 @@ public class Console {
 		}
 		return s ;
 	}
-
-	//	public void submit(int i) {
-	//		try {
-	//			out.write(i);
-	//			out.flush();
-	//		} catch (Exception e) {
-	//			e.printStackTrace();
-	//			pp.ptEdit.consoleAppend(e.toString());
-	//		}
-	//	}
 }

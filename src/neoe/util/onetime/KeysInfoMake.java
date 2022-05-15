@@ -10,9 +10,9 @@ import neoe . ne . util . PyData ;
 
 public class KeysInfoMake {
 	/**
-   * @param args
-   * @throws Exception
-   */
+	 * @param args
+	 * @throws Exception
+	 */
 	public static void main ( String [ ] args ) throws Exception {
 		new KeysInfoMake ( ) . run ( ) ;
 	}
