@@ -46,8 +46,8 @@ public class Console {
 			pp . workPath = dir . getAbsolutePath ( ) ;
 			pp . ptEdit . append ( id ) ;
 		}
-		U . attach ( pp , stdout ) ;
-		U . attach ( pp , stderr ) ;
+		U . attach ( pp , stdout , "stdout" ) ;
+		U . attach ( pp , stderr , "stderr" ) ;
 		new Thread ( ( ) -> {
 				try {
 					proc . waitFor ( ) ;

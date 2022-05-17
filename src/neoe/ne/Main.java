@@ -15,6 +15,7 @@ public class Main {
 		Conf . setDefaultBKColor ( ) ;
 		Conf . initKeys ( ) ;
 		U . loadTabImage ( ) ;
+		U . addTime = "true" . equals ( System . getenv ( U . NE_ADDTIME ) ) ;
 		//		Gimp.loadFromConfig();
 		Plugin . load ( ) ;
 	}

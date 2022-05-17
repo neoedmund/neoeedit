@@ -92,13 +92,11 @@ public class MathExprParser {
 				sb . append ( ( char ) c ) ;
 				eatChar ( ) ;
 			}
-			if ( sb . length ( ) == 0 )
-			throw new RuntimeException ( "Unexpected: " + ( char ) c ) ;
-			String s = sb . toString ( ) ;
-			if ( s . startsWith ( "0x" ) )
-			v = new BigDecimal ( new BigInteger ( s . substring ( 2 ) , 16 ) ) ;
+			if ( sb . length ( ) == 0 ) throw new RuntimeException ( "Unexpected: " + ( char ) c ) ;
+			if ( sb . length ( ) >= 2 && sb . substring ( 0 , 2 ) . equals ( "0x" ) )
+			v = new BigDecimal ( new BigInteger ( sb . substring ( 2 ) , 16 ) ) ;
 			else
-			v = new BigDecimal ( s ) ;
+			v = new BigDecimal ( removeComma ( sb ) . toString ( ) ) ;
 		}
 		eatSpace ( ) ;
 		if ( c == '^' ) { // exponentiation
@@ -111,5 +109,13 @@ public class MathExprParser {
 		v = v . negate ( ) ;
 
 		return v ;
+	}
+
+	private StringBuilder removeComma ( StringBuilder sb ) {
+		while ( true ) {
+			int p1 = sb . indexOf ( "," ) ;
+			if ( p1 < 0 ) return sb ;
+			sb . deleteCharAt ( p1 ) ;
+		}
 	}
 }

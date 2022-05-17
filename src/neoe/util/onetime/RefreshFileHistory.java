@@ -40,7 +40,6 @@ public class RefreshFileHistory {
 			fs2 . add ( s ) ;
 		}
 		Collections . reverse ( fs2 ) ;
-		FileUtil . save ( String . join ( "\n" , fs2 ) . getBytes ( "utf8" ) ,
-			fhn . getAbsolutePath ( ) ) ;
+		U . save ( fs2 , "UTF8" , fhn . getAbsolutePath ( ) ) ;
 	}
 }

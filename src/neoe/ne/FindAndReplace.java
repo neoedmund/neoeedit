@@ -540,7 +540,6 @@ class FindAndReplace {
 		for ( Object o : all )
 		sbs . add ( o . toString ( ) ) ;
 		p2 . pageData . resetLines ( sbs ) ;
-		if ( type . equals ( "file" ) )
 		p2 . searchResultOf = name ;
 		//		gc();
 	}

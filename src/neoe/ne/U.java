@@ -43,9 +43,11 @@ import java . io . OutputStreamWriter ;
 import java . io . PrintWriter ;
 import java . io . Reader ;
 import java . io . StringWriter ;
+import java . io . UnsupportedEncodingException ;
 import java . lang . reflect . Field ;
 import java . net . URI ;
 import java . nio . file . Files ;
+import java . text . SimpleDateFormat ;
 import java . util . ArrayList ;
 import java . util . Arrays ;
 import java . util . Collections ;
@@ -88,6 +90,7 @@ import neoe . ne . util . PyData ;
  */
 public class U {
 	final static CharSequence EMPTY = "empty" ;
+	final static String NE_ADDTIME = "ne_addtime" ;
 
 	static Font getFont ( String font , float size ) throws Exception {
 		Font f ;
@@ -136,6 +139,26 @@ public class U {
 		// set default working path
 		ep . page . workPath = pp . workPath ;
 		return ep ;
+	}
+
+	public static void save ( List < String > ss , String encoding , String fn ) throws IOException {
+		OutputStream out = new BufferedOutputStream ( new FileOutputStream ( fn ) , 8192 * 16 ) ;
+		for ( String s : ss ) {
+			out . write ( s . getBytes ( encoding ) ) ;
+			out . write ( '\n' ) ;
+		}
+		out . close ( ) ;
+	}
+
+	public static void setEnv ( PlainPage pp , String k , String v ) {
+		if ( pp . env == null )
+		pp . env = new LinkedHashMap < > ( ) ;
+		Map m = pp . env ;
+		if ( v . isEmpty ( ) )
+		m . remove ( k ) ;
+		else
+		m . put ( k , v ) ;
+		pp . envs = null ; // clean cache
 	}
 
 	public static class LocationHistory < E > {
@@ -590,31 +613,36 @@ public class U {
 		thread . setDaemon ( true ) ;
 		thread . start ( ) ;
 	}
-
-	static void attach ( final PlainPage page , final InputStream std ) {
+	static boolean addTime = true ;
+	static void attach ( final PlainPage page , final InputStream std , String name ) {
 		U . startDaemonThread ( new Thread ( ) {
+				SimpleDateFormat sdf1 = new SimpleDateFormat ( "yyyyMMdd HH:mm:ss:SSS\t" ) ;
 				@ Override
 				public void run ( ) {
 					try {
 						String enc = page . pageData . encoding ;
-						if ( enc == null )
-						enc = UTF8 ;
+						if ( enc == null ) enc = UTF8 ;
 						InputStream in = std ;
-						BufferedReader reader
-						= new BufferedReader ( new InputStreamReader ( in , enc ) ) ;
+						BufferedReader reader = new BufferedReader ( new InputStreamReader ( in , enc ) ) ;
 						long t1 = System . currentTimeMillis ( ) ;
+						String line = "<begin " + name + ">" ;
+						if ( addTime ) line = sdf1 . format ( new Date ( ) ) + line ;
+						page . pageData . editRec . appendLine ( line ) ;
 						while ( true ) {
-							String line = reader . readLine ( ) ;
-							if ( line == null )
-							break ;
+							line = reader . readLine ( ) ;
+							if ( line == null ) break ;
+							if ( addTime ) line = sdf1 . format ( new Date ( ) ) + line ;
+
 							page . pageData . editRec . appendLine ( line ) ;
 							long t2 = System . currentTimeMillis ( ) ;
-							if ( t2 - t1 > 500 ) {
+							if ( t2 - t1 > 100 ) {
 								t1 = t2 ;
 								page . uiComp . repaint ( ) ;
 							}
 						}
-						page . pageData . editRec . appendLine ( "<EOF>\n" ) ;
+						line = "<end " + name + ">" ;
+						if ( addTime ) line = sdf1 . format ( new Date ( ) ) + line ;
+						page . pageData . editRec . appendLine ( line ) ;
 						page . uiComp . repaint ( ) ;
 					} catch ( Throwable e ) {
 						page . ptEdit . append ( "error:" + e + "\n" ) ;
@@ -681,14 +709,13 @@ public class U {
 		else
 		dir = new File ( "." ) ;
 		addCmdHistory ( cmd , dir . getAbsolutePath ( ) ) ;
-		Process proc
-		= Runtime . getRuntime ( ) . exec ( splitCommand ( cmd ) , getEnv ( pp ) , dir ) ;
+		Process proc = Runtime . getRuntime ( ) . exec ( splitCommand ( cmd ) , getEnv ( pp ) , dir ) ;
 		OutputStream out = proc . getOutputStream ( ) ;
 		InputStream stdout = proc . getInputStream ( ) ;
 		InputStream stderr = proc . getErrorStream ( ) ;
 
 		PlainPage pp2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format ( "[cmd][%s] %s #%s" , dir . getAbsolutePath ( ) ,
-					cmd , U . randomID ( ) ) ) , null ) ;
+					cmd , U . randomID ( ) ) ) , pp ) ;
 		pp2 . workPath = dir . getAbsolutePath ( ) ;
 		pp2 . ptSelection . selectAll ( ) ;
 
@@ -785,14 +812,7 @@ public class U {
 		String k = kv . substring ( 0 , p1 ) . trim ( ) ;
 		String v = kv . substring ( p1 + 1 ) . trim ( ) ;
 		v = dequote ( v ) ;
-		if ( pp . env == null )
-		pp . env = new LinkedHashMap < String , String > ( ) ;
-		Map m = pp . env ;
-		if ( v . isEmpty ( ) )
-		m . remove ( k ) ;
-		else
-		m . put ( k , v ) ;
-		pp . envs = null ; // clean cache
+		setEnv ( pp , k , v ) ;
 		pp . ui . message ( String . format ( "ENV[%s]=%s" , k , v ) ) ;
 		return true ;
 	}
@@ -892,15 +912,19 @@ public class U {
 		return dir ;
 	}
 
-	public static List < CharSequence > getPageListStrings ( EditorPanel ep )
-	throws IOException {
-		List < CharSequence > ss = new ArrayList < CharSequence > ( ) ;
+	public static List < CharSequence > getPageListStrings ( EditorPanel ep ) {
+		List < CharSequence > ss = new ArrayList < > ( ) ;
 		Collections . sort ( ep . pageSet , ( a , b ) -> a . pageData . title . compareTo ( b . pageData . title ) ) ;
 		for ( PlainPage pp : ep . pageSet )
 		ss . add ( pp . pageData . title + "|" + ( pp . cy + 1 ) + ":"
 			+ " Edited:" + pp . pageData . history . size ( )
 			+ ( pp . pageData . encoding == null ? "" : " " + pp . pageData . encoding )
 			+ ( changedOutside ( pp . pageData ) ? " [Changed Outside!!]" : "" ) ) ;
+		return ss ;
+	}
+	public static List < CharSequence > getDocListStrings ( ) {
+		List < CharSequence > ss = new ArrayList < > ( PageData . dataPool . keySet ( ) ) ;
+		Collections . sort ( ss , ( a , b ) -> a . toString ( ) . compareTo ( b . toString ( ) ) ) ;
 		return ss ;
 	}
 
@@ -1687,6 +1711,20 @@ public class U {
 		ep . repaint ( ) ;
 	}
 
+	public static void listDoc ( EditorPanel ep ) throws Exception {
+		String theTitle = "[DOC]" ;
+		if ( ep . findAndShowPage ( theTitle , 0 , true ) ) {
+			ep . page . pageData . resetLines ( getDocListStrings ( ) ) ; // refresh
+			ep . repaint ( ) ;
+			return ;
+		}
+		// boolean isFirstTime = !PageData.dataPool.containsKey(TITLE_OF_PAGES);
+		PageData pd = PageData . fromTitle ( theTitle ) ;
+		new PlainPage ( ep , pd , ep . page ) ;
+		pd . resetLines ( getDocListStrings ( ) ) ;
+		ep . repaint ( ) ;
+	}
+
 	public static void showSelfDispMessage ( PlainPage pp , String msg , int disapearMS ) {
 		long now = System . currentTimeMillis ( ) ;
 		pp . ui . msgs . add ( new Object [ ] { msg , now + disapearMS , -1 /* draw width */ } ) ;
@@ -1978,6 +2016,7 @@ public class U {
 		int cy = 0 ;
 		for ( int i = fs . size ( ) - 1 ; i >= 0 ; i -- ) {
 			String s = fs . get ( i ) ;
+			if ( s . endsWith ( "|0:" ) ) s = s . substring ( 0 , s . length ( ) -3 ) ;
 			int p1 = s . lastIndexOf ( '|' ) ;
 			String fn = s . trim ( ) ;
 			if ( fn . isEmpty ( ) )
@@ -1990,8 +2029,7 @@ public class U {
 			fs2 . add ( s ) ;
 		}
 		Collections . reverse ( fs2 ) ;
-		FileUtil . save ( String . join ( "\n" , fs2 ) . getBytes ( UTF8 ) ,
-			fhn . getAbsolutePath ( ) ) ;
+		U . save ( fs2 , UTF8 , fhn . getAbsolutePath ( ) ) ;
 		System . out . println ( "file history optimized" ) ;
 		return cy ;
 	}

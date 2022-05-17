@@ -488,6 +488,11 @@ public class PlainPage {
 			case saveAs :
 			U . saveAs ( this ) ;
 			break ;
+			case toggleTimeExec :
+			U . addTime = ! U . addTime ;
+			U . setEnv ( this , "ne_addTime" , "" + U . addTime ) ;
+			ui . message ( "timestamp in console:" + U . addTime ) ;
+			break ;
 			case changePathSep :
 			U . changePathSep ( pageData , cy ) ;
 			break ;
@@ -618,6 +623,9 @@ public class PlainPage {
 			case listFonts :
 			U . listFonts ( this ) ;
 			break ;
+			case listDoc :
+			U . listDoc ( uiComp ) ;
+			break ;
 			case copySelected :
 			ptSelection . copySelected ( ) ;
 			break ;
@@ -651,7 +659,6 @@ public class PlainPage {
 			break ;
 			case newWindow :
 			U . newWindow ( this ) ;
-
 			break ;
 			case save :
 			if ( U . saveFile ( this ) )
