@@ -3,6 +3,7 @@ package neoe . ne ;
 import java . io . File ;
 import java . io . InputStream ;
 import java . io . OutputStream ;
+import java . util . Arrays ;
 
 public class Console {
 	public String cmd ;
@@ -51,9 +52,11 @@ public class Console {
 		new Thread ( ( ) -> {
 				try {
 					proc . waitFor ( ) ;
-					pp . ptEdit . append ( String . format ( "\nExit(%s) in about %,d ms for\n%s" ,
-							proc . exitValue ( ) ,
-							System . currentTimeMillis ( ) - t1 , id ) ) ;
+					pp . pageData . editRec . appendLines ( Arrays . asList (
+							String . format ( "\nExit(%s) in about %,d ms for\n%s" , proc . exitValue ( ) ,
+								System . currentTimeMillis ( ) - t1 , id ) . split ( "\n" ) ) ) ;
+					pp . pageData . editRec . appendLine ( "" ) ;
+					pp . cursor . setSafePos ( 0 , Integer . MAX_VALUE ) ; //go last line
 					finished = true ;
 					pp . adjustCursor ( ) ;
 					pp . uiComp . repaint ( ) ;

@@ -18,6 +18,7 @@ public enum Commands {
 	go ,
 	goInNewWindow ,
 	gotoLine ,
+	gotoX ,
 	hex ,
 	indentLeft ,
 	indentRight ,

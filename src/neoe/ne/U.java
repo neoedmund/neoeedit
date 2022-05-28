@@ -152,7 +152,8 @@ public class U {
 
 	public static void setEnv ( PlainPage pp , String k , String v ) {
 		if ( pp . env == null )
-		pp . env = new LinkedHashMap < > ( ) ;
+		pp . env = new LinkedHashMap < > ( System . getenv ( ) ) ;
+
 		Map m = pp . env ;
 		if ( v . isEmpty ( ) )
 		m . remove ( k ) ;
@@ -710,7 +711,7 @@ public class U {
 		dir = new File ( "." ) ;
 		addCmdHistory ( cmd , dir . getAbsolutePath ( ) ) ;
 		Process proc = Runtime . getRuntime ( ) . exec ( splitCommand ( cmd ) , getEnv ( pp ) , dir ) ;
-		OutputStream out = proc . getOutputStream ( ) ;
+		OutputStream out = null ; //proc . getOutputStream ( ) ;
 		InputStream stdout = proc . getInputStream ( ) ;
 		InputStream stderr = proc . getErrorStream ( ) ;
 
@@ -762,6 +763,11 @@ public class U {
 	}
 
 	private static String [ ] splitCommand ( String cmd ) throws Exception {
+		if ( cmd . contains ( "*" ) || cmd . contains ( "~" )
+			|| cmd . contains ( "[" ) || cmd . contains ( "|" )
+			|| cmd . contains ( "&" ) || cmd . contains ( "$" ) ) {
+			return new String [ ] { "bash" , "-c" , cmd } ;
+		}
 		List list = ( List ) PyData . parseAll ( "[" + cmd + "]" , false , true ) ;
 		String [ ] ss = new String [ list . size ( ) ] ;
 		int len = list . size ( ) ;
@@ -923,7 +929,8 @@ public class U {
 		return ss ;
 	}
 	public static List < CharSequence > getDocListStrings ( ) {
-		List < CharSequence > ss = new ArrayList < > ( PageData . dataPool . keySet ( ) ) ;
+		List < CharSequence > ss = new ArrayList < > ( ) ;
+		PageData . dataPool . keySet ( ) . forEach ( x -> ss . add ( x + "|0:" ) ) ;
 		Collections . sort ( ss , ( a , b ) -> a . toString ( ) . compareTo ( b . toString ( ) ) ) ;
 		return ss ;
 	}

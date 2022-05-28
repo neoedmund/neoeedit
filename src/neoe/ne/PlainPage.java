@@ -16,6 +16,7 @@ import java . awt . image . BufferedImage ;
 import java . io . File ;
 import java . io . IOException ;
 import java . util . ArrayList ;
+import java . util . LinkedHashMap ;
 import java . util . List ;
 import java . util . Map ;
 import javax . swing . JFrame ;
@@ -65,7 +66,7 @@ public class PlainPage {
 
 	boolean rectSelectMode = false ;
 	boolean savingFromSelectionCancel ;
-	String searchResultOf ;
+
 	int selectstartx , selectstarty , selectstopx , selectstopy ;
 
 	int showLineCnt ;
@@ -91,6 +92,7 @@ public class PlainPage {
 			fontList = parent . fontList ;
 			workPath = parent . workPath ;
 			showLineCnt = parent . showLineCnt ;
+			if ( parent . env != null ) env = new LinkedHashMap < > ( parent . env ) ;
 		} else fontList = Conf . defaultFontList ;
 		if ( data . fileLoaded ) workPath = new File ( data . title ) . getParent ( ) ;
 		editor . pageSet . add ( this ) ;
@@ -132,8 +134,8 @@ public class PlainPage {
 			U . setFont ( uiComp , font ) ;
 		} else {
 			uiComp . newWindow = newWindow ;
-			if ( searchResultOf == null
-				|| ! gotoFileLineSearchResult ( uiComp , line , searchResultOf ) )
+			if ( pageData . searchResultOf == null
+				|| ! gotoFileLineSearchResult ( uiComp , line , pageData . searchResultOf ) )
 			if ( ! gotoFileLine ( line , uiComp , true ) )
 			if ( ! U . listDirOrOpenFile ( PlainPage . this , cy ) )
 			U . launch ( line ) ;
@@ -667,6 +669,9 @@ public class PlainPage {
 			case gotoLine :
 			cursor . gotoLine ( ) ;
 			break ;
+			case gotoX :
+			cursor . gotoX ( ) ;
+			break ;
 			case undo :
 			pageData . history . undo ( this ) ;
 			break ;
@@ -767,9 +772,9 @@ public class PlainPage {
 			if ( ime != null )
 			ime . setEnabled ( true ) ;
 			break ;
-			case ShellCommand :
-			Shell . run ( PlainPage . this , cy ) ;
-			break ;
+			//			case ShellCommand :
+			//			Shell . run ( PlainPage . this , cy ) ;
+			//			break ;
 			case pageForward :
 			gotoFileLine ( uiComp . pageHis . forward ( U . getLocString ( this ) ) , uiComp , false ) ;
 			break ;
@@ -829,6 +834,19 @@ public class PlainPage {
 				sy = Math . max ( 0 , line - showLineCnt / 2 + 1 ) ;
 				cy = line ;
 				cx = 0 ;
+				focusCursor ( ) ;
+			}
+		}
+		void gotoX ( ) {
+			String s = JOptionPane . showInputDialog ( uiComp , "Goto X" ) ;
+			int x = -1 ;
+			try {
+				x = Integer . parseInt ( s ) ;
+			} catch ( Exception e ) {
+				x = -1 ;
+			}
+			if ( x > 0 ) {
+				setSafePos ( x , cy ) ;
 				focusCursor ( ) ;
 			}
 		}

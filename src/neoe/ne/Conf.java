@@ -153,7 +153,7 @@ public class Conf {
 				addOneKey ( key , cmd , keys ) ;
 			}
 		}
-		addKey ( U . keys , "alt-Enter" , "ShellCommand" ) ;
+		//		addKey ( U . keys , "alt-Enter" , "ShellCommand" ) ;
 	}
 
 	private static void addOneKey ( String key , String cmd , Set < String > keys ) {

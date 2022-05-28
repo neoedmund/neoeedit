@@ -47,7 +47,7 @@ MouseWheelListener , KeyListener {
 		return false ;
 		PlainPage pp = findPage ( title ) ;
 		if ( pp != null ) {
-			if ( newWindow && pp . pageData . fileLoaded ) {
+			if ( newWindow /*&& pp . pageData . fileLoaded */ ) {
 				openInNewWindow ( title , line ) ;
 				return true ;
 			}
@@ -61,13 +61,32 @@ MouseWheelListener , KeyListener {
 		}
 
 		// can i open the file?
-		if ( title . startsWith ( "[" ) )
-		return false ; //not likely
+		if ( title . startsWith ( "[" ) ) {
+			PageData pd = PageData . dataPool . get ( title ) ;
+			//PageData . fromTitle ( title ) ;
+			if ( pd != null ) {
+				if ( newWindow /*&& pp . pageData . fileLoaded */ ) {
+					openInNewWindow ( title , line ) ;
+					return true ;
+				} else {
+					PlainPage pp2 = new PlainPage ( this , pd , this . page ) ;
+					if ( line > 0 )
+					pp2 . cursor . setSafePos ( 0 , line - 1 ) ;
+					pp2 . adjustCursor ( ) ;
+					U . checkChangedOutside ( pp2 ) ;
+					SwingUtilities . invokeLater ( ( ) -> repaint ( ) ) ;
+					return true ;
+				}
+			}
+			return false ; //not likely
+		}
 		File f = new File ( title ) ;
 		if ( ! f . isFile ( ) )
 		f = new File ( page . workPath , title ) ;
 		if ( ! f . isFile ( ) )
 		return false ;
+		else
+		title = f . getAbsolutePath ( ) ;
 
 		if ( newWindow ) {
 			openInNewWindow ( title , line ) ;
@@ -346,9 +365,7 @@ MouseWheelListener , KeyListener {
 		installWindowListener ( f ) ;
 	}
 
-	public void openWindow ( String iconname ,
-		RootPaneContainer outFrame , JFrame realJFrame ,
-		JDesktopPane desktopPane ) throws IOException {
+	public void openWindow ( String iconname , RootPaneContainer outFrame , JFrame realJFrame , JDesktopPane desktopPane ) throws IOException {
 		frame = outFrame ;
 		this . desktopPane = desktopPane ;
 		if ( iconname == null )
@@ -408,6 +425,7 @@ MouseWheelListener , KeyListener {
 	@ Override
 	public void paint ( Graphics g ) {
 		try {
+			// super . paint ( g ) ;
 			if ( page != null )
 			page . xpaint ( g , this . getSize ( ) ) ;
 		} catch ( Throwable e ) {
