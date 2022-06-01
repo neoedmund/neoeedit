@@ -8,6 +8,7 @@ import java . util . Arrays ;
 public class Console {
 	public String cmd ;
 	private boolean finished ;
+	boolean follow ;
 	OutputStream out ;
 	InputStream stdout ;
 	InputStream stderr ;

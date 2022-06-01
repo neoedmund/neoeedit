@@ -528,7 +528,7 @@ class FindAndReplace {
 		if ( word )
 		cntInfo += " in word mode" ;
 		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format (
-					"[find](%s)'%s' in %s '%s'%s %s #%s" , all . size ( ) , text , type ,
+					"[find]'%s'(%s) in %s '%s'%s %s #%s" , all . size ( ) , text , type ,
 					name , withFilter , cntInfo , U . randomID ( ) ) ) , pp ) ;
 		List < CharSequence > sbs = new ArrayList < > ( ) ;
 		sbs . add ( new StringBuilder (

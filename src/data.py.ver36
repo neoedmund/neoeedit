@@ -65,6 +65,7 @@
 		[ launch alt-L etc "use system laucher on file  url" ]
 		[ execute [ F9 alt-E ] etc "execute on command line" ]
 		[ toggleTimeExec alt-F9 etc "toggle timestamp in console output" ]
+		[ toggleFollowExec ctrl-F9 etc "toggle follow the console output" ]	
 		[ hex alt-H etc "show hex code for characters" ]
 		[ listFonts alt-F ui "after listed  use 'go' key to set font" ]
 		[ toggleIME ctrl-SPACE etc "toggle input method" ]
@@ -91,7 +92,7 @@
 	}
 	font : {
 		font_example : [ "font filename" fontsize <empty>|BOLD|ITALIC ]
-		console : [ FreeMono 14 ]
+		console : [ FreeMono 15 ]
 		list : [
 			[ "Source Code Pro Semibold" 16 ]
 			[ /home/neoe/oss/xiaolishu.ttf 16 ]

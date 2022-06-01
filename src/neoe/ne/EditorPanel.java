@@ -2,7 +2,9 @@ package neoe . ne ;
 
 import java . awt . AWTEvent ;
 import java . awt . Cursor ;
+import java . awt . Dimension ;
 import java . awt . Graphics ;
+import java . awt . Point ;
 import java . awt . Rectangle ;
 import java . awt . event . InputMethodEvent ;
 import java . awt . event . InputMethodListener ;
@@ -37,6 +39,11 @@ import neoe . ne . U . LocationHistory ;
 public class EditorPanel
 extends JPanel implements MouseMotionListener , MouseListener ,
 MouseWheelListener , KeyListener {
+	private Dimension dim ;
+
+	private Point loc ;
+
+	private int myCursor ;
 	/*
 	 * a hack to pass param, not work yet
 	 */
@@ -45,6 +52,13 @@ MouseWheelListener , KeyListener {
 	boolean findAndShowPage ( String title , int line , boolean rec ) throws Exception {
 		if ( title == null )
 		return false ;
+		{ // show image file
+			File f = new File ( title ) ;
+			if ( f . isFile ( ) && U . isImageFile ( f ) ) {
+				new PicView ( ) . show ( f ) ;
+				return true ;
+			}
+		}
 		PlainPage pp = findPage ( title ) ;
 		if ( pp != null ) {
 			if ( newWindow /*&& pp . pageData . fileLoaded */ ) {
@@ -115,6 +129,67 @@ MouseWheelListener , KeyListener {
 		if ( line > 0 )
 		pp . cursor . setSafePos ( 0 , line - 1 ) ;
 		pp . adjustCursor ( ) ;
+	}
+
+	private boolean inRangeOfWindowMove ( MouseEvent evt ) {
+		if ( page == null || realJFrame == null ) return false ;
+		int x = evt . getX ( ) ;
+		int y = evt . getY ( ) ;
+		return x <= page . toolbarHeight && y <= page . toolbarHeight ;
+	}
+
+	private boolean inRangeOfWindowResize ( MouseEvent evt ) {
+		if ( page == null || realJFrame == null ) return false ;
+		int x = evt . getX ( ) ;
+		int y = evt . getY ( ) ;
+		Dimension dim0 = getSize ( ) ;
+		return x >= dim0 . width - page . toolbarHeight
+		&& y >= dim0 . height - page . toolbarHeight ;
+	}
+	int mx , my ;
+
+	private void startWindowMove ( MouseEvent evt ) {
+		mx = evt . getXOnScreen ( ) ;
+		my = evt . getYOnScreen ( ) ;
+		loc = getLocationOnScreen ( ) ;
+		inWindowMove = true ;
+	}
+
+	private void startWindowResize ( MouseEvent evt ) {
+		mx = evt . getXOnScreen ( ) ;
+		my = evt . getYOnScreen ( ) ;
+		dim = getSize ( ) ;
+		inWindowResize = true ;
+	}
+
+	private void windowMove ( MouseEvent evt ) {
+		int x = evt . getXOnScreen ( ) ;
+		int y = evt . getYOnScreen ( ) ;
+		if ( loc == null ) {
+			startWindowMove ( evt ) ;
+			return ;
+		}
+		Point loc2 = new Point ( loc ) ;
+		loc2 . x += x - mx ;
+		loc2 . y += y - my ;
+		if ( realJFrame != null ) {
+			realJFrame . setLocation ( loc2 ) ;
+		}
+	}
+
+	private void windowResize ( MouseEvent evt ) {
+		int x = evt . getXOnScreen ( ) ;
+		int y = evt . getYOnScreen ( ) ;
+		if ( dim == null ) {
+			startWindowResize ( evt ) ;
+			return ;
+		}
+		Dimension dim2 = new Dimension ( dim ) ;
+		dim2 . width += x - mx ;
+		dim2 . height += y - my ;
+		if ( realJFrame != null ) {
+			realJFrame . setSize ( dim2 ) ;
+		}
 	}
 
 	/**
@@ -237,10 +312,14 @@ MouseWheelListener , KeyListener {
 				}
 			} ) ;
 		setOpaque ( false ) ;
-		setCursor ( new Cursor ( Cursor . TEXT_CURSOR ) ) ;
+		setMyCursor ( Cursor . TEXT_CURSOR ) ;
 		setFocusTraversalKeysEnabled ( false ) ;
 		PlainPage pp = new PlainPage ( this , PageData . newUntitled ( ) , null ) ;
 		pp . ptSelection . selectAll ( ) ;
+	}
+
+	void setMyCursor ( int type ) {
+		setCursor ( new Cursor ( myCursor = type ) ) ;
 	}
 
 	void changeTitle ( ) {
@@ -307,6 +386,14 @@ MouseWheelListener , KeyListener {
 	@ Override
 	public void mouseDragged ( MouseEvent env ) {
 		try {
+			if ( inWindowMove ) {
+				windowMove ( env ) ;
+				return ;
+			}
+			if ( inWindowResize ) {
+				windowResize ( env ) ;
+				return ;
+			}
 			page . mouseDragged ( env ) ;
 		} catch ( Throwable e ) {
 			page . ui . message ( "err:" + e ) ;
@@ -324,6 +411,17 @@ MouseWheelListener , KeyListener {
 
 	@ Override
 	public void mouseMoved ( MouseEvent evt ) {
+		if ( inRangeOfWindowMove ( evt ) ) {
+			setMyCursor ( Cursor . MOVE_CURSOR ) ;
+			return ;
+		}
+		if ( inRangeOfWindowResize ( evt ) ) {
+			setMyCursor ( Cursor . SE_RESIZE_CURSOR ) ;
+			return ;
+		}
+		if ( myCursor != Cursor . TEXT_CURSOR ) {
+			setMyCursor ( Cursor . TEXT_CURSOR ) ;
+		}
 		try {
 			page . mouseMoved ( evt ) ;
 		} catch ( Throwable e ) {
@@ -335,6 +433,14 @@ MouseWheelListener , KeyListener {
 	@ Override
 	public void mousePressed ( MouseEvent evt ) {
 		try {
+			if ( inRangeOfWindowMove ( evt ) ) {
+				startWindowMove ( evt ) ;
+				return ;
+			}
+			if ( inRangeOfWindowResize ( evt ) ) {
+				startWindowResize ( evt ) ;
+				return ;
+			}
 			page . mousePressed ( evt ) ;
 		} catch ( Throwable e ) {
 			page . ui . message ( "err:" + e ) ;
@@ -342,8 +448,13 @@ MouseWheelListener , KeyListener {
 		}
 	}
 
+	boolean inWindowMove ;
+	boolean inWindowResize ;
+
 	@ Override
 	public void mouseReleased ( MouseEvent arg0 ) {
+		inWindowMove = false ;
+		inWindowResize = false ;
 	}
 
 	@ Override
@@ -363,6 +474,7 @@ MouseWheelListener , KeyListener {
 		JFrame f = new JFrame ( EditorPanel . WINDOW_NAME ) ;
 		openWindow ( U . e_png , f , f , null ) ;
 		installWindowListener ( f ) ;
+		grabFocus ( ) ;
 	}
 
 	public void openWindow ( String iconname , RootPaneContainer outFrame , JFrame realJFrame , JDesktopPane desktopPane ) throws IOException {

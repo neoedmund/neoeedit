@@ -80,5 +80,6 @@ public enum Commands {
 	pageBack ,
 	readonlyMode ,
 	moveUpLangLevel ,
-	openFileSelector
+	openFileSelector ,
+	toggleFollowExec
 }
