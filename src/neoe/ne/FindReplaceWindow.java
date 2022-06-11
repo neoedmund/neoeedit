@@ -31,8 +31,8 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 	private JCheckBox jcbword ;
 	JRadioButton jrb1 ;
 	private JRadioButton jrb2 ;
-	JTextField jta1 ;
-	JTextField jta2 ;
+	public JTextField jta1 ;
+	private JTextField jta2 ;
 	private JTextField jtadir , jtFnFilter ;
 	private PlainPage page ;
 	private JCheckBox jcbDirection ;
@@ -120,6 +120,7 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		jtadir . setText ( page . workPath ) ;
 		jta1 . addKeyListener ( this ) ;
 		jta2 . addKeyListener ( this ) ;
+		jtFnFilter . addKeyListener ( this ) ;
 		KeyListener closeOnEsc = new KeyAdapter ( ) {
 			@ Override
 			public void keyPressed ( KeyEvent env ) {
@@ -198,10 +199,15 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 
 	@ Override
 	public void keyPressed ( KeyEvent e ) {
-		if ( e . getSource ( ) == jta1 ) {
+		if ( e . getSource ( ) == jta1 || e . getSource ( ) == jtFnFilter ) {
 			if ( e . getKeyCode ( ) == KeyEvent . VK_ENTER ) {
-				ActionEvent ae = new ActionEvent ( this , 1 , "find" ) ;
-				actionPerformed ( ae ) ;
+				if ( e . isShiftDown ( ) && jb4 . isEnabled ( ) ) {
+					ActionEvent ae = new ActionEvent ( this , 1 , "findall" ) ;
+					actionPerformed ( ae ) ;
+				} else {
+					ActionEvent ae = new ActionEvent ( this , 1 , "find" ) ;
+					actionPerformed ( ae ) ;
+				}
 			}
 		} else if ( e . getSource ( ) == jta2 )
 		if ( e . getKeyCode ( ) == KeyEvent . VK_ENTER ) {

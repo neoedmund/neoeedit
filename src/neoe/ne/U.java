@@ -142,17 +142,24 @@ public class U {
 	}
 
 	public static void save ( List < String > ss , String encoding , String fn ) throws IOException {
-		OutputStream out = new BufferedOutputStream ( new FileOutputStream ( fn ) , 8192 * 16 ) ;
+		String fn0 = fn + "." + randomID ( ) ;
+		OutputStream out = new BufferedOutputStream ( new FileOutputStream ( fn0 ) , 8192 * 16 ) ;
+		boolean second = false ;
 		for ( String s : ss ) {
+			if ( second ) out . write ( '\n' ) ;
+			else second = true ;
 			out . write ( s . getBytes ( encoding ) ) ;
-			out . write ( '\n' ) ;
 		}
 		out . close ( ) ;
+		File f = new File ( fn ) ;
+		f . delete ( ) ;
+		new File ( fn0 ) . renameTo ( f ) ;
 	}
 
 	public static void setEnv ( PlainPage pp , String k , String v ) {
 		if ( pp . env == null )
-		pp . env = new LinkedHashMap < > ( ) ;
+		pp . env = new LinkedHashMap < > ( System . getenv ( ) ) ;
+
 		Map m = pp . env ;
 		if ( v . isEmpty ( ) )
 		m . remove ( k ) ;
@@ -191,7 +198,6 @@ public class U {
 			if ( ! his . isEmpty ( ) )
 			// last = his.getLast().toString();
 			his . set ( his . size ( ) - 1 , updateCurrent ) ; // System.out.println("[d]" + last + "=>" + updateCurrent);
-
 			his . add ( loc ) ;
 			pos = his . size ( ) - 1 ;
 			// System.out.printf("his.add size=%s, pos=%s\n", his.size(), pos);
@@ -614,9 +620,11 @@ public class U {
 		thread . start ( ) ;
 	}
 	static boolean addTime = true ;
+
 	static void attach ( final PlainPage page , final InputStream std , String name ) {
 		U . startDaemonThread ( new Thread ( ) {
 				SimpleDateFormat sdf1 = new SimpleDateFormat ( "yyyyMMdd HH:mm:ss:SSS\t" ) ;
+
 				@ Override
 				public void run ( ) {
 					try {
@@ -634,6 +642,11 @@ public class U {
 							if ( addTime ) line = sdf1 . format ( new Date ( ) ) + line ;
 
 							page . pageData . editRec . appendLine ( line ) ;
+							if ( page . console != null && page . console . follow ) {
+								int y = page . pageData . roLines . getLinesize ( ) -1 ;
+								page . cursor . setSafePos ( 0 , y ) ;
+								page . focusCursor ( ) ;
+							}
 							long t2 = System . currentTimeMillis ( ) ;
 							if ( t2 - t1 > 100 ) {
 								t1 = t2 ;
@@ -643,6 +656,7 @@ public class U {
 						line = "<end " + name + ">" ;
 						if ( addTime ) line = sdf1 . format ( new Date ( ) ) + line ;
 						page . pageData . editRec . appendLine ( line ) ;
+
 						page . uiComp . repaint ( ) ;
 					} catch ( Throwable e ) {
 						page . ptEdit . append ( "error:" + e + "\n" ) ;
@@ -710,7 +724,7 @@ public class U {
 		dir = new File ( "." ) ;
 		addCmdHistory ( cmd , dir . getAbsolutePath ( ) ) ;
 		Process proc = Runtime . getRuntime ( ) . exec ( splitCommand ( cmd ) , getEnv ( pp ) , dir ) ;
-		OutputStream out = proc . getOutputStream ( ) ;
+		OutputStream out = null ; //proc . getOutputStream ( ) ;
 		InputStream stdout = proc . getInputStream ( ) ;
 		InputStream stderr = proc . getErrorStream ( ) ;
 
@@ -762,6 +776,12 @@ public class U {
 	}
 
 	private static String [ ] splitCommand ( String cmd ) throws Exception {
+		if ( cmd . contains ( "*" ) || cmd . contains ( "~" )
+			|| cmd . contains ( "[" ) || cmd . contains ( "|" )
+			|| cmd . contains ( "&" ) || cmd . contains ( "$" )
+			|| cmd . contains ( ">" ) ) {
+			return new String [ ] { "bash" , "-c" , cmd } ;
+		}
 		List list = ( List ) PyData . parseAll ( "[" + cmd + "]" , false , true ) ;
 		String [ ] ss = new String [ list . size ( ) ] ;
 		int len = list . size ( ) ;
@@ -922,8 +942,10 @@ public class U {
 			+ ( changedOutside ( pp . pageData ) ? " [Changed Outside!!]" : "" ) ) ;
 		return ss ;
 	}
+
 	public static List < CharSequence > getDocListStrings ( ) {
-		List < CharSequence > ss = new ArrayList < > ( PageData . dataPool . keySet ( ) ) ;
+		List < CharSequence > ss = new ArrayList < > ( ) ;
+		PageData . dataPool . keySet ( ) . forEach ( x -> ss . add ( x + "|0:" ) ) ;
 		Collections . sort ( ss , ( a , b ) -> a . toString ( ) . compareTo ( b . toString ( ) ) ) ;
 		return ss ;
 	}
@@ -1100,7 +1122,7 @@ public class U {
 	public static boolean isImageFile ( File f ) {
 		String fn = f . getName ( ) . toLowerCase ( ) ;
 		return ( fn . endsWith ( ".gif" ) || fn . endsWith ( ".jpg" ) || fn . endsWith ( ".png" )
-			|| fn . endsWith ( ".bmp" ) || fn . endsWith ( ".jpeg" ) ) ;
+			|| fn . endsWith ( ".bmp" ) || fn . endsWith ( ".jpeg" ) || fn . endsWith ( ".tga" ) ) ;
 	}
 
 	static boolean isSkipChar ( char ch , char ch1 ) {
@@ -1138,7 +1160,9 @@ public class U {
 		String line = page . pageData . roLines . getline ( atLine ) . toString ( ) ;
 		File f = findFile ( page . workPath , line ) ;
 		if ( f == null ) return false ;
-		if ( f . isFile ( ) && f . exists ( ) ) return page . uiComp . findAndShowPage ( f . getAbsolutePath ( ) , -1 , true ) ;
+		f = f . getCanonicalFile ( ) ;
+		if ( f . isFile ( ) && f . exists ( ) )
+		return page . uiComp . findAndShowPage ( f . getAbsolutePath ( ) , -1 , true ) ;
 		if ( f . isDirectory ( ) ) {
 			File [ ] fs = f . listFiles ( ) ;
 			page . cx = line . length ( ) ;
@@ -1317,8 +1341,9 @@ public class U {
 
 	static int idIndex ;
 	static final int IDRANGE = 36 * 36 * 36 ;
+
 	public static String randomID ( ) {
-		return Integer . toString ( ( int ) ( random . nextInt ( IDRANGE ) ) , 36 ) + "_" + ( idIndex ++ ) ;
+		return "" + ( idIndex ++ ) + "_" + Integer . toString ( ( int ) ( random . nextInt ( IDRANGE ) ) , 36 ) ;
 	}
 
 	public static boolean tryGzip ( String fn , PageData data ) {
@@ -1475,7 +1500,7 @@ public class U {
 				return ;
 			}
 			page . pageData . renameTo ( fn ) ;
-			U . saveFileHistory ( fn , page . cy + 1 ) ;
+			U . saveFileHistory ( fn , page . cy ) ;
 			editor . changeTitle ( ) ;
 			page . ui . message ( "file renamed" ) ;
 			savePageToFile ( page ) ;
@@ -1519,19 +1544,19 @@ public class U {
 
 	static void saveFileHistory ( String fn , int line ) throws IOException {
 		File fhn = getFileHistoryName ( ) ;
+		if ( fn . equals ( fhn . getAbsolutePath ( ) ) ) return ;
 		OutputStream out = new FileOutputStream ( fhn , true ) ;
-		out . write ( String . format ( "\n%s|%s:" , fn , line ) . getBytes ( UTF8 ) ) ;
+		out . write ( String . format ( "\n%s|%s:" , fn , line + 1 ) . getBytes ( UTF8 ) ) ;
 		out . close ( ) ;
 		saveDirHistory ( fn ) ;
 	}
 
-	static void saveFileHistorys ( String text ) throws IOException {
-		File fhn = getFileHistoryName ( ) ;
-		OutputStream out = new FileOutputStream ( fhn , true ) ;
-		out . write ( text . getBytes ( UTF8 ) ) ;
-		out . close ( ) ;
-	}
-
+	//	static void saveFileHistorys ( String text ) throws IOException {
+	//		File fhn = getFileHistoryName ( ) ;
+	//		OutputStream out = new FileOutputStream ( fhn , true ) ;
+	//		out . write ( text . getBytes ( UTF8 ) ) ;
+	//		out . close ( ) ;
+	//	}
 	private static void saveDirHistory ( String fn ) throws IOException {
 		File dir = new File ( fn ) . getParentFile ( ) ;
 		if ( dir == null )
@@ -1699,14 +1724,15 @@ public class U {
 	}
 
 	public static void showPageListPage ( EditorPanel ep ) throws Exception {
-		if ( ep . findAndShowPage ( titleOfPages ( ep ) , 0 , true ) ) {
-			ep . page . pageData . resetLines ( getPageListStrings ( ep ) ) ; // refresh
-			ep . repaint ( ) ;
-			return ;
+		String name = titleOfPages ( ep ) ;
+		PageData pd ;
+		if ( ep . findAndShowPage ( name , 0 , true ) ) {
+			pd = ep . page . pageData ;
+		} else {
+			// boolean isFirstTime = !PageData.dataPool.containsKey(TITLE_OF_PAGES);
+			pd = PageData . fromTitle ( name ) ;
+			new PlainPage ( ep , pd , ep . page ) ;
 		}
-		// boolean isFirstTime = !PageData.dataPool.containsKey(TITLE_OF_PAGES);
-		PageData pd = PageData . fromTitle ( titleOfPages ( ep ) ) ;
-		new PlainPage ( ep , pd , ep . page ) ;
 		pd . resetLines ( getPageListStrings ( ep ) ) ;
 		ep . repaint ( ) ;
 	}
@@ -2008,21 +2034,20 @@ public class U {
 		return null ;
 	}
 
-	public static int optimizeFileHistory ( ) throws IOException {
+	public static void optimizeFileHistory ( ) throws IOException {
 		File fhn = U . getFileHistoryName ( ) ;
-		List < String > fs = Files . readAllLines ( fhn . toPath ( ) ) ;
+		List < String > fs = FileUtil . readStringBig ( fhn , UTF8 ) ;
 		Set < String > e = new HashSet < > ( ) ;
 		List < String > fs2 = new ArrayList < > ( ) ;
-		int cy = 0 ;
 		for ( int i = fs . size ( ) - 1 ; i >= 0 ; i -- ) {
-			String s = fs . get ( i ) ;
-			if ( s . endsWith ( "|0:" ) ) s = s . substring ( 0 , s . length ( ) -3 ) ;
-			int p1 = s . lastIndexOf ( '|' ) ;
-			String fn = s . trim ( ) ;
-			if ( fn . isEmpty ( ) )
+			String s = fs . get ( i ) . trim ( ) ;
+			if ( s . endsWith ( "|0:" ) ) s = s . substring ( 0 , s . length ( ) - 3 ) . trim ( ) ;
+			if ( s . isEmpty ( ) )
 			continue ;
+			String fn = s ;
+			int p1 = fn . lastIndexOf ( '|' ) ;
 			if ( p1 > 0 )
-			fn = s . substring ( 0 , p1 ) ;
+			fn = fn . substring ( 0 , p1 ) ;
 			if ( e . contains ( fn ) )
 			continue ;
 			e . add ( fn ) ;
@@ -2030,7 +2055,6 @@ public class U {
 		}
 		Collections . reverse ( fs2 ) ;
 		U . save ( fs2 , UTF8 , fhn . getAbsolutePath ( ) ) ;
-		System . out . println ( "file history optimized" ) ;
-		return cy ;
+		System . out . printf ( "file history optimized (%d->%d)\n" , fs . size ( ) , fs2 . size ( ) ) ;
 	}
 }

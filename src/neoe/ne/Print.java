@@ -34,7 +34,6 @@ public class Print implements Printable {
 
 	int lineGap = 3 , lineHeight = 8 , headerHeight = 20 , footerHeight = 20 ,
 	gutterWidth = 24 ; // TAB_WIDTH = 20;
-
 	int linePerPage ;
 	private final PlainPage pp ;
 	ReadonlyLines roLines ;

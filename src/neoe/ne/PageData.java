@@ -45,8 +45,8 @@ public class PageData {
 	}
 	public boolean changedOutside ;
 
-	BasicEdit editNoRec = new BasicEdit ( false , this ) ;
-	BasicEdit editRec = new BasicEdit ( true , this ) ;
+	public BasicEdit editNoRec = new BasicEdit ( false , this ) ;
+	public BasicEdit editRec = new BasicEdit ( true , this ) ;
 
 	String encoding ;
 
@@ -59,7 +59,7 @@ public class PageData {
 	/* element: String or StringBuilder(after edit) */
 	public List < CharSequence > lines ;
 	public String lineSep = "\n" ;
-
+	public String searchResultOf ;
 	public int ref ;
 	ReadonlyLines roLines = new ReadonlyLines ( this ) ;
 	public String title ;

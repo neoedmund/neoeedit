@@ -13,6 +13,7 @@ import java . util . HashSet ;
 import java . util . Iterator ;
 import java . util . Map ;
 import java . util . Set ;
+import neoe . ne . PlainPage ;
 
 /*not used*/
 class DumpToString {
@@ -28,6 +29,7 @@ class DumpToString {
 	}
 
 	public static String dump ( Object o , int maxLevel ) throws Exception {
+		//		throw new RuntimeException ( "i need trace" ) ;
 		ByteArrayOutputStream ba = new ByteArrayOutputStream ( ) ;
 		Writer out = new BufferedWriter ( new OutputStreamWriter ( ba , "utf8" ) ) ;
 		out . write ( "dump[" ) ;

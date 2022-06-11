@@ -16,6 +16,7 @@ import java . awt . image . BufferedImage ;
 import java . io . File ;
 import java . io . IOException ;
 import java . util . ArrayList ;
+import java . util . LinkedHashMap ;
 import java . util . List ;
 import java . util . Map ;
 import javax . swing . JFrame ;
@@ -65,7 +66,7 @@ public class PlainPage {
 
 	boolean rectSelectMode = false ;
 	boolean savingFromSelectionCancel ;
-	String searchResultOf ;
+
 	int selectstartx , selectstarty , selectstopx , selectstopy ;
 
 	int showLineCnt ;
@@ -89,8 +90,10 @@ public class PlainPage {
 			ui . applyColorMode ( parent . ui . colorMode ) ;
 			ui . scalev = parent . ui . scalev ;
 			fontList = parent . fontList ;
+			if ( fontList == Conf . defaultConsoleFonts ) fontList = Conf . defaultFontList ;
 			workPath = parent . workPath ;
 			showLineCnt = parent . showLineCnt ;
+			if ( parent . env != null ) env = new LinkedHashMap < > ( parent . env ) ;
 		} else fontList = Conf . defaultFontList ;
 		if ( data . fileLoaded ) workPath = new File ( data . title ) . getParent ( ) ;
 		editor . pageSet . add ( this ) ;
@@ -132,8 +135,8 @@ public class PlainPage {
 			U . setFont ( uiComp , font ) ;
 		} else {
 			uiComp . newWindow = newWindow ;
-			if ( searchResultOf == null
-				|| ! gotoFileLineSearchResult ( uiComp , line , searchResultOf ) )
+			if ( pageData . searchResultOf == null
+				|| ! gotoFileLineSearchResult ( uiComp , line , pageData . searchResultOf ) )
 			if ( ! gotoFileLine ( line , uiComp , true ) )
 			if ( ! U . listDirOrOpenFile ( PlainPage . this , cy ) )
 			U . launch ( line ) ;
@@ -204,7 +207,7 @@ public class PlainPage {
 
 	/* let cursor get see*/
 	public void focusCursor ( ) {
-		sy = U . between ( U . between ( sy , cy - showLineCnt + 3 , cy -3 ) , 0 , pageData . lines . size ( ) -1 ) ;
+		sy = U . between ( U . between ( sy , cy - showLineCnt + 3 , cy -3 ) , 0 , pageData . roLines . getLinesize ( ) -1 ) ;
 	}
 	/**change cursor to middle of page*/
 	public void adjustCursor ( ) {
@@ -214,7 +217,7 @@ public class PlainPage {
 		}
 		int sc = Math . max ( 5 , showLineCnt ) ;
 		sy = Math . max ( 0 , cy - sc / 2 + 1 ) ;
-		int totalLine = pageData . lines . size ( ) ;
+		int totalLine = pageData . roLines . getLinesize ( ) ;
 		int emptyLines = sc - ( totalLine - sy ) ;
 		if ( emptyLines > 0 )
 		sy = Math . max ( 0 , sy - emptyLines + 1 ) ;
@@ -493,6 +496,13 @@ public class PlainPage {
 			U . setEnv ( this , "ne_addTime" , "" + U . addTime ) ;
 			ui . message ( "timestamp in console:" + U . addTime ) ;
 			break ;
+			case toggleFollowExec :
+			if ( console != null ) {
+				console . follow = ! console . follow ;
+				ui . message ( "follow the console:" + console . follow ) ;
+			}
+
+			break ;
 			case changePathSep :
 			U . changePathSep ( pageData , cy ) ;
 			break ;
@@ -612,7 +622,7 @@ public class PlainPage {
 			break ;
 
 			case execute :
-			if ( cy < pageData . lines . size ( ) )
+			if ( cy < pageData . roLines . getLinesize ( ) )
 			U . exec ( this , pageData . roLines . getline ( cy ) . toString ( ) ) ;
 			break ;
 			case hex :
@@ -667,6 +677,9 @@ public class PlainPage {
 			case gotoLine :
 			cursor . gotoLine ( ) ;
 			break ;
+			case gotoX :
+			cursor . gotoX ( ) ;
+			break ;
 			case undo :
 			pageData . history . undo ( this ) ;
 			break ;
@@ -720,19 +733,19 @@ public class PlainPage {
 			ui . scalev = 1 ;
 			break ;
 			case go :
-			if ( cy < pageData . lines . size ( ) ) {
+			if ( cy < pageData . roLines . getLinesize ( ) ) {
 				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
 				go ( line , false ) ;
 			}
 			break ;
 			case goInNewWindow : // not work yet
-			if ( cy < pageData . lines . size ( ) ) {
+			if ( cy < pageData . roLines . getLinesize ( ) ) {
 				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
 				go ( line , true ) ;
 			}
 			break ;
 			case launch :
-			if ( cy < pageData . lines . size ( ) ) {
+			if ( cy < pageData . roLines . getLinesize ( ) ) {
 				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
 				U . launch ( line ) ;
 			}
@@ -747,7 +760,7 @@ public class PlainPage {
 			U . openDirHistory ( uiComp ) ;
 			break ;
 			case openFileSelector :
-			if ( cy < pageData . lines . size ( ) ) {
+			if ( cy < pageData . roLines . getLinesize ( ) ) {
 				String line = pageData . roLines . getline ( cy ) . toString ( ) ;
 				U . openFileSelector ( line , this ) ;
 			}
@@ -767,9 +780,9 @@ public class PlainPage {
 			if ( ime != null )
 			ime . setEnabled ( true ) ;
 			break ;
-			case ShellCommand :
-			Shell . run ( PlainPage . this , cy ) ;
-			break ;
+			//			case ShellCommand :
+			//			Shell . run ( PlainPage . this , cy ) ;
+			//			break ;
 			case pageForward :
 			gotoFileLine ( uiComp . pageHis . forward ( U . getLocString ( this ) ) , uiComp , false ) ;
 			break ;
@@ -829,6 +842,19 @@ public class PlainPage {
 				sy = Math . max ( 0 , line - showLineCnt / 2 + 1 ) ;
 				cy = line ;
 				cx = 0 ;
+				focusCursor ( ) ;
+			}
+		}
+		void gotoX ( ) {
+			String s = JOptionPane . showInputDialog ( uiComp , "Goto X" ) ;
+			int x = -1 ;
+			try {
+				x = Integer . parseInt ( s ) ;
+			} catch ( Exception e ) {
+				x = -1 ;
+			}
+			if ( x > 0 ) {
+				setSafePos ( x , cy ) ;
 				focusCursor ( ) ;
 			}
 		}
@@ -1253,7 +1279,7 @@ public class PlainPage {
 			if ( ptSelection . isSelected ( ) )
 			ptSelection . cancelSelect ( ) ;
 			List < CharSequence > newtext = new ArrayList < CharSequence > ( ) ;
-			for ( int y = 0 ; y < pageData . lines . size ( ) ; y ++ )
+			for ( int y = 0 ; y < pageData . roLines . getLinesize ( ) ; y ++ )
 			if ( pageData . lines . get ( y ) . length ( ) * 2 > lineLen ) {
 				int len = 0 ;
 				CharSequence sb = pageData . roLines . getline ( y ) ;
@@ -1585,7 +1611,6 @@ public class PlainPage {
 			}
 			if ( ! msgs . isEmpty ( ) ) {
 				// System.out.println("msgs:"+msgs.size());
-
 				int w = U . maxWidth ( msgs , g , fontList , getMaxW ( ) ) + 100 ;
 				int h = 30 * msgs . size ( ) + 60 ;
 				g . setXORMode ( Color . BLACK ) ;

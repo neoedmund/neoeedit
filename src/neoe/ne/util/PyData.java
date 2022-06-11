@@ -126,7 +126,6 @@ public class PyData {
 		// CATEGORIES:{1:1},'D\\'GM\nATTRIBS':{1:1,2:4},GROUPS:{2:\"
 		// \"},TYPES:{2:2,3:'ad\nas10'}}"));
 		// "{ /* ddd */ CATEGORIES:[1,2,3,4]}"));
-
 		System . out . println ( "reading file:" + new File ( args [ 0 ] ) . getAbsolutePath ( ) ) ;
 		Object o = PyData . parseAll (
 			FileUtil . readString ( new FileInputStream ( args [ 0 ] ) , "utf8" ) , false ) ;

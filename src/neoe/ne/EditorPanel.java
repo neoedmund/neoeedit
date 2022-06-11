@@ -2,8 +2,12 @@ package neoe . ne ;
 
 import java . awt . AWTEvent ;
 import java . awt . Cursor ;
+import java . awt . Dimension ;
 import java . awt . Graphics ;
+import java . awt . Point ;
 import java . awt . Rectangle ;
+import java . awt . event . FocusAdapter ;
+import java . awt . event . FocusEvent ;
 import java . awt . event . InputMethodEvent ;
 import java . awt . event . InputMethodListener ;
 import java . awt . event . KeyEvent ;
@@ -37,6 +41,11 @@ import neoe . ne . U . LocationHistory ;
 public class EditorPanel
 extends JPanel implements MouseMotionListener , MouseListener ,
 MouseWheelListener , KeyListener {
+	private Dimension dim ;
+
+	private Point loc ;
+
+	private int myCursor ;
 	/*
 	 * a hack to pass param, not work yet
 	 */
@@ -45,9 +54,16 @@ MouseWheelListener , KeyListener {
 	boolean findAndShowPage ( String title , int line , boolean rec ) throws Exception {
 		if ( title == null )
 		return false ;
+		{ // show image file
+			File f = new File ( title ) ;
+			if ( f . isFile ( ) && U . isImageFile ( f ) ) {
+				new PicView ( ) . show ( f ) ;
+				return true ;
+			}
+		}
 		PlainPage pp = findPage ( title ) ;
 		if ( pp != null ) {
-			if ( newWindow && pp . pageData . fileLoaded ) {
+			if ( newWindow /*&& pp . pageData . fileLoaded */ ) {
 				openInNewWindow ( title , line ) ;
 				return true ;
 			}
@@ -61,13 +77,32 @@ MouseWheelListener , KeyListener {
 		}
 
 		// can i open the file?
-		if ( title . startsWith ( "[" ) )
-		return false ; //not likely
+		if ( title . startsWith ( "[" ) ) {
+			PageData pd = PageData . dataPool . get ( title ) ;
+			//PageData . fromTitle ( title ) ;
+			if ( pd != null ) {
+				if ( newWindow /*&& pp . pageData . fileLoaded */ ) {
+					openInNewWindow ( title , line ) ;
+					return true ;
+				} else {
+					PlainPage pp2 = new PlainPage ( this , pd , this . page ) ;
+					if ( line > 0 )
+					pp2 . cursor . setSafePos ( 0 , line - 1 ) ;
+					pp2 . adjustCursor ( ) ;
+					U . checkChangedOutside ( pp2 ) ;
+					SwingUtilities . invokeLater ( ( ) -> repaint ( ) ) ;
+					return true ;
+				}
+			}
+			return false ; //not likely
+		}
 		File f = new File ( title ) ;
 		if ( ! f . isFile ( ) )
 		f = new File ( page . workPath , title ) ;
 		if ( ! f . isFile ( ) )
 		return false ;
+		else
+		title = f . getCanonicalPath ( ) ;
 
 		if ( newWindow ) {
 			openInNewWindow ( title , line ) ;
@@ -96,6 +131,67 @@ MouseWheelListener , KeyListener {
 		if ( line > 0 )
 		pp . cursor . setSafePos ( 0 , line - 1 ) ;
 		pp . adjustCursor ( ) ;
+	}
+
+	private boolean inRangeOfWindowMove ( MouseEvent evt ) {
+		if ( page == null || realJFrame == null ) return false ;
+		int x = evt . getX ( ) ;
+		int y = evt . getY ( ) ;
+		return x <= page . toolbarHeight && y <= page . toolbarHeight ;
+	}
+
+	private boolean inRangeOfWindowResize ( MouseEvent evt ) {
+		if ( page == null || realJFrame == null ) return false ;
+		int x = evt . getX ( ) ;
+		int y = evt . getY ( ) ;
+		Dimension dim0 = getSize ( ) ;
+		return x >= dim0 . width - page . toolbarHeight
+		&& y >= dim0 . height - page . toolbarHeight ;
+	}
+	int mx , my ;
+
+	private void startWindowMove ( MouseEvent evt ) {
+		mx = evt . getXOnScreen ( ) ;
+		my = evt . getYOnScreen ( ) ;
+		loc = getLocationOnScreen ( ) ;
+		inWindowMove = true ;
+	}
+
+	private void startWindowResize ( MouseEvent evt ) {
+		mx = evt . getXOnScreen ( ) ;
+		my = evt . getYOnScreen ( ) ;
+		dim = getSize ( ) ;
+		inWindowResize = true ;
+	}
+
+	private void windowMove ( MouseEvent evt ) {
+		int x = evt . getXOnScreen ( ) ;
+		int y = evt . getYOnScreen ( ) ;
+		if ( loc == null ) {
+			startWindowMove ( evt ) ;
+			return ;
+		}
+		Point loc2 = new Point ( loc ) ;
+		loc2 . x += x - mx ;
+		loc2 . y += y - my ;
+		if ( realJFrame != null ) {
+			realJFrame . setLocation ( loc2 ) ;
+		}
+	}
+
+	private void windowResize ( MouseEvent evt ) {
+		int x = evt . getXOnScreen ( ) ;
+		int y = evt . getYOnScreen ( ) ;
+		if ( dim == null ) {
+			startWindowResize ( evt ) ;
+			return ;
+		}
+		Dimension dim2 = new Dimension ( dim ) ;
+		dim2 . width += x - mx ;
+		dim2 . height += y - my ;
+		if ( realJFrame != null ) {
+			realJFrame . setSize ( dim2 ) ;
+		}
 	}
 
 	/**
@@ -218,10 +314,14 @@ MouseWheelListener , KeyListener {
 				}
 			} ) ;
 		setOpaque ( false ) ;
-		setCursor ( new Cursor ( Cursor . TEXT_CURSOR ) ) ;
+		setMyCursor ( Cursor . TEXT_CURSOR ) ;
 		setFocusTraversalKeysEnabled ( false ) ;
 		PlainPage pp = new PlainPage ( this , PageData . newUntitled ( ) , null ) ;
 		pp . ptSelection . selectAll ( ) ;
+	}
+
+	void setMyCursor ( int type ) {
+		setCursor ( new Cursor ( myCursor = type ) ) ;
 	}
 
 	void changeTitle ( ) {
@@ -288,6 +388,14 @@ MouseWheelListener , KeyListener {
 	@ Override
 	public void mouseDragged ( MouseEvent env ) {
 		try {
+			if ( inWindowMove ) {
+				windowMove ( env ) ;
+				return ;
+			}
+			if ( inWindowResize ) {
+				windowResize ( env ) ;
+				return ;
+			}
 			page . mouseDragged ( env ) ;
 		} catch ( Throwable e ) {
 			page . ui . message ( "err:" + e ) ;
@@ -305,6 +413,17 @@ MouseWheelListener , KeyListener {
 
 	@ Override
 	public void mouseMoved ( MouseEvent evt ) {
+		if ( inRangeOfWindowMove ( evt ) ) {
+			setMyCursor ( Cursor . MOVE_CURSOR ) ;
+			return ;
+		}
+		if ( inRangeOfWindowResize ( evt ) ) {
+			setMyCursor ( Cursor . SE_RESIZE_CURSOR ) ;
+			return ;
+		}
+		if ( myCursor != Cursor . TEXT_CURSOR ) {
+			setMyCursor ( Cursor . TEXT_CURSOR ) ;
+		}
 		try {
 			page . mouseMoved ( evt ) ;
 		} catch ( Throwable e ) {
@@ -316,6 +435,14 @@ MouseWheelListener , KeyListener {
 	@ Override
 	public void mousePressed ( MouseEvent evt ) {
 		try {
+			if ( inRangeOfWindowMove ( evt ) ) {
+				startWindowMove ( evt ) ;
+				return ;
+			}
+			if ( inRangeOfWindowResize ( evt ) ) {
+				startWindowResize ( evt ) ;
+				return ;
+			}
 			page . mousePressed ( evt ) ;
 		} catch ( Throwable e ) {
 			page . ui . message ( "err:" + e ) ;
@@ -323,8 +450,13 @@ MouseWheelListener , KeyListener {
 		}
 	}
 
+	boolean inWindowMove ;
+	boolean inWindowResize ;
+
 	@ Override
 	public void mouseReleased ( MouseEvent arg0 ) {
+		inWindowMove = false ;
+		inWindowResize = false ;
 	}
 
 	@ Override
@@ -344,11 +476,16 @@ MouseWheelListener , KeyListener {
 		JFrame f = new JFrame ( EditorPanel . WINDOW_NAME ) ;
 		openWindow ( U . e_png , f , f , null ) ;
 		installWindowListener ( f ) ;
+		// not called, why?		f . addFocusListener ( new FocusAdapter ( ) {
+		//				@ Override
+		//				public void focusGained ( FocusEvent e ) {
+		//					System . out . println ( "JFrame.focusGained" ) ;
+		//					EditorPanel . this . requestFocusInWindow ( ) ; }
+		//			} ) ;
+		grabFocus ( ) ;
 	}
 
-	public void openWindow ( String iconname ,
-		RootPaneContainer outFrame , JFrame realJFrame ,
-		JDesktopPane desktopPane ) throws IOException {
+	public void openWindow ( String iconname , RootPaneContainer outFrame , JFrame realJFrame , JDesktopPane desktopPane ) throws IOException {
 		frame = outFrame ;
 		this . desktopPane = desktopPane ;
 		if ( iconname == null )
@@ -380,16 +517,16 @@ MouseWheelListener , KeyListener {
 
 				@ Override
 				public void windowClosing ( WindowEvent e ) {
-					StringBuilder sb = new StringBuilder ( ) ;
-					for ( PlainPage pp : pageSet )
-					if ( pp . pageData . fileLoaded )
-					sb . append ( String . format ( "\n%s|%s:" , pp . pageData . title , pp . cy + 1 ) ) ;
-
-					try {
-						U . saveFileHistorys ( sb . toString ( ) ) ;
-					} catch ( IOException e1 ) {
-						e1 . printStackTrace ( ) ;
-					}
+					//note: history record when file open, don't do when closing
+					//					StringBuilder sb = new StringBuilder ( ) ;
+					//					for ( PlainPage pp : pageSet )
+					//					if ( pp . pageData . fileLoaded )
+					//					sb . append ( String . format ( "\n%s|%s:" , pp . pageData . title , pp . cy + 1 ) ) ;
+					//					try {
+					//						U . saveFileHistorys ( sb . toString ( ) ) ;
+					//					} catch ( IOException e1 ) {
+					//						e1 . printStackTrace ( ) ;
+					//					}
 				}
 			} ) ;
 	}
@@ -408,6 +545,7 @@ MouseWheelListener , KeyListener {
 	@ Override
 	public void paint ( Graphics g ) {
 		try {
+			// super . paint ( g ) ;
 			if ( page != null )
 			page . xpaint ( g , this . getSize ( ) ) ;
 		} catch ( Throwable e ) {

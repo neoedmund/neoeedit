@@ -18,6 +18,7 @@ public enum Commands {
 	go ,
 	goInNewWindow ,
 	gotoLine ,
+	gotoX ,
 	hex ,
 	indentLeft ,
 	indentRight ,
@@ -79,5 +80,6 @@ public enum Commands {
 	pageBack ,
 	readonlyMode ,
 	moveUpLangLevel ,
-	openFileSelector
+	openFileSelector ,
+	toggleFollowExec
 }

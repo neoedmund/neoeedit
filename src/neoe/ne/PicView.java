@@ -384,7 +384,6 @@ public class PicView {
 			int h = s [ 3 ] ; // getHeight();
 			int sw = s [ 0 ] ; // w / 4;
 			int sh = s [ 1 ] ; // sw * ph / pw;
-
 			// x = (w - sw - vx / rate / w * sw)
 			double x1 = pw * ( x - ( w - sw ) ) / ( double ) sw ;
 			double y1 = ph * ( y - ( h - sh ) ) / ( double ) sh ;

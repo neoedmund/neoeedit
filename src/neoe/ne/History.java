@@ -18,7 +18,6 @@ public class History {
 	private boolean inAtom ;
 	int p ;
 	//		PageData pageData;
-
 	public History ( PageData pageData ) {
 		data = new LinkedList < > ( ) ;
 		p = 0 ;

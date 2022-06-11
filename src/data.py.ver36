@@ -23,10 +23,11 @@
 		[ openFile ctrl-O file ]
 		[ newPage ctrl-N ui ]
 		[ newWindow ctrl-M ui ]
-		[ pageBack alt-MINUS cursor ]
-		[ pageForward alt-EQUALS cursor ]
+		[ pageBack alt-UP cursor ]
+		[ pageForward alt-DOWN cursor ]
 		[ save ctrl-S file ]
 		[ gotoLine ctrl-L cursor "goto line with number" ]
+		[ gotoX ctrl-alt-L cursor "goto x" ]
 		[ undo ctrl-Z edit ]
 		[ find ctrl-F search "find and replace" ]
 		[ redo ctrl-Y edit ]
@@ -41,7 +42,7 @@
 		[ moveViewDown ctrl-DOWN cursor ]
 		[ resetScale ctrl-0 scale "tip:ctrl+mouse wheel to scale" ]
 		[ go ctrl-1 Important "goto file or page or set font, the most useful command" ]
-                [ goInNewWindow ctrl-alt-1 Important "see go" ]
+		[ goInNewWindow ctrl-alt-1 Important "see go" ]
 		[ fileHistory ctrl-H etc ]
 		[ dirHistory ctrl-alt-H etc ]
 		[ openFileSelector ctrl-2 etc ]
@@ -63,7 +64,8 @@
 		[ moveBetweenPair alt-P cursor "work on {} [] () <>" ]
 		[ launch alt-L etc "use system laucher on file  url" ]
 		[ execute [ F9 alt-E ] etc "execute on command line" ]
-                [ toggleTimeExec alt-F9 etc "toggle timestamp in console output" ]
+		[ toggleTimeExec alt-F9 etc "toggle timestamp in console output" ]
+		[ toggleFollowExec ctrl-F9 etc "toggle follow the console output" ]	
 		[ hex alt-H etc "show hex code for characters" ]
 		[ listFonts alt-F ui "after listed  use 'go' key to set font" ]
 		[ toggleIME ctrl-SPACE etc "toggle input method" ]
@@ -73,7 +75,7 @@
 		/* [ mathEval F6 etc "evaluate a math expression, use = instead" ] */
 		[ readonlyMode alt-R etc "navigate mode" ]
 		[ moveUpLangLevel alt-BACK_SPACE cursor "move to up level of c-like source" ]
-                [ listDoc ctrl-alt-TAB page "list all opened documents"]
+		[ listDoc ctrl-alt-TAB page "list all opened documents" ]
 	]
 	color : {
 		defaultBackgroundColor : 0x87a96b
@@ -90,13 +92,13 @@
 	}
 	font : {
 		font_example : [ "font filename" fontsize <empty>|BOLD|ITALIC ]
-		console : [ FreeMono 12 ]
+		console : [ FreeMono 15 ]
 		list : [
 			[ "Source Code Pro Semibold" 16 ]
-                        [/home/neoe/oss/xiaolishu.ttf 16]
+			[ /home/neoe/oss/xiaolishu.ttf 16 ]
 			[ "Noto Sans CJK SC DemiLight" 16 ]
 		]
-		list_noused : [ [ /home/neoe/oss/xiaolishu.ttf 14 ]
+		list_noused : [ 
 			[ "DejaVu Sans Mono" 12 ]
 			[ "微软雅黑 Light" 14 ]
 			[ /usr/share/fonts/opentype/noto/NotoSansCJK-Thin.ttc 14 ]
@@ -108,8 +110,6 @@
 		neoe.ime.neoeedit.CnEn
 		neoe.ime.neoeedit.En
 	]
-
-	glow : { center : 100 range : 3 disabled : true threshold : 0 }
 
 	tabWidthInPixel : 20
 	lookAndFeel : ""

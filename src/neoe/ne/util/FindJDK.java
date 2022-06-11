@@ -31,7 +31,6 @@ public class FindJDK {
 
 	public static void main ( String [ ] args ) throws IOException {
 		// test
-
 		System . out . println ( "JDK64=" + new FindJDK ( ) . find ( 64 , true ) ) ;
 		System . out . println ( "JRE64=" + new FindJDK ( ) . find ( 64 , false ) ) ;
 		System . out . println ( "JDK32=" + new FindJDK ( ) . find ( 32 , true ) ) ;

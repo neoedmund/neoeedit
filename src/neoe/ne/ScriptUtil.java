@@ -75,7 +75,7 @@ public class ScriptUtil {
 		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format ( "%s#%s" , hint , U . randomID ( ) ) ) , pp ) ;
 		p2 . pageData . resetLines ( ret ) ;
 		p2 . uiComp . repaint ( ) ;
-		p2 . uiComp . grabFocus ( ) ;
+		p2 . uiComp . requestFocusInWindow ( ) ;
 	}
 
 	private void deleteDir ( File dir , String ends ) {

@@ -137,8 +137,11 @@ class FindAndReplace {
 	static void doReplaceAll ( PlainPage page , String text , boolean ignoreCase ,
 		boolean selected2 , String text2 , boolean inDir ,
 		String dir , String fnFilter ) throws Exception {
-		if ( inDir )
-		doReplaceInDir ( page , text , ignoreCase , text2 , inDir , dir , fnFilter ) ;
+		if ( inDir ) {
+			int ret = JOptionPane . showConfirmDialog ( page . uiComp , "Do you really want to do replace in files in dir?" ) ;
+			if ( ret != JOptionPane . OK_OPTION ) return ;
+			doReplaceInDir ( page , text , ignoreCase , text2 , inDir , dir , fnFilter ) ;
+		}
 		else
 		doReplace ( page , text , ignoreCase , selected2 , text2 , true , inDir , dir ) ;
 	}
@@ -147,7 +150,7 @@ class FindAndReplace {
 		String text2 , boolean inDir , String dir ,
 		String fnFilter ) throws Exception {
 		Iterable < File > it = new FileIterator ( dir ) ;
-		List < String > all = new ArrayList < String > ( ) ;
+		List < String > all = new ArrayList < > ( ) ;
 		fnFilter = fnFilter . trim ( ) . toLowerCase ( ) ;
 		int [ ] cnts = new int [ 3 ] ;
 		for ( File f : it ) {
@@ -210,10 +213,8 @@ class FindAndReplace {
 		return null ;
 		x = 0 ; // Math.min(x, page.pageData.roLines.getline(y).length());
 		// first half row
-		int p1
-		= indexOf ( page . pageData . roLines . getline ( y ) , ignoreCase , ss , x , word ) ;
-		if ( p1 >= 0 )
-		return new Point ( p1 , y ) ;
+		int p1 = indexOf ( page . pageData . roLines . getline ( y ) , ignoreCase , ss , x , word ) ;
+		if ( p1 >= 0 ) return new Point ( p1 , y ) ;
 		// middle rows
 		int fy = y ;
 		for ( int i = 0 ; i < page . pageData . roLines . getLinesize ( ) - 1 ; i ++ ) {
@@ -334,8 +335,7 @@ class FindAndReplace {
 
 		x = Math . min ( x , page . pageData . roLines . getline ( y ) . length ( ) ) ;
 		// first half row
-		int p1
-		= indexOfLast ( page . pageData . roLines . getline ( y ) , ignoreCase , s , x , word ) ;
+		int p1 = indexOfLast ( page . pageData . roLines . getline ( y ) , ignoreCase , s , x , word ) ;
 		if ( p1 >= 0 )
 		return new Point ( p1 , y ) ;
 		// middle rows
@@ -374,36 +374,34 @@ class FindAndReplace {
 
 	private static int indexOf ( CharSequence t , boolean ignoreCase ,
 		List < String > ss , int x , boolean word ) {
-		if ( ignoreCase )
-		t = t . toString ( ) . toLowerCase ( ) ;
+		if ( ignoreCase ) t = t . toString ( ) . toLowerCase ( ) ;
 		int p = 0 ;
 		for ( int i = 0 ; i < ss . size ( ) ; i ++ ) {
 			p = FindAndReplace . indexOfSeq ( t , ss . get ( i ) , x , word ) ;
-			if ( p < 0 )
-			return p ;
+			if ( p < 0 ) return p ;
 		}
 		return p ;
 	}
 
 	public static int indexOfLast ( CharSequence input , String kw , int start , boolean word ) {
-		if ( input instanceof StringBuilder ) {
-			StringBuilder text = ( StringBuilder ) input ;
-			return isWordMatch ( text , kw , text . lastIndexOf ( kw , start ) , word ) ;
+		String target = input . toString ( ) ;
+		int fromIndex = start ;
+		while ( true ) { //if one fail , search another		
+			int p1 = target . lastIndexOf ( kw , fromIndex ) ;
+			if ( p1 < 0 ) return p1 ;
+			if ( isWordMatch ( target , kw , p1 , word ) >= 0 ) return p1 ;
+			fromIndex = p1 -1 ;
+			if ( fromIndex < 0 ) return -1 ;
 		}
-		return isWordMatch ( input , kw , input . toString ( ) . lastIndexOf ( kw , start ) , word ) ;
 	}
 
-	private static int indexOfLast ( CharSequence t , boolean ignoreCase , String s ,
-		int x , boolean word ) {
-		if ( ! ignoreCase )
-		return indexOfLast ( t , s , x , word ) ;
-		else
-		return indexOfLast ( t . toString ( ) . toLowerCase ( ) , s , x , word ) ;
+	private static int indexOfLast ( CharSequence t , boolean ignoreCase , String s , int x , boolean word ) {
+		if ( ! ignoreCase ) return indexOfLast ( t , s , x , word ) ;
+		else return indexOfLast ( t . toString ( ) . toLowerCase ( ) , s , x , word ) ;
 	}
 
 	private static int indexOfSeq ( CharSequence t , boolean ignoreCase , String s , int x , boolean word ) {
-		if ( ! ignoreCase )
-		return FindAndReplace . indexOfSeq ( t , s , x , word ) ;
+		if ( ! ignoreCase ) return FindAndReplace . indexOfSeq ( t , s , x , word ) ;
 		else {
 			String t2 = t . toString ( ) . toLowerCase ( ) ;
 			return FindAndReplace . indexOfSeq ( t2 , s , x , word ) ;
@@ -424,27 +422,26 @@ class FindAndReplace {
 	}
 
 	public static int indexOfSeq ( CharSequence input , String kw , int start , boolean word ) {
-		if ( input instanceof StringBuilder ) {
-			StringBuilder text = ( StringBuilder ) input ;
-			return isWordMatch ( text , kw , text . indexOf ( kw , start ) , word ) ;
+		String target = input . toString ( ) ;
+		int fromIndex = start ;
+		while ( true ) {
+			int p1 = target . indexOf ( kw , fromIndex ) ;
+			if ( p1 < 0 ) return p1 ;
+			if ( isWordMatch ( target , kw , p1 , word ) >= 0 ) return p1 ;
+			fromIndex = p1 + kw . length ( ) ;
+			if ( fromIndex >= target . length ( ) ) return -1 ;
 		}
-		return isWordMatch ( input , kw , input . toString ( ) . indexOf ( kw , start ) , word ) ;
 	}
 
 	private static boolean isIdChar ( char c ) {
 		return c == '_' || c == '$' || Character . isAlphabetic ( c )
 		|| Character . isDigit ( c ) ;
 	}
-
-	private static int isWordMatch ( CharSequence t , String s , int p ,
-		boolean word ) {
-		if ( ! word || p < 0 )
-		return p ;
-		if ( p > 0 && isIdChar ( t . charAt ( p - 1 ) ) )
-		return -1 ;
+	private static int isWordMatch ( CharSequence t , String s , int p , boolean word ) {
+		if ( ! word || p <= 0 ) return p ;
+		if ( isIdChar ( t . charAt ( p - 1 ) ) ) return -1 ;
 		int q = p + s . length ( ) ;
-		if ( q < t . length ( ) && isIdChar ( t . charAt ( q ) ) )
-		return -1 ;
+		if ( q < t . length ( ) && isIdChar ( t . charAt ( q ) ) ) return -1 ;
 		return p ;
 	}
 
@@ -531,7 +528,7 @@ class FindAndReplace {
 		if ( word )
 		cntInfo += " in word mode" ;
 		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format (
-					"[find](%s)'%s' in %s '%s'%s %s #%s" , all . size ( ) , text , type ,
+					"[find]'%s'(%s) in %s '%s'%s %s #%s" , text , all . size ( ) , type ,
 					name , withFilter , cntInfo , U . randomID ( ) ) ) , pp ) ;
 		List < CharSequence > sbs = new ArrayList < > ( ) ;
 		sbs . add ( new StringBuilder (
@@ -540,7 +537,7 @@ class FindAndReplace {
 		for ( Object o : all )
 		sbs . add ( o . toString ( ) ) ;
 		p2 . pageData . resetLines ( sbs ) ;
-		p2 . searchResultOf = name ;
+		p2 . pageData . searchResultOf = name ;
 		//		gc();
 	}
 
@@ -623,6 +620,6 @@ class FindAndReplace {
 		if ( t . length ( ) > 0 )
 		findWindow . jta1 . setText ( t ) ;
 		findWindow . show ( ) ;
-		findWindow . jta1 . grabFocus ( ) ;
+		findWindow . jta1 . requestFocusInWindow ( ) ;
 	}
 }

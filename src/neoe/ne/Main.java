@@ -10,7 +10,6 @@ public class Main {
 		return ;
 		else
 		init = true ;
-
 		Conf . setDefaultLookAndFeel ( ) ;
 		Conf . setDefaultBKColor ( ) ;
 		Conf . initKeys ( ) ;
