@@ -76,6 +76,7 @@
 		[ readonlyMode alt-R etc "navigate mode" ]
 		[ moveUpLangLevel alt-BACK_SPACE cursor "move to up level of c-like source" ]
 		[ listDoc ctrl-alt-TAB page "list all opened documents" ]
+		[ toggleShrinkWord ctrl-alt-S etc "toggle ShrinkWord mode"]
 	]
 	color : {
 		defaultBackgroundColor : 0x87a96b
@@ -112,6 +113,10 @@
 	]
 
 	tabWidthInPixel : 20
+	
+	shrinkWordRate : 0.62
+	shrinkWordLen : 7
+	
 	lookAndFeel : ""
 	KEY_TEXT_ANTIALIASING : VALUE_TEXT_ANTIALIAS_ON
 	frameSize : [ 800 600 ]

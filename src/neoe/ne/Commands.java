@@ -81,5 +81,6 @@ public enum Commands {
 	readonlyMode ,
 	moveUpLangLevel ,
 	openFileSelector ,
-	toggleFollowExec
+	toggleFollowExec ,
+	toggleShrinkWord
 }

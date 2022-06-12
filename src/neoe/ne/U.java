@@ -2,20 +2,14 @@ package neoe . ne ;
 
 import java . awt . BorderLayout ;
 import java . awt . Color ;
-import java . awt . Container ;
 import java . awt . Desktop ;
 import java . awt . Dimension ;
 import java . awt . Font ;
 import java . awt . FontMetrics ;
-import java . awt . Graphics ;
 import java . awt . Graphics2D ;
 import java . awt . GraphicsEnvironment ;
 import java . awt . Image ;
-import java . awt . Point ;
-import java . awt . Rectangle ;
-import java . awt . RenderingHints ;
 import java . awt . Toolkit ;
-import java . awt . Window ;
 import java . awt . datatransfer . Clipboard ;
 import java . awt . datatransfer . DataFlavor ;
 import java . awt . datatransfer . StringSelection ;
@@ -24,11 +18,6 @@ import java . awt . event . ActionEvent ;
 import java . awt . event . ActionListener ;
 import java . awt . event . KeyEvent ;
 import java . awt . image . BufferedImage ;
-import java . awt . print . Book ;
-import java . awt . print . PageFormat ;
-import java . awt . print . Printable ;
-import java . awt . print . PrinterException ;
-import java . awt . print . PrinterJob ;
 import java . io . BufferedOutputStream ;
 import java . io . BufferedReader ;
 import java . io . BufferedWriter ;
@@ -43,17 +32,14 @@ import java . io . OutputStreamWriter ;
 import java . io . PrintWriter ;
 import java . io . Reader ;
 import java . io . StringWriter ;
-import java . io . UnsupportedEncodingException ;
+import java . io . ObjectInputFilter . Config ;
 import java . lang . reflect . Field ;
 import java . net . URI ;
-import java . nio . file . Files ;
 import java . text . SimpleDateFormat ;
 import java . util . ArrayList ;
 import java . util . Arrays ;
 import java . util . Collections ;
-import java . util . Comparator ;
 import java . util . Date ;
-import java . util . Enumeration ;
 import java . util . HashMap ;
 import java . util . HashSet ;
 import java . util . LinkedHashMap ;
@@ -63,10 +49,10 @@ import java . util . Map ;
 import java . util . Map . Entry ;
 import java . util . Random ;
 import java . util . Set ;
-import java . util . stream . Collectors ;
 import java . util . zip . GZIPInputStream ;
 import java . util . zip . GZIPOutputStream ;
 import java . util . zip . ZipException ;
+
 import javax . imageio . ImageIO ;
 import javax . swing . BoxLayout ;
 import javax . swing . JButton ;
@@ -77,11 +63,9 @@ import javax . swing . JInternalFrame ;
 import javax . swing . JOptionPane ;
 import javax . swing . JPanel ;
 import javax . swing . TransferHandler ;
-import javax . swing . UIDefaults ;
-import javax . swing . UIManager ;
+
 import neoe . ne . PlainPage . Paint ;
 import neoe . ne . Plugin . PluginAction ;
-import neoe . ne . util . FileIterator ;
 import neoe . ne . util . FileUtil ;
 import neoe . ne . util . PyData ;
 
@@ -122,16 +106,13 @@ public class U {
 		ep . openWindow ( ) ;
 		else {
 			// U.e_png, parentUI, frame, frame, null
-			JInternalFrame neframe
-			= new JInternalFrame ( "ne" , true , true , true , true ) ;
-			ep . openWindow ( U . e_png , neframe , uiComp . realJFrame ,
-				uiComp . desktopPane ) ;
+			JInternalFrame neframe = new JInternalFrame ( "ne" , true , true , true , true ) ;
+			ep . openWindow ( U . e_png , neframe , uiComp . realJFrame , uiComp . desktopPane ) ;
 			uiComp . desktopPane . add ( neframe ) ;
 			neframe . setVisible ( true ) ;
 			int fc = uiComp . desktopPane . getAllFrames ( ) . length ;
 			JInternalFrame p1 = ( JInternalFrame ) uiComp . frame ;
-			neframe . setLocation ( p1 . getLocation ( ) . x + 5 * fc ,
-				p1 . getLocation ( ) . y + 5 * fc ) ;
+			neframe . setLocation ( p1 . getLocation ( ) . x + 5 * fc , p1 . getLocation ( ) . y + 5 * fc ) ;
 			neframe . setLayer ( p1 . getLayer ( ) ) ;
 			neframe . setSize ( p1 . getSize ( ) ) ;
 			neframe . setSelected ( true ) ;
@@ -142,12 +123,20 @@ public class U {
 	}
 
 	public static void save ( List < String > ss , String encoding , String fn ) throws IOException {
-		OutputStream out = new BufferedOutputStream ( new FileOutputStream ( fn ) , 8192 * 16 ) ;
+		String fn0 = fn + "." + randomID ( ) ;
+		OutputStream out = new BufferedOutputStream ( new FileOutputStream ( fn0 ) , 8192 * 16 ) ;
+		boolean second = false ;
 		for ( String s : ss ) {
-			out . write ( s . getBytes ( encoding ) ) ;
+			if ( second )
 			out . write ( '\n' ) ;
+			else
+			second = true ;
+			out . write ( s . getBytes ( encoding ) ) ;
 		}
 		out . close ( ) ;
+		File f = new File ( fn ) ;
+		f . delete ( ) ;
+		new File ( fn0 ) . renameTo ( f ) ;
 	}
 
 	public static void setEnv ( PlainPage pp , String k , String v ) {
@@ -192,7 +181,6 @@ public class U {
 			if ( ! his . isEmpty ( ) )
 			// last = his.getLast().toString();
 			his . set ( his . size ( ) - 1 , updateCurrent ) ; // System.out.println("[d]" + last + "=>" + updateCurrent);
-
 			his . add ( loc ) ;
 			pos = his . size ( ) - 1 ;
 			// System.out.printf("his.add size=%s, pos=%s\n", his.size(), pos);
@@ -204,8 +192,7 @@ public class U {
 		}
 	}
 
-	static void drawStringShrink ( Graphics2D g2 , FontList fontList , String s ,
-		int x , int y , float maxWidth ) {
+	static void drawStringShrink ( Graphics2D g2 , FontList fontList , String s , int x , int y , float maxWidth ) {
 		int max = Math . round ( maxWidth ) ;
 		int width = stringWidth ( g2 , fontList , s , max ) ;
 		if ( width <= max )
@@ -240,10 +227,15 @@ public class U {
 		return stringWidth ( g2 , fonts , s , 8000 ) ;
 	}
 
+	public static int drawString ( Graphics2D g2 , FontList fonts , String s , int x , int y , int maxWidth ) {
+		return drawString ( g2 , fonts , s , x , y , maxWidth , true ) ;
+	}
+
 	/**
 	 * no TAB needed to care here
 	 */
-	public static int drawString ( Graphics2D g2 , FontList fonts , String s , int x , int y , int maxWidth ) {
+	public static int drawString ( Graphics2D g2 , FontList fonts , String s , int x , int y , int maxWidth ,
+		boolean isRealDraw ) {
 		if ( s == null || s . length ( ) <= 0 )
 		return 0 ;
 
@@ -261,7 +253,7 @@ public class U {
 				sb . append ( c ) ;
 				w1 += w0 ;
 			} else {
-				w1 = submitStr ( g2 , cf , sb . toString ( ) , x , y ) ;
+				w1 = submitStr ( g2 , cf , sb . toString ( ) , x , y , isRealDraw ) ;
 				x += w1 ;
 				w += w1 ;
 				w1 = w0 ;
@@ -274,17 +266,17 @@ public class U {
 			break ;
 		}
 		if ( sb . length ( ) > 0 ) {
-			w1 = submitStr ( g2 , cf , sb . toString ( ) , x , y ) ;
+			w1 = submitStr ( g2 , cf , sb . toString ( ) , x , y , isRealDraw ) ;
 			w += w1 ;
 		}
 
 		return w ;
 	}
 
-	public static int exactRemainChar ( Graphics2D g2 , FontList fonts , String s ,
-		int maxWidth ) {
+	public static int exactRemainChar ( Graphics2D g2 , FontList fonts , String s , int maxWidth ) {
 		if ( s == null || s . length ( ) <= 0 )
 		return 0 ;
+		maxWidth /= getShrinkRate ( s ) ;
 		int [ ] wc = new int [ 1 ] ;
 		// draw separated by fonts
 		int w = 0 ;
@@ -321,23 +313,47 @@ public class U {
 		return wc [ 0 ] ;
 	}
 
-	private static int submitStrNoDraw ( Graphics2D g2 , Font cf , String s ,
-		int width , int [ ] wc ) {
-		if ( s . isEmpty ( ) )
+	public static int exactRemainCharWidth ( Graphics2D g2 , FontList fonts , String s , int maxlen ) {
+		if ( s == null || s . length ( ) <= 0 )
 		return 0 ;
-		g2 . setFont ( cf ) ;
-		// g2.drawString(s, x, y);
-		FontMetrics fm = g2 . getFontMetrics ( ) ;
-		int w = fm . stringWidth ( s ) ;
-		if ( w <= width )
-		wc [ 0 ] += s . length ( ) ;
-		else
-		wc [ 0 ] += tryStrWidth ( fm , s , width , s . length ( ) / 2 , 0 , s . length ( ) , 0 ) ;
-		return w ;
+		float rate = getShrinkRate ( s ) ;
+		s = s . substring ( 0 , maxlen ) ;
+		int [ ] wc = new int [ 1 ] ;
+		// draw separated by fonts
+		int w = 0 ;
+		Font cf = fonts . font [ 0 ] ;
+		StringBuilder sb = new StringBuilder ( ) ;
+		int w1 = 0 ;
+		int i = 0 ;
+		int x = 0 ;
+		final int MW = 10000 ;
+		Font [ ] fo = new Font [ 1 ] ;
+		while ( i < s . length ( ) ) {
+			char c = s . charAt ( i ) ;
+			int w0 = charWidth ( g2 , fonts , c , fo ) ;
+			if ( cf . equals ( fo [ 0 ] ) ) {
+				sb . append ( c ) ;
+				w1 += w0 ;
+			} else {
+				w1 = submitStrNoDraw ( g2 , cf , sb . toString ( ) , MW , wc ) ;
+				x += w1 ;
+				w += w1 ;
+				w1 = w0 ;
+				sb . setLength ( 0 ) ;
+				sb . append ( c ) ;
+				cf = fo [ 0 ] ;
+			}
+			i ++ ;
+		}
+		if ( sb . length ( ) > 0 ) {
+			w1 = submitStrNoDraw ( g2 , cf , sb . toString ( ) , MW , wc ) ;
+			w += w1 ;
+		}
+
+		return Math . round ( w * rate ) ;
 	}
 
-	static int tryStrWidth ( FontMetrics fm , String s , int width , int n , int a ,
-		int b , int safe ) {
+	static int tryStrWidth ( FontMetrics fm , String s , int width , int n , int a , int b , int safe ) {
 		if ( n <= a )
 		return a ;
 		if ( n >= b )
@@ -346,7 +362,7 @@ public class U {
 			System . out . println ( "bug in tryStrWidth()!" ) ;
 			return n ;
 		}
-		int w = fm . stringWidth ( s . substring ( 0 , n ) ) ;
+		int w = fm . stringWidth ( s . substring ( 0 , n ) ) ; // shrinked(fm, s.substring(0, n));
 		if ( w < width )
 		return tryStrWidth ( fm , s , width , ( n + b ) / 2 , n , b , safe + 1 ) ;
 		else if ( w > width )
@@ -355,18 +371,76 @@ public class U {
 		return n ;
 	}
 
-	private static int submitStr ( Graphics2D g2 , Font cf , String s , int x , int y ) {
+	private static int shrinked ( FontMetrics fm , String s ) {
+		if ( s == null || s . isEmpty ( ) )
+		return 0 ;
+		return Math . round ( getShrinkRate ( s ) * fm . stringWidth ( s ) ) ;
+	}
+
+	private static float getShrinkRate ( String s ) {
+		if ( s == null || s . isEmpty ( ) )
+		return 1 ;
+		if ( ! U . shrinkWord || s . length ( ) < shrinkWordLen )
+		return 1 ;
+		return shrinkRate ;
+	}
+
+	public static void initShrink ( ) {
+		if ( shrinkRate <= 0 ) {
+			try {
+				shrinkRate = Float . parseFloat ( Conf . get ( "shrinkWordRate" , "0.5" ) . toString ( ) ) ;
+				shrinkWordLen = Integer . parseInt ( Conf . get ( "shrinkWordLen" , "7" ) . toString ( ) ) ;
+			} catch ( Exception e ) {
+				shrinkRate = 0.5f ;
+				shrinkWordLen = 7 ;
+			}
+		}
+	}
+
+	static float shrinkRate = 0 ;
+	static int shrinkWordLen ;
+
+	private static int submitStr ( Graphics2D g2 , Font cf , String s , int x , int y , boolean isRealDraw ) {
 		if ( s . isEmpty ( ) )
 		return 0 ;
-
 		g2 . setFont ( cf ) ;
+
+		if ( isRealDraw )
+		shrinkDraw ( g2 , s , x , y ) ;
+		return shrinked ( g2 . getFontMetrics ( ) , s ) ;
+	}
+
+	private static void shrinkDraw ( Graphics2D g2 , String s , int x , int y ) {
+		if ( s == null || s . isEmpty ( ) )
+		return ;
+		if ( ! U . shrinkWord || s . length ( ) < shrinkWordLen )
 		g2 . drawString ( s , x , y ) ;
-		return g2 . getFontMetrics ( ) . stringWidth ( s ) ;
+		else {
+			Graphics2D gshr = ( Graphics2D ) g2 . create ( ) ;
+			gshr . translate ( x , y ) ;
+			gshr . scale ( shrinkRate , 1 ) ;
+			gshr . drawString ( s , 0 , 0 ) ;
+			gshr . dispose ( ) ;
+		}
+	}
+
+	private static int submitStrNoDraw ( Graphics2D g2 , Font cf , String s , int width , int [ ] wc ) {
+		if ( s . isEmpty ( ) )
+		return 0 ;
+		g2 . setFont ( cf ) ;
+		// g2.drawString(s, x, y);
+		FontMetrics fm = g2 . getFontMetrics ( ) ;
+		int w = fm . stringWidth ( s ) ; // shrinked(fm, s);
+		if ( w <= width )
+		wc [ 0 ] += s . length ( ) ;
+		else
+		wc [ 0 ] += tryStrWidth ( fm , s , width , s . length ( ) / 2 , 0 , s . length ( ) , 0 ) ;
+		return w ;
 	}
 
 	/*
-   * use first font, if cannot display character in that font , use second,
-   * and so on
+	 * use first font, if cannot display character in that font , use second, and so
+	 * on
 	 */
 	public static int stringWidth ( Graphics2D g2 , FontList fonts , String s , int maxw ) {
 		int w = 0 ;
@@ -425,10 +499,8 @@ public class U {
 		return charWidth ( g2 , fonts , c , null ) ;
 	}
 
-	public static int charWidth ( Graphics2D g2 , FontList fonts , char c ,
-		Font [ ] fo ) {
-		Object [ ] row
-		= c < 256 ? fonts . charWidthCaches256 [ c ] : fonts . charWidthCaches . get ( c ) ;
+	public static int charWidth ( Graphics2D g2 , FontList fonts , char c , Font [ ] fo ) {
+		Object [ ] row = c < 256 ? fonts . charWidthCaches256 [ c ] : fonts . charWidthCaches . get ( c ) ;
 		if ( row == null ) {
 			row = genCharWidthCaches ( g2 , c , fonts ) ;
 			if ( c < 256 )
@@ -501,8 +573,7 @@ public class U {
 			return false ;
 			Transferable t = support . getTransferable ( ) ;
 			try {
-				List < File > l
-				= ( List < File > ) t . getTransferData ( DataFlavor . javaFileListFlavor ) ;
+				List < File > l = ( List < File > ) t . getTransferData ( DataFlavor . javaFileListFlavor ) ;
 				for ( File f : l )
 				if ( f . isFile ( ) )
 				try {
@@ -522,8 +593,7 @@ public class U {
 	public static class UnicodeFormatter {
 		static public String byteToHex ( byte b ) {
 			// Returns hex String representation of byte b
-			char hexDigit [ ] = { '0' , '1' , '2' , '3' , '4' , '5' , '6' , '7' ,
-				'8' , '9' , 'a' , 'b' , 'c' , 'd' , 'e' , 'f' } ;
+			char hexDigit [ ] = { '0' , '1' , '2' , '3' , '4' , '5' , '6' , '7' , '8' , '9' , 'a' , 'b' , 'c' , 'd' , 'e' , 'f' } ;
 			char [ ] array = { hexDigit [ ( b >> 4 ) & 0x0f ] , hexDigit [ b & 0x0f ] } ;
 			return new String ( array ) ;
 		}
@@ -536,8 +606,7 @@ public class U {
 		}
 	}
 
-	static final Object [ ] [ ] BOMS = new Object [ ] [ ] {
-		new Object [ ] { new int [ ] { 0xEF , 0xBB , 0xBF } , "UTF-8" } ,
+	static final Object [ ] [ ] BOMS = new Object [ ] [ ] { new Object [ ] { new int [ ] { 0xEF , 0xBB , 0xBF } , "UTF-8" } ,
 		new Object [ ] { new int [ ] { 0xFE , 0xFF } , "UTF-16BE" } ,
 		new Object [ ] { new int [ ] { 0xFF , 0xFE } , "UTF-16LE" } ,
 		new Object [ ] { new int [ ] { 0 , 0 , 0xFE , 0xFF } , "UTF-32BE" } ,
@@ -546,8 +615,7 @@ public class U {
 	static Map < String , Commands > keys ;
 	static Map < String , PluginAction > pluginKeys ;
 
-	public final static String [ ] KWS
-	= "ArithmeticError AssertionError AttributeError BufferType BuiltinFunctionType BuiltinMethodType ClassType CodeType ComplexType DeprecationWarning DictProxyType DictType DictionaryType EOFError EllipsisType EmitStreamVertex EmitVertex EndPrimitive EndStreamPrimitive EnvironmentError Err Exception False FileType FloatType FloatingPointError FrameType FunctionType GeneratorType IOError ImportError IndentationError IndexError InstanceType IntType KeyError KeyboardInterrupt LambdaType ListType LongType LookupError MemoryError MethodType ModuleType NameError None NoneType NotImplemented NotImplementedError OSError ObjectType OverflowError OverflowWarning ReferenceError RuntimeError RuntimeWarning Self SliceType StandardError StopIteration StringType StringTypes SyntaxError SyntaxWarning SystemError SystemExit TabError TracebackType True TupleType TypeError TypeType UnboundLocalError UnboundMethodType UnicodeError UnicodeType UserWarning ValueError Warning WindowsError XRangeType ZeroDivisionError __abs__ __add__ __all__ __author__ __bases__ __builtins__ __call__ __class__ __cmp__ __coerce__ __contains__ __debug__ __del__ __delattr__ __delitem__ __delslice__ __dict__ __div__ __divmod__ __doc__ __docformat__ __eq__ __file__ __float__ __floordiv__ __future__ __ge__ __getattr__ __getattribute__ __getitem__ __getslice__ __gt__ __hash__ __hex__ __iadd__ __import__ __imul__ __init__ __int__ __invert__ __iter__ __le__ __len__ __long__ __lshift__ __lt__ __members__ __metaclass__ __mod__ __mro__ __mul__ __name__ __ne__ __neg__ __new__ __nonzero__ __oct__ __or__ __path__ __pos__ __pow__ __radd__ __rdiv__ __rdivmod__ __reduce__ __repr__ __rfloordiv__ __rlshift__ __rmod__ __rmul__ __ror__ __rpow__ __rrshift__ __rsub__ __rtruediv__ __rxor__ __self__ __setattr__ __setitem__ __setslice__ __slots__ __str__ __sub__ __truediv__ __version__ __xor__ abs abstract acos acosh active all and any apply array as asc ascb ascw asin asinh asm assert async atan atanh atn atomicAdd atomicAnd atomicCompSwap atomicCounter atomicCounterDecrement atomicCounterIncrement atomicExchange atomicMax atomicMin atomicOr atomicXor atomic_uint attribute auto await barrier become bitCount bitfieldExtract bitfieldInsert bitfieldReverse bool boolean box break buffer bvec2 bvec3 bvec4 byref byte byval call callable case cast catch cbool cbyte ccur cdate cdbl ceil centroid char chr chrb chrw cint clamp class classmethod clng cmp coerce coherent common compile complex const continue cos cosh crate createobject cross csng cstr dFdx dFdy date dateadd datediff datepart dateserial datevalue day def default degrees del delattr determinant dict dim dir discard distance divmod dmat2 dmat2x2 dmat2x3 dmat2x4 dmat3 dmat3x2 dmat3x3 dmat3x4 dmat4 dmat4x2 dmat4x3 dmat4x4 do dot double dvec2 dvec3 dvec4 dyn each elif else elseif empty end enum enumerate equal erase error eval except exec execfile execute exit exp exp2 explicit extends extern external faceforward false file filter final finally findLSB findMSB fix fixed flat float floatBitsToInt floatBitsToUint floor fma fn for formatcurrency formatdatetime formatnumber formatpercent fract frexp from frozenset function fvec2 fvec3 fvec4 fwidth get getattr getobject getref gl_ClipDistance gl_FragCoord gl_FragDepth gl_FrontFacing gl_GlobalInvocationID gl_InstanceID gl_InvocationID gl_Layer gl_LocalInvocationID gl_LocalInvocationIndex gl_NumSamples gl_NumWorkGroups gl_PatchVerticesIn gl_PointCoord gl_PointSize gl_Position gl_PrimitiveID gl_PrimitiveIDIn gl_SampleID gl_SampleMask gl_SampleMaskIn gl_SamplePosition gl_TessCoord gl_TessLevelInner gl_TessLevelOuter gl_VertexID gl_ViewportIndex gl_WorkGroupID gl_WorkGroupSize global globals goto greaterThan greaterThanEqual groupMemoryBarrier half hasattr hash hex highp hour hvec2 hvec3 hvec4 id if iimage1D iimage1DArray iimage2D iimage2DArray iimage2DMS iimage2DMSArray iimage2DRect iimage3D iimageBuffer iimageCube iimageCubeArray image1D image1DArray image2D image2DArray image2DMS image2DMSArray image2DRect image3D imageAtomicAdd imageAtomicAnd imageAtomicCompSwap imageAtomicExchange imageAtomicMax imageAtomicMin imageAtomicOr imageAtomicXor imageBuffer imageCube imageCubeArray imageLoad imageSize imageStore imp impl implements import imulExtended in inline inout input inputbox instanceof instr instrb instrrev int intBitsToFloat interface intern interpolateAtCentroid interpolateAtOffset interpolateAtSample invariant inverse inversesqrt is isampler1D isampler1DArray isampler2D isampler2DArray isampler2DMS isampler2DMSArray isampler2DRect isampler3D isamplerBuffer isamplerCube isamplerCubeArray isarray isdate isempty isinf isinstance isnan isnull isnumeric isobject issubclass iter ivec2 ivec3 ivec4 join lambda layout lbound lcase ldexp left leftb len lenb length lessThan lessThanEqual let list loadpicture local locals log log2 long loop lowp ltrim macro map mat2 mat2x2 mat2x3 mat2x4 mat3 mat3x2 mat3x3 mat3x4 mat4 mat4x2 mat4x3 mat4x4 match matrixCompMult max mediump memoryBarrier memoryBarrierAtomicCounter memoryBarrierBuffer memoryBarrierImage memoryBarrierShared mid midb min minute mix mod modf month monthname move msgbox mut namespace native new next nil noinline noise noperspective normalize not notEqual nothing now null object oct on open option or ord out outerProduct output override packDouble2x32 packHalf2x16 packSnorm2x16 packSnorm4x8 packUnorm2x16 packUnorm4x8 package packed partition pass patch pow precision preserve print priv private property protected pub public radians raise randomize range raw_input readonly redim reduce ref reflect refract register reload rem repeat replace repr resource restrict resume return reversed rgb right rightb rnd round roundEven row_major rtrim sample sampler1D sampler1DArray sampler1DArrayShadow sampler1DShadow sampler2D sampler2DArray sampler2DArrayShadow sampler2DMS sampler2DMSArray sampler2DRect sampler2DRectShadow sampler2DShadow sampler3D sampler3DRect samplerBuffer samplerCube samplerCubeArray samplerCubeArrayShadow samplerCubeShadow scriptengine scriptenginebuildversion scriptenginemajorversion scriptengineminorversion second select self set setattr sgn shared short sign signed sin sinh sizeof slice smooth smoothstep sorted space split sqr sqrt static staticmethod step str strcomp strictfp string strreverse struct sub subroutine sum super superp switch synchronized tan tanh template texelFetch texelFetchOffset texture textureGather textureGatherOffset textureGatherOffsets textureGrad textureGradOffset textureLod textureLodOffset textureOffset textureProj textureProjGrad textureProjGradOffset textureProjLod textureProjLodOffset textureProjOffset textureQueryLevels textureQueryLod textureSize then this throw throws time timeserial timevalue to trait transient transpose trim true trunc try tuple type typedef typename typeof uaddCarry ubound ucase uimage1D uimage1DArray uimage2D uimage2DArray uimage2DMS uimage2DMSArray uimage2DRect uimage3D uimageBuffer uimageCube uimageCubeArray uint uintBitsToFloat umulExtended unichr unicode uniform union unpackDouble2x32 unpackHalf2x16 unpackSnorm2x16 unpackSnorm4x8 unpackUnorm2x16 unpackUnorm4x8 unsafe unsigned unsized until usampler1D usampler1DArray usampler2D usampler2DArray usampler2DMS usampler2DMSArray usampler2DRect usampler3D usamplerBuffer usamplerCube usamplerCubeArray use using usubBorrow uvec2 uvec3 uvec4 vars vartype varying vbAbort vbAbortRetryIgnore vbApplicationModal vbCancel vbCritical vbDefaultButton1 vbDefaultButton2 vbDefaultButton3 vbDefaultButton4 vbExclamation vbFalse vbGeneralDate vbIgnore vbInformation vbLongDate vbLongTime vbNo vbOK vbOKCancel vbOKOnly vbObjectError vbQuestion vbRetry vbRetryCancel vbShortDate vbShortTime vbSystemModal vbTrue vbUseDefault vbYes vbYesNo vbYesNoCancel vbarray vbblack vbblue vbboolean vbbyte vbcr vbcrlf vbcurrency vbcyan vbdataobject vbdate vbdecimal vbdouble vbempty vberror vbformfeed vbgreen vbinteger vblf vblong vbmagenta vbnewline vbnull vbnullchar vbnullstring vbobject vbred vbsingle vbstring vbtab vbvariant vbverticaltab vbwhite vbyellow vec2 vec3 vec4 virtual void volatile weekday weekdayname wend where while with writeonly xor xrange year yield zip"
+	public final static String [ ] KWS = "ArithmeticError AssertionError AttributeError BufferType BuiltinFunctionType BuiltinMethodType ClassType CodeType ComplexType DeprecationWarning DictProxyType DictType DictionaryType EOFError EllipsisType EmitStreamVertex EmitVertex EndPrimitive EndStreamPrimitive EnvironmentError Err Exception False FileType FloatType FloatingPointError FrameType FunctionType GeneratorType IOError ImportError IndentationError IndexError InstanceType IntType KeyError KeyboardInterrupt LambdaType ListType LongType LookupError MemoryError MethodType ModuleType NameError None NoneType NotImplemented NotImplementedError OSError ObjectType OverflowError OverflowWarning ReferenceError RuntimeError RuntimeWarning Self SliceType StandardError StopIteration StringType StringTypes SyntaxError SyntaxWarning SystemError SystemExit TabError TracebackType True TupleType TypeError TypeType UnboundLocalError UnboundMethodType UnicodeError UnicodeType UserWarning ValueError Warning WindowsError XRangeType ZeroDivisionError __abs__ __add__ __all__ __author__ __bases__ __builtins__ __call__ __class__ __cmp__ __coerce__ __contains__ __debug__ __del__ __delattr__ __delitem__ __delslice__ __dict__ __div__ __divmod__ __doc__ __docformat__ __eq__ __file__ __float__ __floordiv__ __future__ __ge__ __getattr__ __getattribute__ __getitem__ __getslice__ __gt__ __hash__ __hex__ __iadd__ __import__ __imul__ __init__ __int__ __invert__ __iter__ __le__ __len__ __long__ __lshift__ __lt__ __members__ __metaclass__ __mod__ __mro__ __mul__ __name__ __ne__ __neg__ __new__ __nonzero__ __oct__ __or__ __path__ __pos__ __pow__ __radd__ __rdiv__ __rdivmod__ __reduce__ __repr__ __rfloordiv__ __rlshift__ __rmod__ __rmul__ __ror__ __rpow__ __rrshift__ __rsub__ __rtruediv__ __rxor__ __self__ __setattr__ __setitem__ __setslice__ __slots__ __str__ __sub__ __truediv__ __version__ __xor__ abs abstract acos acosh active all and any apply array as asc ascb ascw asin asinh asm assert async atan atanh atn atomicAdd atomicAnd atomicCompSwap atomicCounter atomicCounterDecrement atomicCounterIncrement atomicExchange atomicMax atomicMin atomicOr atomicXor atomic_uint attribute auto await barrier become bitCount bitfieldExtract bitfieldInsert bitfieldReverse bool boolean box break buffer bvec2 bvec3 bvec4 byref byte byval call callable case cast catch cbool cbyte ccur cdate cdbl ceil centroid char chr chrb chrw cint clamp class classmethod clng cmp coerce coherent common compile complex const continue cos cosh crate createobject cross csng cstr dFdx dFdy date dateadd datediff datepart dateserial datevalue day def default degrees del delattr determinant dict dim dir discard distance divmod dmat2 dmat2x2 dmat2x3 dmat2x4 dmat3 dmat3x2 dmat3x3 dmat3x4 dmat4 dmat4x2 dmat4x3 dmat4x4 do dot double dvec2 dvec3 dvec4 dyn each elif else elseif empty end enum enumerate equal erase error eval except exec execfile execute exit exp exp2 explicit extends extern external faceforward false file filter final finally findLSB findMSB fix fixed flat float floatBitsToInt floatBitsToUint floor fma fn for formatcurrency formatdatetime formatnumber formatpercent fract frexp from frozenset function fvec2 fvec3 fvec4 fwidth get getattr getobject getref gl_ClipDistance gl_FragCoord gl_FragDepth gl_FrontFacing gl_GlobalInvocationID gl_InstanceID gl_InvocationID gl_Layer gl_LocalInvocationID gl_LocalInvocationIndex gl_NumSamples gl_NumWorkGroups gl_PatchVerticesIn gl_PointCoord gl_PointSize gl_Position gl_PrimitiveID gl_PrimitiveIDIn gl_SampleID gl_SampleMask gl_SampleMaskIn gl_SamplePosition gl_TessCoord gl_TessLevelInner gl_TessLevelOuter gl_VertexID gl_ViewportIndex gl_WorkGroupID gl_WorkGroupSize global globals goto greaterThan greaterThanEqual groupMemoryBarrier half hasattr hash hex highp hour hvec2 hvec3 hvec4 id if iimage1D iimage1DArray iimage2D iimage2DArray iimage2DMS iimage2DMSArray iimage2DRect iimage3D iimageBuffer iimageCube iimageCubeArray image1D image1DArray image2D image2DArray image2DMS image2DMSArray image2DRect image3D imageAtomicAdd imageAtomicAnd imageAtomicCompSwap imageAtomicExchange imageAtomicMax imageAtomicMin imageAtomicOr imageAtomicXor imageBuffer imageCube imageCubeArray imageLoad imageSize imageStore imp impl implements import imulExtended in inline inout input inputbox instanceof instr instrb instrrev int intBitsToFloat interface intern interpolateAtCentroid interpolateAtOffset interpolateAtSample invariant inverse inversesqrt is isampler1D isampler1DArray isampler2D isampler2DArray isampler2DMS isampler2DMSArray isampler2DRect isampler3D isamplerBuffer isamplerCube isamplerCubeArray isarray isdate isempty isinf isinstance isnan isnull isnumeric isobject issubclass iter ivec2 ivec3 ivec4 join lambda layout lbound lcase ldexp left leftb len lenb length lessThan lessThanEqual let list loadpicture local locals log log2 long loop lowp ltrim macro map mat2 mat2x2 mat2x3 mat2x4 mat3 mat3x2 mat3x3 mat3x4 mat4 mat4x2 mat4x3 mat4x4 match matrixCompMult max mediump memoryBarrier memoryBarrierAtomicCounter memoryBarrierBuffer memoryBarrierImage memoryBarrierShared mid midb min minute mix mod modf month monthname move msgbox mut namespace native new next nil noinline noise noperspective normalize not notEqual nothing now null object oct on open option or ord out outerProduct output override packDouble2x32 packHalf2x16 packSnorm2x16 packSnorm4x8 packUnorm2x16 packUnorm4x8 package packed partition pass patch pow precision preserve print priv private property protected pub public radians raise randomize range raw_input readonly redim reduce ref reflect refract register reload rem repeat replace repr resource restrict resume return reversed rgb right rightb rnd round roundEven row_major rtrim sample sampler1D sampler1DArray sampler1DArrayShadow sampler1DShadow sampler2D sampler2DArray sampler2DArrayShadow sampler2DMS sampler2DMSArray sampler2DRect sampler2DRectShadow sampler2DShadow sampler3D sampler3DRect samplerBuffer samplerCube samplerCubeArray samplerCubeArrayShadow samplerCubeShadow scriptengine scriptenginebuildversion scriptenginemajorversion scriptengineminorversion second select self set setattr sgn shared short sign signed sin sinh sizeof slice smooth smoothstep sorted space split sqr sqrt static staticmethod step str strcomp strictfp string strreverse struct sub subroutine sum super superp switch synchronized tan tanh template texelFetch texelFetchOffset texture textureGather textureGatherOffset textureGatherOffsets textureGrad textureGradOffset textureLod textureLodOffset textureOffset textureProj textureProjGrad textureProjGradOffset textureProjLod textureProjLodOffset textureProjOffset textureQueryLevels textureQueryLod textureSize then this throw throws time timeserial timevalue to trait transient transpose trim true trunc try tuple type typedef typename typeof uaddCarry ubound ucase uimage1D uimage1DArray uimage2D uimage2DArray uimage2DMS uimage2DMSArray uimage2DRect uimage3D uimageBuffer uimageCube uimageCubeArray uint uintBitsToFloat umulExtended unichr unicode uniform union unpackDouble2x32 unpackHalf2x16 unpackSnorm2x16 unpackSnorm4x8 unpackUnorm2x16 unpackUnorm4x8 unsafe unsigned unsized until usampler1D usampler1DArray usampler2D usampler2DArray usampler2DMS usampler2DMSArray usampler2DRect usampler3D usamplerBuffer usamplerCube usamplerCubeArray use using usubBorrow uvec2 uvec3 uvec4 vars vartype varying vbAbort vbAbortRetryIgnore vbApplicationModal vbCancel vbCritical vbDefaultButton1 vbDefaultButton2 vbDefaultButton3 vbDefaultButton4 vbExclamation vbFalse vbGeneralDate vbIgnore vbInformation vbLongDate vbLongTime vbNo vbOK vbOKCancel vbOKOnly vbObjectError vbQuestion vbRetry vbRetryCancel vbShortDate vbShortTime vbSystemModal vbTrue vbUseDefault vbYes vbYesNo vbYesNoCancel vbarray vbblack vbblue vbboolean vbbyte vbcr vbcrlf vbcurrency vbcyan vbdataobject vbdate vbdecimal vbdouble vbempty vberror vbformfeed vbgreen vbinteger vblf vblong vbmagenta vbnewline vbnull vbnullchar vbnullstring vbobject vbred vbsingle vbstring vbtab vbvariant vbverticaltab vbwhite vbyellow vec2 vec3 vec4 virtual void volatile weekday weekdayname wend where while with writeonly xor xrange year yield zip"
 	. split ( " " ) ;
 
 	public static List originKeys ;
@@ -560,8 +628,7 @@ public class U {
 
 	public static final char N = '\n' ;
 
-	static void addKey ( Map < String , Commands > keys , String key , String cmd )
-	throws Exception {
+	static void addKey ( Map < String , Commands > keys , String key , String cmd ) throws Exception {
 		String name = getKeyNameFromTextName ( key ) ;
 
 		Commands c1 ;
@@ -614,6 +681,7 @@ public class U {
 		thread . setDaemon ( true ) ;
 		thread . start ( ) ;
 	}
+
 	static boolean addTime = true ;
 
 	static void attach ( final PlainPage page , final InputStream std , String name ) {
@@ -624,21 +692,25 @@ public class U {
 				public void run ( ) {
 					try {
 						String enc = page . pageData . encoding ;
-						if ( enc == null ) enc = UTF8 ;
+						if ( enc == null )
+						enc = UTF8 ;
 						InputStream in = std ;
 						BufferedReader reader = new BufferedReader ( new InputStreamReader ( in , enc ) ) ;
 						long t1 = System . currentTimeMillis ( ) ;
 						String line = "<begin " + name + ">" ;
-						if ( addTime ) line = sdf1 . format ( new Date ( ) ) + line ;
+						if ( addTime )
+						line = sdf1 . format ( new Date ( ) ) + line ;
 						page . pageData . editRec . appendLine ( line ) ;
 						while ( true ) {
 							line = reader . readLine ( ) ;
-							if ( line == null ) break ;
-							if ( addTime ) line = sdf1 . format ( new Date ( ) ) + line ;
+							if ( line == null )
+							break ;
+							if ( addTime )
+							line = sdf1 . format ( new Date ( ) ) + line ;
 
 							page . pageData . editRec . appendLine ( line ) ;
 							if ( page . console != null && page . console . follow ) {
-								int y = page . pageData . roLines . getLinesize ( ) -1 ;
+								int y = page . pageData . roLines . getLinesize ( ) - 1 ;
 								page . cursor . setSafePos ( 0 , y ) ;
 								page . focusCursor ( ) ;
 							}
@@ -649,7 +721,8 @@ public class U {
 							}
 						}
 						line = "<end " + name + ">" ;
-						if ( addTime ) line = sdf1 . format ( new Date ( ) ) + line ;
+						if ( addTime )
+						line = sdf1 . format ( new Date ( ) ) + line ;
 						page . pageData . editRec . appendLine ( line ) ;
 
 						page . uiComp . repaint ( ) ;
@@ -673,10 +746,9 @@ public class U {
 		EditorPanel editor = page . uiComp ;
 		int opt = JOptionPane . YES_OPTION ;
 		if ( page . console != null ) {
-			//quiet
+			// quiet
 		} else if ( page . pageData . history . size ( ) != 0 ) {
-			opt = JOptionPane . showConfirmDialog (
-				editor , "Are you sure to SAVE and close?" , "Changes made" ,
+			opt = JOptionPane . showConfirmDialog ( editor , "Are you sure to SAVE and close?" , "Changes made" ,
 				JOptionPane . YES_NO_CANCEL_OPTION , JOptionPane . QUESTION_MESSAGE ) ;
 
 			if ( opt == JOptionPane . CANCEL_OPTION || opt == -1 )
@@ -690,12 +762,12 @@ public class U {
 		page . close ( ) ;
 	}
 
-	static int drawTwoColor ( Graphics2D g2 , FontList fonts , String s , int x , int y ,
-		Color c1 , Color c2 , int d , int maxw ) {
+	static int drawTwoColor ( Graphics2D g2 , FontList fonts , String s , int x , int y , Color c1 , Color c2 , int d , int maxw ,
+		boolean isRealDraw ) {
 		g2 . setColor ( c2 ) ;
-		int w = U . drawString ( g2 , fonts , s , x + d , y + d , maxw ) ;
+		int w = U . drawString ( g2 , fonts , s , x + d , y + d , maxw , isRealDraw ) ;
 		g2 . setColor ( c1 ) ;
-		U . drawString ( g2 , fonts , s , x , y , maxw ) ;
+		U . drawString ( g2 , fonts , s , x , y , maxw , isRealDraw ) ;
 		return w ;
 	}
 
@@ -719,26 +791,24 @@ public class U {
 		dir = new File ( "." ) ;
 		addCmdHistory ( cmd , dir . getAbsolutePath ( ) ) ;
 		Process proc = Runtime . getRuntime ( ) . exec ( splitCommand ( cmd ) , getEnv ( pp ) , dir ) ;
-		OutputStream out = null ; //proc . getOutputStream ( ) ;
+		OutputStream out = null ; // proc . getOutputStream ( ) ;
 		InputStream stdout = proc . getInputStream ( ) ;
 		InputStream stderr = proc . getErrorStream ( ) ;
 
-		PlainPage pp2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format ( "[cmd][%s] %s #%s" , dir . getAbsolutePath ( ) ,
-					cmd , U . randomID ( ) ) ) , pp ) ;
+		PlainPage pp2 = new PlainPage ( pp . uiComp ,
+			PageData . fromTitle ( String . format ( "[cmd][%s] %s #%s" , dir . getAbsolutePath ( ) , cmd , U . randomID ( ) ) ) , pp ) ;
 		pp2 . workPath = dir . getAbsolutePath ( ) ;
 		pp2 . ptSelection . selectAll ( ) ;
 
 		new Console ( cmd , out , stdout , stderr , proc , pp . uiComp , dir ) . start ( ) ;
 	}
 
-	private static void addCmdHistory ( String cmd , String path )
-	throws IOException {
+	private static void addCmdHistory ( String cmd , String path ) throws IOException {
 		String s = String . format ( "[%s] %s" , path , cmd ) ;
 		File ch = getCmdHistoryName ( ) ;
 		String old = FileUtil . readString ( new FileInputStream ( ch ) , null ) ;
 		List < String > his = Arrays . asList ( old . split ( "\n" ) ) ;
-		BufferedWriter out = new BufferedWriter (
-			new OutputStreamWriter ( new FileOutputStream ( ch ) , UTF8 ) ) ;
+		BufferedWriter out = new BufferedWriter ( new OutputStreamWriter ( new FileOutputStream ( ch ) , UTF8 ) ) ;
 		if ( ! his . contains ( s ) ) {
 			out . write ( s ) ;
 			out . write ( "\n" ) ;
@@ -771,10 +841,8 @@ public class U {
 	}
 
 	private static String [ ] splitCommand ( String cmd ) throws Exception {
-		if ( cmd . contains ( "*" ) || cmd . contains ( "~" )
-			|| cmd . contains ( "[" ) || cmd . contains ( "|" )
-			|| cmd . contains ( "&" ) || cmd . contains ( "$" )
-			|| cmd . contains ( ">" ) ) {
+		if ( cmd . contains ( "*" ) || cmd . contains ( "~" ) || cmd . contains ( "[" ) || cmd . contains ( "|" ) || cmd . contains ( "&" )
+			|| cmd . contains ( "$" ) || cmd . contains ( ">" ) ) {
 			return new String [ ] { "bash" , "-c" , cmd } ;
 		}
 		List list = ( List ) PyData . parseAll ( "[" + cmd + "]" , false , true ) ;
@@ -895,10 +963,8 @@ public class U {
 		return f ;
 	}
 
-	static int getHighLightID ( String s , Graphics2D g2 , Color colorKeyword ,
-		Color colorDigital , Color color ) {
-		if ( Arrays . binarySearch ( KWS , s ) >= 0
-			|| Arrays . binarySearch ( KWS , s . toLowerCase ( ) ) >= 0 )
+	static int getHighLightID ( String s , Graphics2D g2 , Color colorKeyword , Color colorDigital , Color color ) {
+		if ( Arrays . binarySearch ( KWS , s ) >= 0 || Arrays . binarySearch ( KWS , s . toLowerCase ( ) ) >= 0 )
 		g2 . setColor ( colorKeyword ) ;
 		else if ( isAllDigital ( s ) )
 		g2 . setColor ( colorDigital ) ;
@@ -911,8 +977,7 @@ public class U {
 		File installed = new File ( getMyDir ( ) , fn ) ;
 		if ( ! installed . exists ( ) )
 		try {
-			FileUtil . copy ( U . class . getResourceAsStream ( fn ) ,
-				new FileOutputStream ( installed ) ) ;
+			FileUtil . copy ( U . class . getResourceAsStream ( fn ) , new FileOutputStream ( installed ) ) ;
 		} catch ( IOException e ) {
 			e . printStackTrace ( ) ;
 			return getResourceReader ( fn ) ;
@@ -931,8 +996,7 @@ public class U {
 		List < CharSequence > ss = new ArrayList < > ( ) ;
 		Collections . sort ( ep . pageSet , ( a , b ) -> a . pageData . title . compareTo ( b . pageData . title ) ) ;
 		for ( PlainPage pp : ep . pageSet )
-		ss . add ( pp . pageData . title + "|" + ( pp . cy + 1 ) + ":"
-			+ " Edited:" + pp . pageData . history . size ( )
+		ss . add ( pp . pageData . title + "|" + ( pp . cy + 1 ) + ":" + " Edited:" + pp . pageData . history . size ( )
 			+ ( pp . pageData . encoding == null ? "" : " " + pp . pageData . encoding )
 			+ ( changedOutside ( pp . pageData ) ? " [Changed Outside!!]" : "" ) ) ;
 		return ss ;
@@ -981,8 +1045,7 @@ public class U {
 
 	static void guessComment ( PlainPage page ) {
 		List < String > comment = new ArrayList < String > ( ) ;
-		String [ ] commentchars = {
-			"/*" , "<!--" , "#" , "%" , "'" , "//" , "!" , ";" , "--" , } ;
+		String [ ] commentchars = { "/*" , "<!--" , "#" , "%" , "'" , "//" , "!" , ";" , "--" , } ;
 		int [ ] cnts = new int [ commentchars . length ] ;
 		int maxLines = Math . min ( 1000 , page . pageData . roLines . getLinesize ( ) ) ;
 		for ( int i = 0 ; i < maxLines ; i ++ ) {
@@ -1019,8 +1082,7 @@ public class U {
 		else {
 			// page.ui.message("comment found:" + comment);
 		}
-		page . pageData . comment
-		= comment == null ? null : comment . toArray ( new String [ comment . size ( ) ] ) ;
+		page . pageData . comment = comment == null ? null : comment . toArray ( new String [ comment . size ( ) ] ) ;
 		page . repaint ( ) ;
 	}
 
@@ -1100,8 +1162,7 @@ public class U {
 				len = in . read ( buf ) ;
 				in . close ( ) ;
 			}
-			return new String ( buf , 0 , len , "iso8859-1" ) . indexOf ( "\r\n" ) >= 0 ? "\r\n"
-			: "\n" ;
+			return new String ( buf , 0 , len , "iso8859-1" ) . indexOf ( "\r\n" ) >= 0 ? "\r\n" : "\n" ;
 		} catch ( Exception e ) {
 			return "\n" ;
 		}
@@ -1116,8 +1177,8 @@ public class U {
 
 	public static boolean isImageFile ( File f ) {
 		String fn = f . getName ( ) . toLowerCase ( ) ;
-		return ( fn . endsWith ( ".gif" ) || fn . endsWith ( ".jpg" ) || fn . endsWith ( ".png" )
-			|| fn . endsWith ( ".bmp" ) || fn . endsWith ( ".jpeg" ) || fn . endsWith ( ".tga" ) ) ;
+		return ( fn . endsWith ( ".gif" ) || fn . endsWith ( ".jpg" ) || fn . endsWith ( ".png" ) || fn . endsWith ( ".bmp" )
+			|| fn . endsWith ( ".jpeg" ) || fn . endsWith ( ".tga" ) ) ;
 	}
 
 	static boolean isSkipChar ( char ch , char ch1 ) {
@@ -1154,7 +1215,9 @@ public class U {
 	static boolean listDirOrOpenFile ( PlainPage page , int atLine ) throws Exception {
 		String line = page . pageData . roLines . getline ( atLine ) . toString ( ) ;
 		File f = findFile ( page . workPath , line ) ;
-		if ( f == null ) return false ;
+		if ( f == null )
+		return false ;
+		f = f . getCanonicalFile ( ) ;
 		if ( f . isFile ( ) && f . exists ( ) )
 		return page . uiComp . findAndShowPage ( f . getAbsolutePath ( ) , -1 , true ) ;
 		if ( f . isDirectory ( ) ) {
@@ -1221,8 +1284,7 @@ public class U {
 	public static void listFonts ( PlainPage pp ) throws Exception {
 		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( "[Fonts]" ) , pp ) ;
 		List < CharSequence > sbs = new ArrayList < > ( ) ;
-		String fonts [ ] = GraphicsEnvironment . getLocalGraphicsEnvironment ( )
-		. getAvailableFontFamilyNames ( ) ;
+		String fonts [ ] = GraphicsEnvironment . getLocalGraphicsEnvironment ( ) . getAvailableFontFamilyNames ( ) ;
 		for ( String font : fonts )
 		sbs . add ( "set-font:" + font ) ;
 		p2 . pageData . resetLines ( sbs ) ;
@@ -1232,15 +1294,15 @@ public class U {
 		BufferedImage img = ImageIO . read ( U . class . getResourceAsStream ( "/icontab.png" ) ) ;
 		tabImg = img . getScaledInstance ( TAB_WIDTH , 8 , Image . SCALE_SMOOTH ) ;
 		tabImgPrint = img . getScaledInstance ( TAB_WIDTH , 8 , Image . SCALE_SMOOTH ) ;
+		initShrink ( ) ;
 	}
 
 	public static Commands mappingToCommand ( KeyEvent env ) {
 		int kc = env . getKeyCode ( ) ;
-		if ( kc == KeyEvent . VK_SHIFT || kc == KeyEvent . VK_CONTROL
-			|| kc == KeyEvent . VK_ALT ) // fast pass
+		if ( kc == KeyEvent . VK_SHIFT || kc == KeyEvent . VK_CONTROL || kc == KeyEvent . VK_ALT ) // fast pass
 		return null ;
 		String name = getKeyName ( env ) ;
-		//		System.out.println("key name=" + name);
+		// System.out.println("key name=" + name);
 		Commands cmd = keys . get ( name ) ;
 		return cmd ;
 	}
@@ -1259,7 +1321,7 @@ public class U {
 			other = true ;
 		}
 		if ( other && kt . length ( ) == 1 && evt . isShiftDown ( ) ) {
-			//			name = "S" + name;
+			// name = "S" + name;
 		}
 		return name ;
 	}
@@ -1357,8 +1419,7 @@ public class U {
 		}
 	}
 
-	static List < CharSequence > readFileForEditor ( String fn , String encoding ,
-		PageData data ) {
+	static List < CharSequence > readFileForEditor ( String fn , String encoding , PageData data ) {
 		try {
 			// System.out.println("read file:" + fn + " encoding=" + encoding);
 			List < String > ls ;
@@ -1381,7 +1442,7 @@ public class U {
 			pp . ui . message ( "file not saved." ) ;
 			return ;
 		}
-		//need save changes?
+		// need save changes?
 		if ( setEncodingByUser ( pp , "Reload with Encoding:" ) )
 		pp . pageData . reloadFile ( ) ;
 	}
@@ -1467,8 +1528,7 @@ public class U {
 		f . setVisible ( true ) ;
 	}
 
-	static void runScript ( final PlainPage ppTarget , String script )
-	throws Exception {
+	static void runScript ( final PlainPage ppTarget , String script ) throws Exception {
 		ReadonlyLines lines = ppTarget . pageData . roLines ;
 		List < CharSequence > export = new ArrayList < > ( ) ;
 		{
@@ -1485,16 +1545,13 @@ public class U {
 		int returnVal = chooser . showSaveDialog ( editor ) ;
 		if ( returnVal == JFileChooser . APPROVE_OPTION ) {
 			String fn = chooser . getSelectedFile ( ) . getAbsolutePath ( ) ;
-			if ( new File ( fn ) . exists ( )
-				&& JOptionPane . YES_OPTION
-				!= JOptionPane . showConfirmDialog (
-					editor , "file exists, are you sure to overwrite?" ,
-					"save as..." , JOptionPane . YES_NO_OPTION ) ) {
+			if ( new File ( fn ) . exists ( ) && JOptionPane . YES_OPTION != JOptionPane . showConfirmDialog ( editor ,
+					"file exists, are you sure to overwrite?" , "save as..." , JOptionPane . YES_NO_OPTION ) ) {
 				page . ui . message ( "not renamed" ) ;
 				return ;
 			}
 			page . pageData . renameTo ( fn ) ;
-			U . saveFileHistory ( fn , page . cy + 1 ) ;
+			U . saveFileHistory ( fn , page . cy ) ;
 			editor . changeTitle ( ) ;
 			page . ui . message ( "file renamed" ) ;
 			savePageToFile ( page ) ;
@@ -1506,12 +1563,9 @@ public class U {
 			String fn0 = page . pageData . title ;
 			if ( ! page . pageData . changedOutside && new File ( fn0 ) . lastModified ( ) > page . pageData . fileLastModified )
 			page . pageData . changedOutside = true ;
-			if ( page . pageData . changedOutside
-				&& JOptionPane . YES_OPTION
-				!= JOptionPane . showConfirmDialog (
-					page . uiComp ,
-					"File Changed Outside!! Do you really want to overwrite it?" ,
-					"File Changed Outside!!" , JOptionPane . YES_NO_OPTION ) ) {
+			if ( page . pageData . changedOutside && JOptionPane . YES_OPTION != JOptionPane . showConfirmDialog ( page . uiComp ,
+					"File Changed Outside!! Do you really want to overwrite it?" , "File Changed Outside!!" ,
+					JOptionPane . YES_NO_OPTION ) ) {
 				page . ui . message ( "saved canceled" ) ;
 				return false ;
 			}
@@ -1524,9 +1578,8 @@ public class U {
 
 			String fn = chooser . getSelectedFile ( ) . getAbsolutePath ( ) ;
 			if ( new File ( fn ) . exists ( ) )
-			if ( JOptionPane . YES_OPTION != JOptionPane . showConfirmDialog (
-					page . uiComp , "Are you sure to overwrite?" , "File exists" ,
-					JOptionPane . YES_NO_OPTION ) ) {
+			if ( JOptionPane . YES_OPTION != JOptionPane . showConfirmDialog ( page . uiComp , "Are you sure to overwrite?" ,
+					"File exists" , JOptionPane . YES_NO_OPTION ) ) {
 				page . ui . message ( "saved canceled" ) ;
 				return false ;
 			}
@@ -1538,19 +1591,20 @@ public class U {
 
 	static void saveFileHistory ( String fn , int line ) throws IOException {
 		File fhn = getFileHistoryName ( ) ;
+		if ( fn . equals ( fhn . getAbsolutePath ( ) ) )
+		return ;
 		OutputStream out = new FileOutputStream ( fhn , true ) ;
-		out . write ( String . format ( "\n%s|%s:" , fn , line ) . getBytes ( UTF8 ) ) ;
+		out . write ( String . format ( "\n%s|%s:" , fn , line + 1 ) . getBytes ( UTF8 ) ) ;
 		out . close ( ) ;
 		saveDirHistory ( fn ) ;
 	}
 
-	static void saveFileHistorys ( String text ) throws IOException {
-		File fhn = getFileHistoryName ( ) ;
-		OutputStream out = new FileOutputStream ( fhn , true ) ;
-		out . write ( text . getBytes ( UTF8 ) ) ;
-		out . close ( ) ;
-	}
-
+	// static void saveFileHistorys ( String text ) throws IOException {
+	// File fhn = getFileHistoryName ( ) ;
+	// OutputStream out = new FileOutputStream ( fhn , true ) ;
+	// out . write ( text . getBytes ( UTF8 ) ) ;
+	// out . close ( ) ;
+	// }
 	private static void saveDirHistory ( String fn ) throws IOException {
 		File dir = new File ( fn ) . getParentFile ( ) ;
 		if ( dir == null )
@@ -1559,8 +1613,8 @@ public class U {
 
 		String old = FileUtil . readString ( new FileInputStream ( getDirHistoryName ( ) ) , null ) ;
 		List < String > his = Arrays . asList ( old . split ( "\n" ) ) ;
-		BufferedWriter out = new BufferedWriter ( new OutputStreamWriter (
-				new FileOutputStream ( getDirHistoryName ( ) ) , UTF8 ) ) ;
+		BufferedWriter out = new BufferedWriter (
+			new OutputStreamWriter ( new FileOutputStream ( getDirHistoryName ( ) ) , UTF8 ) ) ;
 		if ( ! his . contains ( s ) ) {
 			out . write ( s ) ;
 			out . write ( "\n" ) ;
@@ -1620,8 +1674,7 @@ public class U {
 	}
 
 	static void setClipBoard ( String s ) {
-		Toolkit . getDefaultToolkit ( ) . getSystemClipboard ( ) . setContents (
-			new StringSelection ( s ) , null ) ;
+		Toolkit . getDefaultToolkit ( ) . getSystemClipboard ( ) . setContents ( new StringSelection ( s ) , null ) ;
 	}
 
 	static boolean setEncodingByUser ( PlainPage pp , String msg ) {
@@ -1641,8 +1694,7 @@ public class U {
 	public static void setFont ( EditorPanel ep , Font f ) throws Exception {
 		ArrayList fonts = new ArrayList ( Arrays . asList ( Conf . defaultFontList . font ) ) ;
 		fonts . add ( 0 , f ) ;
-		FontList font2
-		= new FontList ( ( Font [ ] ) fonts . toArray ( new Font [ fonts . size ( ) ] ) ) ;
+		FontList font2 = new FontList ( ( Font [ ] ) fonts . toArray ( new Font [ fonts . size ( ) ] ) ) ;
 		for ( PlainPage pp : ep . pageSet )
 		pp . fontList = font2 ;
 	}
@@ -1698,8 +1750,7 @@ public class U {
 			} ) ;
 	}
 
-	public static PlainPage getPP ( EditorPanel editor , PageData data , PlainPage parent )
-	throws Exception {
+	public static PlainPage getPP ( EditorPanel editor , PageData data , PlainPage parent ) throws Exception {
 		PlainPage pp = U . findPageByData ( editor . pageSet , data ) ;
 		if ( pp != null ) {
 			editor . setPage ( pp , true ) ;
@@ -1709,7 +1760,8 @@ public class U {
 	}
 
 	public static void showHexOfString ( String s , PlainPage pp ) throws Exception {
-		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format ( "Hex for String #%s" , randomID ( ) ) ) , pp ) ;
+		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format ( "Hex for String #%s" , randomID ( ) ) ) ,
+			pp ) ;
 		List < CharSequence > sbs = new ArrayList < CharSequence > ( ) ;
 		sbs . add ( new StringBuilder ( String . format ( "Hex for '%s'" , s ) ) ) ;
 		for ( char c : s . toCharArray ( ) )
@@ -1885,6 +1937,8 @@ public class U {
 	public static final String e2_png = "e2.jpg" ;
 	public static final String e3_png = "e3.jpg" ;
 	static Map < String , Image > appIcons = new HashMap ( ) ;
+	/* maybe should attach to page, but impl like this currently */
+	public static boolean shrinkWord ;
 
 	public static Image getAppIcon ( String name ) throws IOException {
 		Image appIcon = appIcons . get ( name ) ;
@@ -1941,8 +1995,8 @@ public class U {
 	}
 
 	static boolean isMathExprNumberChar ( int c ) {
-		return ( c >= '0' && c <= '9' ) || ( c >= 'a' && c <= 'f' )
-		|| ( c >= 'A' && c <= 'F' ) || c == '.' || c == ',' || c == 'E' || c == 'x' ;
+		return ( c >= '0' && c <= '9' ) || ( c >= 'a' && c <= 'f' ) || ( c >= 'A' && c <= 'F' ) || c == '.' || c == ','
+		|| c == 'E' || c == 'x' ;
 	}
 
 	public static char charAtWhenMove ( CharSequence line , int index ) {
@@ -1983,25 +2037,24 @@ public class U {
 	}
 
 	/*
-   * show str will short then show char by char in font, so ret is shorted
-   * and approximately and a pre-cut. the purpose is just avoid show a string
-   * like 10000 chars in later draw
+	 * // * show str will short then show char by char in font, so ret is shorted
+	 * and // * approximately and a pre-cut. the purpose is just avoid show a string
+	 * like // * 10000 chars in later draw //
 	 */
-	public static int maxShowIndexApproximate ( CharSequence sb , int sx , int W ,
-		Graphics2D g2 , FontList fonts ) {
-		int w = 0 ;
-		for ( int i = sx ; i < sb . length ( ) - 1 ; i ++ ) {
-			char c = sb . charAt ( i ) ;
-			if ( c == '\t' )
-			w += TAB_WIDTH ;
-			else
-			w += charWidth ( g2 , fonts , c ) ;
-			if ( w > W )
-			return i + 1 ;
-		}
-		return sb . length ( ) ;
-	}
-
+	// public static int maxShowIndexApproximate ( CharSequence sb , int sx , int W
+	// , Graphics2D g2 , FontList fonts ) {
+	// int w = 0 ;
+	// for ( int i = sx ; i < sb . length ( ) - 1 ; i ++ ) {
+	// char c = sb . charAt ( i ) ;
+	// if ( c == '\t' )
+	// w += TAB_WIDTH ;
+	// else
+	// w += charWidth ( g2 , fonts , c ) ;
+	// if ( w > W )
+	// return i + 1 ;
+	// }
+	// return sb . length ( ) ;
+	// }
 	public static void openFileSelector ( String line , PlainPage pp ) {
 		File dir = findFile ( pp . workPath , line ) ;
 		if ( dir == null ) {
@@ -2020,29 +2073,28 @@ public class U {
 		}
 	}
 
-	public static PlainPage findPageByData ( List < PlainPage > pageSet ,
-		PageData data ) {
+	public static PlainPage findPageByData ( List < PlainPage > pageSet , PageData data ) {
 		for ( PlainPage pp : pageSet )
 		if ( pp . pageData . equals ( data ) )
 		return pp ;
 		return null ;
 	}
 
-	public static int optimizeFileHistory ( ) throws IOException {
+	public static void optimizeFileHistory ( ) throws IOException {
 		File fhn = U . getFileHistoryName ( ) ;
-		List < String > fs = Files . readAllLines ( fhn . toPath ( ) ) ;
+		List < String > fs = FileUtil . readStringBig ( fhn , UTF8 ) ;
 		Set < String > e = new HashSet < > ( ) ;
 		List < String > fs2 = new ArrayList < > ( ) ;
-		int cy = 0 ;
 		for ( int i = fs . size ( ) - 1 ; i >= 0 ; i -- ) {
-			String s = fs . get ( i ) ;
-			if ( s . endsWith ( "|0:" ) ) s = s . substring ( 0 , s . length ( ) - 3 ) ;
-			int p1 = s . lastIndexOf ( '|' ) ;
-			String fn = s . trim ( ) ;
-			if ( fn . isEmpty ( ) )
+			String s = fs . get ( i ) . trim ( ) ;
+			if ( s . endsWith ( "|0:" ) )
+			s = s . substring ( 0 , s . length ( ) - 3 ) . trim ( ) ;
+			if ( s . isEmpty ( ) )
 			continue ;
+			String fn = s ;
+			int p1 = fn . lastIndexOf ( '|' ) ;
 			if ( p1 > 0 )
-			fn = s . substring ( 0 , p1 ) ;
+			fn = fn . substring ( 0 , p1 ) ;
 			if ( e . contains ( fn ) )
 			continue ;
 			e . add ( fn ) ;
@@ -2050,7 +2102,6 @@ public class U {
 		}
 		Collections . reverse ( fs2 ) ;
 		U . save ( fs2 , UTF8 , fhn . getAbsolutePath ( ) ) ;
-		System . out . println ( "file history optimized" ) ;
-		return cy ;
+		System . out . printf ( "file history optimized (%d->%d)\n" , fs . size ( ) , fs2 . size ( ) ) ;
 	}
 }

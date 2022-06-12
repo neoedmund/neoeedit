@@ -6,6 +6,8 @@ import java . awt . Dimension ;
 import java . awt . Graphics ;
 import java . awt . Point ;
 import java . awt . Rectangle ;
+import java . awt . event . FocusAdapter ;
+import java . awt . event . FocusEvent ;
 import java . awt . event . InputMethodEvent ;
 import java . awt . event . InputMethodListener ;
 import java . awt . event . KeyEvent ;
@@ -100,7 +102,7 @@ MouseWheelListener , KeyListener {
 		if ( ! f . isFile ( ) )
 		return false ;
 		else
-		title = f . getAbsolutePath ( ) ;
+		title = f . getCanonicalPath ( ) ;
 
 		if ( newWindow ) {
 			openInNewWindow ( title , line ) ;
@@ -474,6 +476,12 @@ MouseWheelListener , KeyListener {
 		JFrame f = new JFrame ( EditorPanel . WINDOW_NAME ) ;
 		openWindow ( U . e_png , f , f , null ) ;
 		installWindowListener ( f ) ;
+		// not called, why?		f . addFocusListener ( new FocusAdapter ( ) {
+		//				@ Override
+		//				public void focusGained ( FocusEvent e ) {
+		//					System . out . println ( "JFrame.focusGained" ) ;
+		//					EditorPanel . this . requestFocusInWindow ( ) ; }
+		//			} ) ;
 		grabFocus ( ) ;
 	}
 
@@ -509,16 +517,16 @@ MouseWheelListener , KeyListener {
 
 				@ Override
 				public void windowClosing ( WindowEvent e ) {
-					StringBuilder sb = new StringBuilder ( ) ;
-					for ( PlainPage pp : pageSet )
-					if ( pp . pageData . fileLoaded )
-					sb . append ( String . format ( "\n%s|%s:" , pp . pageData . title , pp . cy + 1 ) ) ;
-
-					try {
-						U . saveFileHistorys ( sb . toString ( ) ) ;
-					} catch ( IOException e1 ) {
-						e1 . printStackTrace ( ) ;
-					}
+					//note: history record when file open, don't do when closing
+					//					StringBuilder sb = new StringBuilder ( ) ;
+					//					for ( PlainPage pp : pageSet )
+					//					if ( pp . pageData . fileLoaded )
+					//					sb . append ( String . format ( "\n%s|%s:" , pp . pageData . title , pp . cy + 1 ) ) ;
+					//					try {
+					//						U . saveFileHistorys ( sb . toString ( ) ) ;
+					//					} catch ( IOException e1 ) {
+					//						e1 . printStackTrace ( ) ;
+					//					}
 				}
 			} ) ;
 	}

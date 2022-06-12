@@ -127,7 +127,7 @@ class FindAndReplace {
 					page . cx = p . x ;
 					page . cy = p . y ;
 				}
-				page . focusCursor ( ) ;
+				page . adjustCursor ( ) ;
 				page . ptSelection . cancelSelect ( ) ;
 			}
 		}
@@ -528,7 +528,7 @@ class FindAndReplace {
 		if ( word )
 		cntInfo += " in word mode" ;
 		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format (
-					"[find]'%s'(%s) in %s '%s'%s %s #%s" , all . size ( ) , text , type ,
+					"[find]'%s'(%s) in %s '%s'%s %s #%s" , text , all . size ( ) , type ,
 					name , withFilter , cntInfo , U . randomID ( ) ) ) , pp ) ;
 		List < CharSequence > sbs = new ArrayList < > ( ) ;
 		sbs . add ( new StringBuilder (
@@ -620,6 +620,6 @@ class FindAndReplace {
 		if ( t . length ( ) > 0 )
 		findWindow . jta1 . setText ( t ) ;
 		findWindow . show ( ) ;
-		findWindow . jta1 . grabFocus ( ) ;
+		findWindow . jta1 . requestFocusInWindow ( ) ;
 	}
 }

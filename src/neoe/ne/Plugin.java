@@ -15,7 +15,6 @@ import java . util . List ;
  */
 public class Plugin {
 	public static boolean loaded = false ; // ClassLoader cl;
-
 	public static void load ( ) throws Exception {
 		if ( loaded ) {
 			System . out . println ( "plugin seems already loaded, pass" ) ;

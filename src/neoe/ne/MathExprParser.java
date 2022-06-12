@@ -105,7 +105,6 @@ public class MathExprParser {
 				Math . pow ( v . doubleValue ( ) , parseFactor ( ) . doubleValue ( ) ) ) ;
 		}
 		if ( negate ) // unary minus is applied after exponentiation; e.g. -3^2=-9
-
 		v = v . negate ( ) ;
 
 		return v ;
