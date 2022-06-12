@@ -1935,11 +1935,6 @@ public class PlainPage {
 					}
 				}
 
-				drawSelectionBackground ( g2 ) ;
-
-				g2 . setColor ( colorNormal ) ;
-				drawTextLines ( g2 , fontList , ( int ) ( maxw / scalev ) ) ;
-
 				if ( mousePos ) { // set cx according to mouse x
 					CharSequence sb = pageData . roLines . getline ( cy ) ;
 					int [ ] wc = new int [ 1 ] ;
@@ -1948,6 +1943,11 @@ public class PlainPage {
 					my = 0 ;
 					needRepaint = ptSelection . mouseSelection ( sb ) ;
 				}
+
+				drawSelectionBackground ( g2 ) ;
+
+				g2 . setColor ( colorNormal ) ;
+				drawTextLines ( g2 , fontList , ( int ) ( maxw / scalev ) ) ;
 
 				// (){}[]<> pair marking
 				if ( cx - 1 < pageData . roLines . getline ( cy ) . length ( ) && cx - 1 >= 0 ) {
@@ -2024,7 +2024,7 @@ public class PlainPage {
 				int q = wc [ 0 ] ;
 				CharSequence sb = pageData . roLines . getline ( cy ) ;
 				if ( sx + q < sb . length ( ) && ( cx + 6 > sx + q ) ) { // scroll right
-					sx = U . between ( Math . max ( cx - 6 , cx + q - 6 ) , 0 , sb . length ( ) - 1 ) ;
+					sx = U . between ( Math . min ( cx - 6 , cx + q - 6 ) , 0 , sb . length ( ) - 1 ) ;
 				}
 			}
 		}
