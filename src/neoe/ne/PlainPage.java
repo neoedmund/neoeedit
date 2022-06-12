@@ -1317,15 +1317,17 @@ public class PlainPage {
 		class PairMark {
 			void markBox ( Graphics2D g2 , int x , int y ) {
 				if ( y >= sy && y <= sy + showLineCnt && x >= sx ) {
+					int mw = getMaxW ( ) ;
 					CharSequence sb = pageData . roLines . getline ( y ) ;
-					int w1 = x > 0 ? U . stringWidth ( g2 , fontList , sb . subSequence ( sx , x ) . toString ( ) , getMaxW ( ) ) : 0 ;
+					int w1 = drawLineOrTest ( g2 , fontList , y , -1 , false , null , false , mw , x - sx ) ;
 					String c = sb . subSequence ( x , x + 1 ) . toString ( ) ;
-					int w2 = U . stringWidth ( g2 , fontList , c , getMaxW ( ) ) ;
+					int w2 = g2 . getFontMetrics ( ) . stringWidth ( c ) ;
+					int h = lineHeight + lineGap ;
 					g2 . setColor ( Color . WHITE ) ;
-					g2 . drawRect ( w1 - 1 , ( y - sy ) * ( lineHeight + lineGap ) - 1 , w2 , lineHeight ) ;
+					g2 . drawRect ( w1 - 1 , ( y - sy ) * h - 1 , w2 , h ) ;
 					g2 . setColor ( colorNormal ) ;
-					g2 . drawRect ( w1 , ( y - sy ) * ( lineHeight + lineGap ) , w2 , lineHeight ) ;
-					U . drawString ( g2 , fontList , c , w1 , lineHeight + ( y - sy ) * ( lineHeight + lineGap ) , getMaxW ( ) ) ;
+					g2 . drawRect ( w1 , ( y - sy ) * h , w2 , h ) ;
+					U . drawString ( g2 , fontList , c , w1 , lineHeight + ( y - sy ) * h , mw ) ;
 				}
 			}
 
@@ -1621,7 +1623,7 @@ public class PlainPage {
 			if ( maxChar == 0 )
 			return 0 ;
 			CharSequence sb = pageData . roLines . getline ( cy ) ;
-			CharSequence s = U . subs ( sb , sx , maxw / 4 ) ;
+			CharSequence s = U . subs ( sb , sx , sx + maxw / 4 ) ;
 			/* guess 4 pixel per char is min */
 			if ( maxChar > s . length ( ) )
 			maxChar = -1 ;
@@ -1707,7 +1709,8 @@ public class PlainPage {
 					w += U . TAB_WIDTH ;
 					if ( outDrawCharCnt != null && x + w < maxw )
 					outDrawCharCnt [ 0 ] += 1 ;
-					if ( ch != null ) ch [ 0 ] -= 1 ;
+					if ( ch != null )
+					ch [ 0 ] -= 1 ;
 				} else if ( isComment ) {
 					int w1 = U . drawTwoColor ( g2 , fonts , s1 , x + w , y , colorComment , colorComment2 , 1 , maxw , isRealDraw ) ;
 					if ( outDrawCharCnt != null )
@@ -1742,9 +1745,11 @@ public class PlainPage {
 					}
 					w += w1 ;
 				}
-				if ( ch != null && ch [ 0 ] <= 0 ) break ;
+				if ( ch != null && ch [ 0 ] <= 0 )
+				break ;
 
-				if ( x + w >= maxw ) break ;
+				if ( x + w >= maxw )
+				break ;
 			}
 
 			return w ;
@@ -2019,7 +2024,7 @@ public class PlainPage {
 				int q = wc [ 0 ] ;
 				CharSequence sb = pageData . roLines . getline ( cy ) ;
 				if ( sx + q < sb . length ( ) && ( cx + 6 > sx + q ) ) { // scroll right
-					sx = U . between ( sx + Math . min ( 6 , q - 1 ) , 0 , sb . length ( ) - 1 ) ;
+					sx = U . between ( Math . max ( cx - 6 , cx + q - 6 ) , 0 , sb . length ( ) - 1 ) ;
 				}
 			}
 		}
