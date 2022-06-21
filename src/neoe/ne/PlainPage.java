@@ -805,7 +805,8 @@ public class PlainPage {
 	}
 
 	public void repaint ( ) {
-		SwingUtilities . invokeLater ( ( ) -> uiComp . repaint ( ) ) ;
+		new Thread ( ( ) -> uiComp . repaint ( ) ) . start ( ) ;
+		//		SwingUtilities . invokeLater ( ) ;
 	}
 
 	private void unknownCommand ( KeyEvent env ) {
@@ -1571,12 +1572,13 @@ public class PlainPage {
 				x2 = Math . min ( x2 , s . length ( ) ) ;
 				int mw2 = getMaxW2 ( ) ;
 				if ( x1 == x2 ) {
-					int w1 = drawLineOrTest ( g2 , fontList , y1 , -1 , y1 == cy , null , false , mw2 , x1 - sx ) ;
+					int w1 = x1 <= sx ? 0 : drawLineOrTest ( g2 , fontList , y1 , -1 , y1 == cy , null , false , mw2 , x1 - sx ) ;
 					g2 . fillRect ( w1 , scry * ( lineHeight + lineGap ) , 3 , lineHeight + lineGap ) ;
 				} else {
-					int w1 = drawLineOrTest ( g2 , fontList , y1 , -1 , y1 == cy , null , false , mw2 , x1 - sx ) ;
+					int w1 = x1 <= sx ? 0 : drawLineOrTest ( g2 , fontList , y1 , -1 , y1 == cy , null , false , mw2 , x1 - sx ) ;
 					int w2 = full ? getMaxW2 ( )
-					: drawLineOrTest ( g2 , fontList , y1 , -1 , y1 == cy , null , false , mw2 , x2 - sx ) ;
+					: ( x2 <= sx ? 0
+						: drawLineOrTest ( g2 , fontList , y1 , -1 , y1 == cy , null , false , mw2 , x2 - sx ) ) ;
 					g2 . fillRect ( w1 , scry * ( lineHeight + lineGap ) , ( w2 - w1 ) , lineHeight + lineGap ) ;
 				}
 			}

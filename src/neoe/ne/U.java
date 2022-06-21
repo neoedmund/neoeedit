@@ -1178,7 +1178,7 @@ public class U {
 	public static boolean isImageFile ( File f ) {
 		String fn = f . getName ( ) . toLowerCase ( ) ;
 		return ( fn . endsWith ( ".gif" ) || fn . endsWith ( ".jpg" ) || fn . endsWith ( ".png" ) || fn . endsWith ( ".bmp" )
-			|| fn . endsWith ( ".jpeg" ) || fn . endsWith ( ".tga" ) ) ;
+			|| fn . endsWith ( ".jpeg" ) || fn . endsWith ( ".tga" ) || fn . endsWith ( ".webp" ) ) ;
 	}
 
 	static boolean isSkipChar ( char ch , char ch1 ) {
