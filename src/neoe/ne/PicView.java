@@ -130,6 +130,7 @@ public class PicView {
 
 		int rx , ry ;
 		boolean drawMousePos = true ;
+		private int direction ;
 
 		public PicViewPanel ( JFrame f , File fn ) throws Exception {
 			this . frame = f ;
@@ -500,6 +501,7 @@ public class PicView {
 		}
 
 		public void rotate ( int direction ) {
+			this . direction = direction ;
 			int angle = direction * 90 ;
 			int w = img . getWidth ( ) ;
 			int h = img . getHeight ( ) ;
@@ -564,6 +566,9 @@ public class PicView {
 			try {
 				img = loadImage ( f ) ;
 				this . f = f ;
+				if ( direction != 0 && img . getWidth ( ) < img . getHeight ( ) ) {
+					rotate ( direction ) ;
+				}
 				setTitleWithSize ( f , fi , files . size ( ) ) ;
 				resetCut ( ) ;
 				repaint1 ( ) ;

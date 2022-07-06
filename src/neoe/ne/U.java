@@ -841,8 +841,7 @@ public class U {
 	}
 
 	private static String [ ] splitCommand ( String cmd ) throws Exception {
-		if ( cmd . contains ( "*" ) || cmd . contains ( "~" ) || cmd . contains ( "[" ) || cmd . contains ( "|" ) || cmd . contains ( "&" )
-			|| cmd . contains ( "$" ) || cmd . contains ( ">" ) ) {
+		if ( cmd . contains ( "*" ) || cmd . contains ( "~" ) || cmd . contains ( "|" ) || cmd . contains ( "&" ) || cmd . contains ( ">" ) ) {
 			return new String [ ] { "bash" , "-c" , cmd } ;
 		}
 		List list = ( List ) PyData . parseAll ( "[" + cmd + "]" , false , true ) ;
@@ -1045,7 +1044,7 @@ public class U {
 
 	static void guessComment ( PlainPage page ) {
 		List < String > comment = new ArrayList < String > ( ) ;
-		String [ ] commentchars = { "/*" , "<!--" , "#" , "%" , "'" , "//" , "!" , ";" , "--" , } ;
+		String [ ] commentchars = { "/*" , "<!--" , "#" , "%" , "//" , "!" , ";" , "--" , } ;
 		int [ ] cnts = new int [ commentchars . length ] ;
 		int maxLines = Math . min ( 1000 , page . pageData . roLines . getLinesize ( ) ) ;
 		for ( int i = 0 ; i < maxLines ; i ++ ) {
@@ -1365,8 +1364,8 @@ public class U {
 		}
 	}
 
-	static void openDirHistory ( EditorPanel ep ) throws Exception {
-		File f = getDirHistoryName ( ) ;
+	static void openCmdHistory ( EditorPanel ep ) throws Exception {
+		File f = getCmdHistoryName ( ) ;
 		ep . findAndShowPage ( f . getAbsolutePath ( ) , -1 , true ) ;
 	}
 

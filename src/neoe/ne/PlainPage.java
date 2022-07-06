@@ -767,7 +767,7 @@ public class PlainPage {
 			U . openFileHistory ( uiComp ) ;
 			break ;
 			case dirHistory :
-			U . openDirHistory ( uiComp ) ;
+			U . openCmdHistory ( uiComp ) ;
 			break ;
 			case openFileSelector :
 			if ( cy < pageData . roLines . getLinesize ( ) ) {
@@ -2026,7 +2026,7 @@ public class PlainPage {
 				int q = wc [ 0 ] ;
 				CharSequence sb = pageData . roLines . getline ( cy ) ;
 				if ( sx + q < sb . length ( ) && ( cx + 6 > sx + q ) ) { // scroll right
-					sx = U . between ( Math . min ( cx - 6 , cx + q - 6 ) , 0 , sb . length ( ) - 1 ) ;
+					sx = U . between ( cx - q + 6 , 0 , sb . length ( ) - 1 ) ;
 				}
 			}
 		}
