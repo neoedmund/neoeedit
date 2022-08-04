@@ -113,10 +113,8 @@
 	]
 
 	tabWidthInPixel : 20
-
 	shrinkWordRate : 0.62
 	shrinkWordLen : 7
-
 	lookAndFeel : ""
 	KEY_TEXT_ANTIALIASING : VALUE_TEXT_ANTIALIAS_ON
 	frameSize : [ 800 600 ]
