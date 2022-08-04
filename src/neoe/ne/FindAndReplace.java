@@ -127,7 +127,7 @@ class FindAndReplace {
 					page . cx = p . x ;
 					page . cy = p . y ;
 				}
-				page . focusCursor ( ) ;
+				page . adjustCursor ( ) ;
 				page . ptSelection . cancelSelect ( ) ;
 			}
 		}
@@ -531,9 +531,11 @@ class FindAndReplace {
 					"[find]'%s'(%s) in %s '%s'%s %s #%s" , text , all . size ( ) , type ,
 					name , withFilter , cntInfo , U . randomID ( ) ) ) , pp ) ;
 		List < CharSequence > sbs = new ArrayList < > ( ) ;
+		String key ;
 		sbs . add ( new StringBuilder (
-				String . format ( "find %s results in '%s'%s for '%s' %s" , all . size ( ) , name ,
+				key = String . format ( "find %s results in '%s'%s for '%s' %s" , all . size ( ) , name ,
 					withFilter , text , cntInfo ) ) ) ;
+		U . appendSearchResultHistory ( key ) ;
 		for ( Object o : all )
 		sbs . add ( o . toString ( ) ) ;
 		p2 . pageData . resetLines ( sbs ) ;

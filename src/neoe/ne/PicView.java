@@ -103,9 +103,8 @@ public class PicView {
 		}
 	}
 
-	public class PicViewPanel
-	extends JPanel implements MouseMotionListener , MouseListener ,
-	MouseWheelListener , KeyListener {
+	public class PicViewPanel extends JPanel
+	implements MouseMotionListener , MouseListener , MouseWheelListener , KeyListener {
 		private static final long serialVersionUID = -74255011004476996L ;
 		private File f ;
 		int fi ;
@@ -131,17 +130,16 @@ public class PicView {
 
 		int rx , ry ;
 		boolean drawMousePos = true ;
+		private int direction ;
 
-		public PicViewPanel ( JFrame f , File fn ) throws IOException {
+		public PicViewPanel ( JFrame f , File fn ) throws Exception {
 			this . frame = f ;
 			long t1 = System . currentTimeMillis ( ) ;
 			this . f = fn ;
-			GraphicsEnvironment env
-			= GraphicsEnvironment . getLocalGraphicsEnvironment ( ) ;
+			GraphicsEnvironment env = GraphicsEnvironment . getLocalGraphicsEnvironment ( ) ;
 			maxWindow = env . getMaximumWindowBounds ( ) ;
-			img = ImageIO . read ( fn ) ;
-			small = ( img . getWidth ( ) > maxWindow . width
-				|| img . getHeight ( ) > maxWindow . height ) ;
+			img = loadImage ( fn ) ;
+			small = ( img . getWidth ( ) > maxWindow . width || img . getHeight ( ) > maxWindow . height ) ;
 			System . out . println ( "read in " + ( System . currentTimeMillis ( ) - t1 ) ) ;
 			files = listImgs ( ) ;
 			setTitleWithSize ( fn , fi , files . size ( ) ) ;
@@ -178,8 +176,7 @@ public class PicView {
 					frame . dispose ( ) ;
 					else if ( kc == KeyEvent . VK_S )
 					saveCut ( ) ;
-				} else
-				if ( kc == KeyEvent . VK_F1 || kc == KeyEvent . VK_TAB ) {
+				} else if ( kc == KeyEvent . VK_F1 || kc == KeyEvent . VK_TAB ) {
 					small = ! small ;
 					repaint1 ( ) ;
 				} else if ( kc == KeyEvent . VK_LEFT || kc == KeyEvent . VK_BACK_SPACE )
@@ -252,8 +249,7 @@ public class PicView {
 			savingCut = true ;
 			Graphics2D g = null ;
 			try {
-				BufferedImage im
-				= new BufferedImage ( picviewpanel . getWidth ( ) , picviewpanel . getHeight ( ) ,
+				BufferedImage im = new BufferedImage ( picviewpanel . getWidth ( ) , picviewpanel . getHeight ( ) ,
 					BufferedImage . TYPE_INT_RGB ) ;
 				g = im . createGraphics ( ) ;
 				paintComponent ( g ) ;
@@ -276,14 +272,12 @@ public class PicView {
 				usepng = true ;
 				else
 				usepng = ( png . size ( ) < jpg . size ( ) ) ;
-				System . out . printf ( "size png(%,d) vs jpg(%,d)\n" , png . size ( ) ,
-					jpg . size ( ) ) ;
+				System . out . printf ( "size png(%,d) vs jpg(%,d)\n" , png . size ( ) , jpg . size ( ) ) ;
 				String f0 = f . getName ( ) ;
 				int p1 = f0 . lastIndexOf ( '.' ) ;
 				if ( p1 > 0 )
 				f0 = f0 . substring ( 0 , p1 ) ;
-				String fn
-				= String . format ( "%s_%dx%d%s" , f0 , w , h , usepng ? ".png" : ".jpg" ) ;
+				String fn = String . format ( "%s_%dx%d%s" , f0 , w , h , usepng ? ".png" : ".jpg" ) ;
 				saveCut ( fn , usepng , usepng ? png : jpg ) ;
 			} finally {
 				savingCut = false ;
@@ -292,8 +286,7 @@ public class PicView {
 			}
 		}
 
-		private void saveCut ( String fn0 , boolean usepng , ByteArrayOutputStream ba )
-		throws IOException {
+		private void saveCut ( String fn0 , boolean usepng , ByteArrayOutputStream ba ) throws IOException {
 			JFileChooser chooser = new JFileChooser ( f . getAbsoluteFile ( ) ) ;
 			chooser . setSelectedFile ( new File ( f . getParentFile ( ) , fn0 ) ) ;
 			int returnVal = chooser . showSaveDialog ( this ) ;
@@ -303,8 +296,7 @@ public class PicView {
 				ba . writeTo ( out ) ;
 				out . close ( ) ;
 				U . saveFileHistory ( fn , 0 ) ;
-				JOptionPane . showMessageDialog (
-					this , String . format ( "saved %s(%,d bytes)" , fn0 , ba . size ( ) ) ) ;
+				JOptionPane . showMessageDialog ( this , String . format ( "saved %s(%,d bytes)" , fn0 , ba . size ( ) ) ) ;
 			}
 		}
 
@@ -314,8 +306,7 @@ public class PicView {
 			if ( e . isControlDown ( ) ) {
 				if ( ! e . isShiftDown ( ) )
 				startCut ( x , y ) ;
-			} else
-			if ( e . getClickCount ( ) == 2 ) {
+			} else if ( e . getClickCount ( ) == 2 ) {
 				setRate ( x , y , 1 ) ;
 				repaint1 ( ) ;
 			} else {
@@ -333,8 +324,7 @@ public class PicView {
 					cuty2 = y ;
 				}
 				repaint1 ( ) ;
-			} else
-			if ( inSmall ( x , y ) )
+			} else if ( inSmall ( x , y ) )
 			setPosSmall ( x , y ) ;
 			else {
 				int dx = e . getX ( ) - mx ;
@@ -436,8 +426,7 @@ public class PicView {
 				g . fillRect ( 0 , 0 , w , h ) ;
 			}
 
-			g . drawImage ( img , ( int ) vx , ( int ) vy , ( int ) ( pw * rate ) , ( int ) ( ph * rate ) ,
-				null ) ;
+			g . drawImage ( img , ( int ) vx , ( int ) vy , ( int ) ( pw * rate ) , ( int ) ( ph * rate ) , null ) ;
 
 			if ( small ) {
 				g . drawImage ( img , w - sw , h - sh , w , h , 0 , 0 , pw , ph , null ) ;
@@ -498,16 +487,13 @@ public class PicView {
 
 			g . setColor ( Color . red ) ;
 			float [ ] dashingPattern1 = { 2f , 2f } ;
-			Stroke stroke1
-			= new BasicStroke ( 2f , BasicStroke . CAP_BUTT , BasicStroke . JOIN_MITER ,
-				1.0f , dashingPattern1 , 2.0f ) ;
+			Stroke stroke1 = new BasicStroke ( 2f , BasicStroke . CAP_BUTT , BasicStroke . JOIN_MITER , 1.0f , dashingPattern1 ,
+				2.0f ) ;
 
 			g . setStroke ( stroke1 ) ;
 			g . drawRect ( cutx , cuty , cutx2 - cutx , cuty2 - cuty ) ;
-			g . drawString ( String . format ( "%dx%d" , cutx2 - cutx , cuty2 - cuty ) , cutx ,
-				cuty ) ;
-			g . drawString ( String . format ( "%dx%d" , cutx2 - cutx , cuty2 - cuty ) , cutx2 ,
-				cuty2 ) ;
+			g . drawString ( String . format ( "%dx%d" , cutx2 - cutx , cuty2 - cuty ) , cutx , cuty ) ;
+			g . drawString ( String . format ( "%dx%d" , cutx2 - cutx , cuty2 - cuty ) , cutx2 , cuty2 ) ;
 		}
 
 		public void repaint1 ( ) {
@@ -515,10 +501,11 @@ public class PicView {
 		}
 
 		public void rotate ( int direction ) {
+			this . direction = direction ;
 			int angle = direction * 90 ;
 			int w = img . getWidth ( ) ;
 			int h = img . getHeight ( ) ;
-			//			System.out.printf("wh=[%dx%d]\n", w, h);
+			// System.out.printf("wh=[%dx%d]\n", w, h);
 			int neww = h , newh = w ;
 			BufferedImage dest = new BufferedImage ( neww , newh , img . getType ( ) ) ;
 			Graphics2D g = dest . createGraphics ( ) ;
@@ -528,15 +515,17 @@ public class PicView {
 			g . dispose ( ) ;
 			img = dest ;
 			setSize ( img ) ;
-			//			vx = 0;vy = 0;
+			// vx = 0;vy = 0;
 			repaint1 ( ) ;
 		}
 
 		private void setSize ( BufferedImage img ) {
-			Dimension dim = new Dimension ( pw = ( int ) ( img . getWidth ( ) + 20 ) ,
-				ph = ( int ) ( img . getHeight ( ) + 20 ) ) ;
+			Dimension dim = new Dimension ( pw = ( int ) ( img . getWidth ( ) + 20 ) , ph = ( int ) ( img . getHeight ( ) + 20 ) ) ;
 			dim . width = Math . min ( maxWindow . width , Math . max ( 200 , dim . width ) ) ;
 			dim . height = Math . min ( maxWindow . height , Math . max ( 200 , dim . height ) ) ;
+			Dimension d0 = frame . getSize ( ) ;
+			dim . width = Math . max ( dim . width , d0 . width ) ;
+			dim . height = Math . max ( dim . height , d0 . height ) ;
 			frame . setSize ( dim ) ;
 		}
 
@@ -544,11 +533,9 @@ public class PicView {
 			String ss1 = "" ;
 			if ( ss != null )
 			ss1 = ss . delay > 0 ? " slide:" + ss . delay + " sec" : "" ;
-			frame . setTitle ( String . format (
-					"PicView %s [%dx%d] %s %,d BS%s - neoeedit %s" , f . getName ( ) ,
-					img . getWidth ( ) , img . getHeight ( ) ,
-					superMode ? "SP" : String . format ( "(%d/%d)" , index + 1 , total ) ,
-					f . length ( ) , ss1 , Version . REV ) ) ;
+			frame . setTitle ( String . format ( "PicView %s [%dx%d] %s %,d BS%s %s - neoeedit %s" , f . getName ( ) , img . getWidth ( ) ,
+					img . getHeight ( ) , superMode ? "SP" : String . format ( "(%d/%d)" , index + 1 , total ) , f . length ( ) , ss1 ,
+					f . getAbsoluteFile ( ) . getParent ( ) , Version . REV ) ) ;
 			setSize ( img ) ;
 		}
 
@@ -565,8 +552,7 @@ public class PicView {
 				viewFile ( f ) ; // else skip
 			}
 			else if ( i < 0 )
-			if ( superModeHistoryPointer > 0
-				&& superModeHistoryPointer <= superModeHistory . size ( ) )
+			if ( superModeHistoryPointer > 0 && superModeHistoryPointer <= superModeHistory . size ( ) )
 			viewFile ( superModeHistory . get ( -- superModeHistoryPointer ) ) ; // else skip
 		}
 
@@ -581,8 +567,11 @@ public class PicView {
 
 		private void viewFile ( File f ) {
 			try {
-				img = ImageIO . read ( f ) ;
+				img = loadImage ( f ) ;
 				this . f = f ;
+				if ( direction != 0 && img . getWidth ( ) < img . getHeight ( ) ) {
+					rotate ( direction ) ;
+				}
 				setTitleWithSize ( f , fi , files . size ( ) ) ;
 				resetCut ( ) ;
 				repaint1 ( ) ;
@@ -650,8 +639,15 @@ public class PicView {
 		}
 	}
 
-	public static void main ( String [ ] args ) throws IOException {
+	public static void main ( String [ ] args ) throws Exception {
 		new PicView ( ) . show ( new File ( args [ 0 ] ) ) ;
+	}
+
+	public BufferedImage loadImage ( File f ) throws Exception {
+		if ( f . getName ( ) . endsWith ( ".webp" ) ) {
+			return ( BufferedImage ) Plugin . call ( "webp" , f ) ;
+		}
+		return ImageIO . read ( f ) ;
 	}
 
 	private void sortCutPoints ( ) {
@@ -709,7 +705,7 @@ public class PicView {
 
 	PicViewPanel picviewpanel ;
 
-	public void show ( File fn ) throws IOException {
+	public void show ( File fn ) throws Exception {
 		JFrame f = new JFrame ( ) ;
 		f . setDefaultCloseOperation ( WindowConstants . DISPOSE_ON_CLOSE ) ;
 		f . setIconImage ( U . getAppIcon ( U . e3_png ) ) ;

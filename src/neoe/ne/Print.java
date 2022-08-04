@@ -23,17 +23,14 @@ import static neoe . ne . U . TAB_WIDTH ;
  * @author neoe
  */
 public class Print implements Printable {
-	Color colorLineNumber = new Color ( 0x30C200 ) ,
-	colorGutterLine = new Color ( 0x30C200 ) , colorNormal = Color . BLACK ,
+	Color colorLineNumber = new Color ( 0x30C200 ) , colorGutterLine = new Color ( 0x30C200 ) , colorNormal = Color . BLACK ,
 	colorDigit = new Color ( 0xA8002A ) , colorKeyword = new Color ( 0x0099CC ) ,
-	colorHeaderFooter = new Color ( 0x8A00B8 ) ,
-	colorComment = new Color ( 200 , 80 , 50 ) ;
+	colorHeaderFooter = new Color ( 0x8A00B8 ) , colorComment = new Color ( 200 , 80 , 50 ) ;
 	Dimension dim ;
 	String fn ;
 	FontList fonts ;
 
-	int lineGap = 3 , lineHeight = 8 , headerHeight = 20 , footerHeight = 20 ,
-	gutterWidth = 24 ; // TAB_WIDTH = 20;
+	int lineGap = 3 , lineHeight = 8 , headerHeight = 20 , footerHeight = 20 , gutterWidth = 24 ; // TAB_WIDTH = 20;
 	int linePerPage ;
 	private final PlainPage pp ;
 	ReadonlyLines roLines ;
@@ -55,8 +52,7 @@ public class Print implements Printable {
 
 	void drawReturn ( Graphics2D g2 , int w , int py ) {
 		g2 . setColor ( Color . red ) ;
-		g2 . drawLine ( w , py - lineHeight + fonts . getlineHeight ( ) , w + 3 ,
-			py - lineHeight + fonts . getlineHeight ( ) ) ;
+		g2 . drawLine ( w , py - lineHeight + fonts . getlineHeight ( ) , w + 3 , py - lineHeight + fonts . getlineHeight ( ) ) ;
 	}
 
 	int drawStringLine ( Graphics2D g2 , FontList fonts , String s , int x , int y ) {
@@ -72,8 +68,7 @@ public class Print implements Printable {
 		return w ;
 	}
 
-	int drawText ( Graphics2D g2 , FontList fonts , String s , int x , int y ,
-		boolean isComment ) {
+	int drawText ( Graphics2D g2 , FontList fonts , String s , int x , int y , boolean isComment ) {
 		int w = 0 ;
 		int maxw = dim . width - gutterWidth ;
 
@@ -112,21 +107,17 @@ public class Print implements Printable {
 	}
 
 	int getTotalPage ( PageFormat pf ) {
-		linePerPage
-		= ( ( int ) pf . getImageableHeight ( ) - footerHeight - headerHeight )
-		/ ( lineGap + lineHeight ) ;
+		linePerPage = ( ( int ) pf . getImageableHeight ( ) - footerHeight - headerHeight ) / ( lineGap + lineHeight ) ;
 		System . out . println ( "linePerPage=" + linePerPage ) ;
 		if ( linePerPage <= 0 )
 		return 0 ;
 		int lines = roLines . getLinesize ( ) ;
-		int page = ( lines % linePerPage == 0 ) ? lines / linePerPage
-		: lines / linePerPage + 1 ;
+		int page = ( lines % linePerPage == 0 ) ? lines / linePerPage : lines / linePerPage + 1 ;
 		return page ;
 	}
 
 	@ Override
-	public int print ( Graphics graphics , PageFormat pf , int pageIndex )
-	throws PrinterException {
+	public int print ( Graphics graphics , PageFormat pf , int pageIndex ) throws PrinterException {
 		if ( pageIndex > totalPage )
 		return Printable . NO_SUCH_PAGE ;
 		// print
@@ -135,26 +126,19 @@ public class Print implements Printable {
 		Graphics2D g2 = ( Graphics2D ) graphics ;
 		g2 . translate ( pf . getImageableX ( ) , pf . getImageableY ( ) ) ;
 		if ( ui . noise )
-		U . paintNoise ( g2 , new Dimension ( ( int ) pf . getImageableWidth ( ) ,
-				( int ) pf . getImageableHeight ( ) ) ) ;
+		U . paintNoise ( g2 , new Dimension ( ( int ) pf . getImageableWidth ( ) , ( int ) pf . getImageableHeight ( ) ) ) ;
 		int maxw = ( int ) pf . getImageableWidth ( ) ;
 		g2 . setColor ( colorHeaderFooter ) ;
-		U . drawString ( g2 , fonts , fn == null ? title : new File ( fn ) . getName ( ) , 0 ,
-			lineGap + lineHeight , maxw ) ;
+		U . drawString ( g2 , fonts , fn == null ? title : new File ( fn ) . getName ( ) , 0 , lineGap + lineHeight , maxw ) ;
 		{
 			String s = ( pageIndex + 1 ) + "/" + totalPage ;
-			U . drawString ( g2 , fonts , s ,
-				( int ) pf . getImageableWidth ( )
-				- U . stringWidth ( g2 , fonts , s , maxw ) - 2 ,
+			U . drawString ( g2 , fonts , s , ( int ) pf . getImageableWidth ( ) - U . stringWidth ( g2 , fonts , s , maxw ) - 2 ,
 				lineGap + lineHeight , maxw ) ;
 			s = new Date ( ) . toString ( ) + " - NeoeEdit" ;
-			U . drawString ( g2 , fonts , s ,
-				( int ) pf . getImageableWidth ( )
-				- U . stringWidth ( g2 , fonts , s , maxw ) - 2 ,
+			U . drawString ( g2 , fonts , s , ( int ) pf . getImageableWidth ( ) - U . stringWidth ( g2 , fonts , s , maxw ) - 2 ,
 				( int ) pf . getImageableHeight ( ) - 2 , maxw ) ;
 			g2 . setColor ( colorGutterLine ) ;
-			g2 . drawLine ( gutterWidth - 4 , headerHeight , gutterWidth - 4 ,
-				( int ) pf . getImageableHeight ( ) - footerHeight ) ;
+			g2 . drawLine ( gutterWidth - 4 , headerHeight , gutterWidth - 4 , ( int ) pf . getImageableHeight ( ) - footerHeight ) ;
 		}
 		int p = linePerPage * pageIndex ;
 		int charCntInLine = ( int ) pf . getImageableWidth ( ) / 5 + 5 ; // inaccurate
@@ -185,8 +169,7 @@ public class Print implements Printable {
 						totalPage = getTotalPage ( pf ) ;
 						if ( totalPage <= 0 )
 						return ;
-						dim = new Dimension ( ( int ) pf . getImageableWidth ( ) ,
-							( int ) pf . getImageableHeight ( ) ) ;
+						dim = new Dimension ( ( int ) pf . getImageableWidth ( ) , ( int ) pf . getImageableHeight ( ) ) ;
 						Book bk = new Book ( ) ;
 						bk . append ( Print . this , pf , totalPage ) ;
 						job . setPageable ( bk ) ;

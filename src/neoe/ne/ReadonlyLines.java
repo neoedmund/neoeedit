@@ -27,13 +27,13 @@ public class ReadonlyLines {
 		return getline ( y ) . subSequence ( x1 , x2 ) ;
 	}
 
-	CharSequence getline ( int i ) {
+	public CharSequence getline ( int i ) {
 		if ( i < 0 || i >= data . lines . size ( ) )
 		return "" ;
 		return ( CharSequence ) data . lines . get ( i ) ;
 	}
 
-	int getLinesize ( ) {
+	public int getLinesize ( ) {
 		return data . lines . size ( ) ;
 	}
 

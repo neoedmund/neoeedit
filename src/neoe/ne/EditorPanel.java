@@ -248,7 +248,7 @@ MouseWheelListener , KeyListener {
 		}
 	}
 
-	static int openedWindows ;
+	public static int openedWindows ;
 
 	static final String WINDOW_NAME = "neoeedit " + Version . REV ;
 
@@ -328,7 +328,7 @@ MouseWheelListener , KeyListener {
 		if ( frame == null )
 		return ;
 		String tag = " (" + pageSet . size ( ) + ") - " + EditorPanel . WINDOW_NAME + U . suNotice ( ) ;
-		String pre = "/ne/ " ;
+		String pre = U . TitleName ;
 		String title ;
 		String fn = page . pageData . title ;
 		if ( page . console != null )

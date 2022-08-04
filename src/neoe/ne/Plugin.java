@@ -8,7 +8,9 @@ import java . net . URLClassLoader ;
 import java . text . SimpleDateFormat ;
 import java . util . ArrayList ;
 import java . util . Date ;
+import java . util . HashMap ;
 import java . util . List ;
+import java . util . Map ;
 
 /**
  * one plug-in in one jar, or in one directory
@@ -31,8 +33,7 @@ public class Plugin {
 		if ( f . isDirectory ( ) ) {
 			if ( addDirPlugin ( f ) )
 			cnt ++ ;
-		} else
-		if ( f . getName ( ) . toLowerCase ( ) . endsWith ( ".jar" ) )
+		} else if ( f . getName ( ) . toLowerCase ( ) . endsWith ( ".jar" ) )
 		if ( addJarPlugin ( f ) )
 		cnt ++ ;
 		System . out . println ( "added plugin count:" + cnt ) ;
@@ -45,22 +46,18 @@ public class Plugin {
 		for ( File f : dir . listFiles ( ) )
 		if ( f . isFile ( ) && f . getName ( ) . endsWith ( ".jar" ) ) {
 			jars . add ( f . toURI ( ) . toURL ( ) ) ;
-			System . out . println ( "\tadd: " + f . getName ( ) + " \t "
-				+ sdf . format ( new Date ( f . lastModified ( ) ) ) ) ;
+			System . out . println ( "\tadd: " + f . getName ( ) + " \t " + sdf . format ( new Date ( f . lastModified ( ) ) ) ) ;
 		}
-		URLClassLoader cl = new URLClassLoader ( jars . toArray ( new URL [ jars . size ( ) ] ) ,
-			Plugin . class . getClassLoader ( ) ) ;
+		URLClassLoader cl = new URLClassLoader ( jars . toArray ( new URL [ jars . size ( ) ] ) , Plugin . class . getClassLoader ( ) ) ;
 		return initPlugin ( cl ) ;
 	}
 
 	private static boolean addJarPlugin ( File f ) throws Exception {
 		SimpleDateFormat sdf = new SimpleDateFormat ( "yyyy/MM/dd HH:mm:ss" ) ;
-		System . out . println ( "add plugin " + f . getAbsolutePath ( ) + " \t "
-			+ sdf . format ( new Date ( f . lastModified ( ) ) ) ) ;
+		System . out . println ( "add plugin " + f . getAbsolutePath ( ) + " \t " + sdf . format ( new Date ( f . lastModified ( ) ) ) ) ;
 		List < URL > jars = new ArrayList < URL > ( ) ;
 		jars . add ( f . toURI ( ) . toURL ( ) ) ;
-		URLClassLoader cl = new URLClassLoader ( jars . toArray ( new URL [ jars . size ( ) ] ) ,
-			Plugin . class . getClassLoader ( ) ) ;
+		URLClassLoader cl = new URLClassLoader ( jars . toArray ( new URL [ jars . size ( ) ] ) , Plugin . class . getClassLoader ( ) ) ;
 		return initPlugin ( cl ) ;
 	}
 
@@ -83,10 +80,26 @@ public class Plugin {
 		void run ( PlainPage pp ) throws Exception ;
 	}
 
+	public interface PluginCall {
+		Object run ( Object pp ) throws Exception ;
+	}
+
+	static Map < String , PluginCall > calls = new HashMap < > ( ) ;
+
+	public static Object call ( String key , Object param ) throws Exception {
+		PluginCall pc = calls . get ( key ) ;
+		if ( pc == null ) return null ;
+		return pc . run ( param ) ;
+	}
+
+	public static void registerCall ( String key , PluginCall pc ) {
+		calls . put ( key , pc ) ;
+	}
+
 	/**
 	 *
 	 * @param key0 like SHIFT-CTRL-ALT-X
-	 * @param clz action class
+	 * @param clz  action class
 	 * @return null if OK, otherwise reason
 	 */
 	public static String registerCmd ( String key0 , PluginAction pa ) {
@@ -97,12 +110,10 @@ public class Plugin {
 			return String . format ( "Key '%s' is not correct:%s" , key0 , e ) ;
 		}
 		if ( U . keys . containsKey ( key ) )
-		return String . format (
-			"Key '%s[%s]' is already in use by build-in function '%s'." , key0 ,
-			key , U . keys . get ( key ) . name ( ) ) ;
+		return String . format ( "Key '%s[%s]' is already in use by build-in function '%s'." , key0 , key ,
+			U . keys . get ( key ) . name ( ) ) ;
 		if ( U . pluginKeys . containsKey ( key ) )
-		return String . format (
-			"Key '%s[%s]' is already in use by other plugin '%s'." , key0 , key ,
+		return String . format ( "Key '%s[%s]' is already in use by other plugin '%s'." , key0 , key ,
 			U . pluginKeys . get ( key ) . getClass ( ) . getName ( ) ) ;
 		U . pluginKeys . put ( key , pa ) ;
 		return null ;
