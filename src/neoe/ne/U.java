@@ -852,13 +852,14 @@ public class U {
 			if ( p1 >= len )
 			break ;
 			char c = s . charAt ( p1 ) ;
-			if ( c == '"' ) {
-				int p2 = s . indexOf ( '"' , p1 + 1 ) ;
+			if ( c == '"' || c == '\'' ) {
+				char c0 = c ;
+				int p2 = s . indexOf ( c0 , p1 + 1 ) ;
 				if ( p2 < 0 )
 				p2 = len ;
 				r . add ( s . substring ( p1 + 1 , p2 ) ) ;
 				p1 = p2 + 1 ;
-			} else if ( c == ' ' ) {
+			} else if ( c == ' ' || c == '\t' ) {
 				p1 ++ ;
 			} else {
 				int p2 = s . indexOf ( ' ' , p1 + 1 ) ;
