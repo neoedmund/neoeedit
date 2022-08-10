@@ -24,7 +24,7 @@ https://github.com/neoedmund/neoeedit
 - No online data transmission or any telemetry, means privacy protected
 - Since 2009
 
-
+![screenshot](ne_screenshot2.png)
 
 
 ### Default key-bindings:(can be changed in config file, located in $homedir/.neoeedit)
