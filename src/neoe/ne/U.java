@@ -862,10 +862,17 @@ public class U {
 			} else if ( c == ' ' || c == '\t' ) {
 				p1 ++ ;
 			} else {
-				int p2 = s . indexOf ( ' ' , p1 + 1 ) ;
+				int p2 = -1 ;
+				for ( int i = p1 + 1 ; i < s . length ( ) ; i ++ ) {
+					char c3 = s . charAt ( i ) ;
+					if ( c3 == ' ' || c3 == '\t' ) {
+						p2 = i ;
+						break ;
+					}
+				}
 				if ( p2 < 0 )
 				p2 = len ;
-				r . add ( s . substring ( p1 , p2 ) ) ;
+				r . add ( s . substring ( p1 , p2 ) . trim ( ) ) ;
 				p1 = p2 + 1 ;
 			}
 		}

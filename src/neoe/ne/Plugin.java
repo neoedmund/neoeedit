@@ -80,6 +80,10 @@ public class Plugin {
 		void run ( PlainPage pp ) throws Exception ;
 	}
 
+	public interface GoHandle {
+		boolean run ( String line , PlainPage pp ) ;
+	}
+
 	public interface PluginCall {
 		Object run ( Object pp ) throws Exception ;
 	}
@@ -88,7 +92,8 @@ public class Plugin {
 
 	public static Object call ( String key , Object param ) throws Exception {
 		PluginCall pc = calls . get ( key ) ;
-		if ( pc == null ) return null ;
+		if ( pc == null )
+		return null ;
 		return pc . run ( param ) ;
 	}
 
@@ -117,5 +122,15 @@ public class Plugin {
 			U . pluginKeys . get ( key ) . getClass ( ) . getName ( ) ) ;
 		U . pluginKeys . put ( key , pa ) ;
 		return null ;
+	}
+
+	public static List < GoHandle > goHandles = new ArrayList < > ( ) ;
+
+	public static boolean goHandle ( String line , PlainPage pp ) {
+		for ( GoHandle h : goHandles ) {
+			if ( h . run ( line , pp ) )
+			return true ;
+		}
+		return false ;
 	}
 }

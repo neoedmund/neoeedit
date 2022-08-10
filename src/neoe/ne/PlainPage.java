@@ -149,6 +149,7 @@ public class PlainPage {
 			if ( pageData . searchResultOf == null || ! gotoFileLineSearchResult ( uiComp , line , pageData . searchResultOf ) )
 			if ( ! gotoFileLine ( line , uiComp , true ) )
 			if ( ! U . listDirOrOpenFile ( PlainPage . this , cy ) )
+			if ( ! Plugin . goHandle ( line , PlainPage . this ) )
 			U . launch ( line ) ;
 			uiComp . newWindow = false ;
 		}
