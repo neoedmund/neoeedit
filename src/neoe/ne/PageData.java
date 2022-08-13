@@ -53,7 +53,7 @@ public class PageData {
 	long fileLastModified ;
 
 	boolean fileLoaded ;
-	History history ;
+	public History history ;
 	boolean isCommentChecked ;
 	String [ ] comment = null ;
 	/* element: String or StringBuilder(after edit) */
@@ -61,7 +61,7 @@ public class PageData {
 	public String lineSep = "\n" ;
 	public String searchResultOf ;
 	public int ref ;
-	ReadonlyLines roLines = new ReadonlyLines ( this ) ;
+	public ReadonlyLines roLines = new ReadonlyLines ( this ) ;
 	public String title ;
 
 	public boolean gzip ;

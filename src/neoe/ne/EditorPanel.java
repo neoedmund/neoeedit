@@ -38,9 +38,7 @@ import javax . swing . SwingUtilities ;
 import javax . swing . WindowConstants ;
 import neoe . ne . U . LocationHistory ;
 
-public class EditorPanel
-extends JPanel implements MouseMotionListener , MouseListener ,
-MouseWheelListener , KeyListener {
+public class EditorPanel extends JPanel implements MouseMotionListener , MouseListener , MouseWheelListener , KeyListener {
 	private Dimension dim ;
 
 	private Point loc ;
@@ -54,6 +52,7 @@ MouseWheelListener , KeyListener {
 	boolean findAndShowPage ( String title , int line , boolean rec ) throws Exception {
 		if ( title == null )
 		return false ;
+
 		{ // show image file
 			File f = new File ( title ) ;
 			if ( f . isFile ( ) && U . isImageFile ( f ) ) {
@@ -63,7 +62,7 @@ MouseWheelListener , KeyListener {
 		}
 		PlainPage pp = findPage ( title ) ;
 		if ( pp != null ) {
-			if ( newWindow /*&& pp . pageData . fileLoaded */ ) {
+			if ( newWindow /* && pp . pageData . fileLoaded */ ) {
 				openInNewWindow ( title , line ) ;
 				return true ;
 			}
@@ -81,7 +80,7 @@ MouseWheelListener , KeyListener {
 			PageData pd = PageData . dataPool . get ( title ) ;
 			//PageData . fromTitle ( title ) ;
 			if ( pd != null ) {
-				if ( newWindow /*&& pp . pageData . fileLoaded */ ) {
+				if ( newWindow /* && pp . pageData . fileLoaded */ ) {
 					openInNewWindow ( title , line ) ;
 					return true ;
 				} else {
@@ -134,20 +133,22 @@ MouseWheelListener , KeyListener {
 	}
 
 	private boolean inRangeOfWindowMove ( MouseEvent evt ) {
-		if ( page == null || realJFrame == null ) return false ;
+		if ( page == null || realJFrame == null )
+		return false ;
 		int x = evt . getX ( ) ;
 		int y = evt . getY ( ) ;
 		return x <= page . toolbarHeight && y <= page . toolbarHeight ;
 	}
 
 	private boolean inRangeOfWindowResize ( MouseEvent evt ) {
-		if ( page == null || realJFrame == null ) return false ;
+		if ( page == null || realJFrame == null )
+		return false ;
 		int x = evt . getX ( ) ;
 		int y = evt . getY ( ) ;
 		Dimension dim0 = getSize ( ) ;
-		return x >= dim0 . width - page . toolbarHeight
-		&& y >= dim0 . height - page . toolbarHeight ;
+		return x >= dim0 . width - page . toolbarHeight && y >= dim0 . height - page . toolbarHeight ;
 	}
+
 	int mx , my ;
 
 	private void startWindowMove ( MouseEvent evt ) {
@@ -201,18 +202,14 @@ MouseWheelListener , KeyListener {
 		Rectangle rect = new Rectangle ( 200 , 200 , 0 , 10 ) ;
 
 		@ Override
-		public AttributedCharacterIterator
-		cancelLatestCommittedText ( Attribute [ ] attributes ) {
-			System . out . println ( "cancelLatestCommittedText="
-				+ Arrays . deepToString ( attributes ) ) ;
+		public AttributedCharacterIterator cancelLatestCommittedText ( Attribute [ ] attributes ) {
+			System . out . println ( "cancelLatestCommittedText=" + Arrays . deepToString ( attributes ) ) ;
 			return null ;
 		}
 
 		@ Override
-		public AttributedCharacterIterator
-		getCommittedText ( int beginIndex , int endIndex , Attribute [ ] attributes ) {
-			System . out . printf ( "getCommittedText %d, %d, %s\n" , beginIndex , endIndex ,
-				Arrays . deepToString ( attributes ) ) ;
+		public AttributedCharacterIterator getCommittedText ( int beginIndex , int endIndex , Attribute [ ] attributes ) {
+			System . out . printf ( "getCommittedText %d, %d, %s\n" , beginIndex , endIndex , Arrays . deepToString ( attributes ) ) ;
 			return null ;
 		}
 
@@ -248,7 +245,7 @@ MouseWheelListener , KeyListener {
 		}
 	}
 
-	static int openedWindows ;
+	public static int openedWindows ;
 
 	static final String WINDOW_NAME = "neoeedit " + Version . REV ;
 
@@ -328,7 +325,7 @@ MouseWheelListener , KeyListener {
 		if ( frame == null )
 		return ;
 		String tag = " (" + pageSet . size ( ) + ") - " + EditorPanel . WINDOW_NAME + U . suNotice ( ) ;
-		String pre = "/ne/ " ;
+		String pre = U . TitleName ;
 		String title ;
 		String fn = page . pageData . title ;
 		if ( page . console != null )
@@ -485,7 +482,8 @@ MouseWheelListener , KeyListener {
 		grabFocus ( ) ;
 	}
 
-	public void openWindow ( String iconname , RootPaneContainer outFrame , JFrame realJFrame , JDesktopPane desktopPane ) throws IOException {
+	public void openWindow ( String iconname , RootPaneContainer outFrame , JFrame realJFrame , JDesktopPane desktopPane )
+	throws IOException {
 		frame = outFrame ;
 		this . desktopPane = desktopPane ;
 		if ( iconname == null )
@@ -531,8 +529,7 @@ MouseWheelListener , KeyListener {
 			} ) ;
 	}
 
-	private void initJFrame ( String iconname , JFrame frame )
-	throws IOException {
+	private void initJFrame ( String iconname , JFrame frame ) throws IOException {
 		if ( iconname != null )
 		frame . setIconImage ( U . getAppIcon ( iconname ) ) ;
 		frame . setDefaultCloseOperation ( WindowConstants . DISPOSE_ON_CLOSE ) ;

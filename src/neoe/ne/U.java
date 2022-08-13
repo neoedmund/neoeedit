@@ -600,7 +600,7 @@ public class U {
 
 		static public String charToHex ( char c ) {
 			// Returns hex String representation of char c
-			byte hi = ( byte ) ( c >>> 8 ) ;
+			byte hi = ( byte ) ( c >> 8 ) ;
 			byte lo = ( byte ) ( c & 0xff ) ;
 			return byteToHex ( hi ) + byteToHex ( lo ) ;
 		}
@@ -840,16 +840,43 @@ public class U {
 		return ss ;
 	}
 
-	private static String [ ] splitCommand ( String cmd ) throws Exception {
-		if ( cmd . contains ( "*" ) || cmd . contains ( "~" ) || cmd . contains ( "|" ) || cmd . contains ( "&" ) || cmd . contains ( ">" ) ) {
-			return new String [ ] { "bash" , "-c" , cmd } ;
+	private static String [ ] splitCommand ( String s ) {
+		if ( s . contains ( "*" ) || s . contains ( "~" ) || s . contains ( "|" ) || s . contains ( "&" ) || s . contains ( ">" ) ) {
+			return new String [ ] { "bash" , "-c" , s } ;
 		}
-		List list = ( List ) PyData . parseAll ( "[" + cmd + "]" , false , true ) ;
-		String [ ] ss = new String [ list . size ( ) ] ;
-		int len = list . size ( ) ;
-		for ( int i = 0 ; i < len ; i ++ )
-		ss [ i ] = "" + list . get ( i ) ;
-		return ss ;
+
+		List < String > r = new ArrayList < > ( ) ;
+		int p1 = 0 ;
+		int len = s . length ( ) ;
+		while ( true ) {
+			if ( p1 >= len )
+			break ;
+			char c = s . charAt ( p1 ) ;
+			if ( c == '"' || c == '\'' ) {
+				char c0 = c ;
+				int p2 = s . indexOf ( c0 , p1 + 1 ) ;
+				if ( p2 < 0 )
+				p2 = len ;
+				r . add ( s . substring ( p1 + 1 , p2 ) ) ;
+				p1 = p2 + 1 ;
+			} else if ( c == ' ' || c == '\t' ) {
+				p1 ++ ;
+			} else {
+				int p2 = -1 ;
+				for ( int i = p1 + 1 ; i < s . length ( ) ; i ++ ) {
+					char c3 = s . charAt ( i ) ;
+					if ( c3 == ' ' || c3 == '\t' ) {
+						p2 = i ;
+						break ;
+					}
+				}
+				if ( p2 < 0 )
+				p2 = len ;
+				r . add ( s . substring ( p1 , p2 ) . trim ( ) ) ;
+				p1 = p2 + 1 ;
+			}
+		}
+		return ( String [ ] ) r . toArray ( new String [ r . size ( ) ] ) ;
 	}
 
 	private static boolean isCmdCd ( String cmd , PlainPage pp ) {
@@ -948,6 +975,13 @@ public class U {
 		return f ;
 	}
 
+	public static File getSearchHistoryName ( ) throws IOException {
+		File f = new File ( getMyDir ( ) , "sh.txt" ) ;
+		if ( ! f . exists ( ) )
+		new FileOutputStream ( f ) . close ( ) ;
+		return f ;
+	}
+
 	static File getDirHistoryName ( ) throws IOException {
 		File f = new File ( getMyDir ( ) , "dh.txt" ) ;
 		if ( ! f . exists ( ) )
@@ -982,6 +1016,10 @@ public class U {
 			return getResourceReader ( fn ) ;
 		}
 		return new InputStreamReader ( new FileInputStream ( installed ) , UTF8 ) ;
+	}
+
+	public static String getUserHome ( ) {
+		return System . getProperty ( "user.home" ) ;
 	}
 
 	public static File getMyDir ( ) {
@@ -1212,16 +1250,20 @@ public class U {
 	}
 
 	static boolean listDirOrOpenFile ( PlainPage page , int atLine ) throws Exception {
-		String line = page . pageData . roLines . getline ( atLine ) . toString ( ) ;
+		String line0 = page . pageData . roLines . getline ( atLine ) . toString ( ) ;
+		String line = line0 ;
+		if ( line . startsWith ( "~/" ) )
+		line = U . getUserHome ( ) + line . substring ( 1 ) ;
+
 		File f = findFile ( page . workPath , line ) ;
 		if ( f == null )
 		return false ;
 		f = f . getCanonicalFile ( ) ;
 		if ( f . isFile ( ) && f . exists ( ) )
-		return page . uiComp . findAndShowPage ( f . getAbsolutePath ( ) , -1 , true ) ;
+		return page . uiComp . findAndShowPage ( f . getCanonicalPath ( ) , -1 , true ) ;
 		if ( f . isDirectory ( ) ) {
 			File [ ] fs = f . listFiles ( ) ;
-			page . cx = line . length ( ) ;
+			page . cx = line0 . length ( ) ;
 			page . ptEdit . insertString ( "\n{-----" ) ;
 			Arrays . sort ( fs ) ; // for god's sake
 			for ( File f1 : fs )
@@ -1389,6 +1431,8 @@ public class U {
 		String s = o . toString ( ) ;
 		if ( s . startsWith ( "0x" ) )
 		v = Integer . parseInt ( s . substring ( 2 ) , 16 ) ;
+		else if ( s . startsWith ( "0b" ) )
+		v = Integer . parseInt ( s . substring ( 2 ) , 2 ) ;
 		else
 		v = Integer . parseInt ( s ) ;
 		return v ;
@@ -1935,6 +1979,7 @@ public class U {
 	public static final String e_png = "e.jpg" ;
 	public static final String e2_png = "e2.jpg" ;
 	public static final String e3_png = "e3.jpg" ;
+	public static String TitleName = "/ne/ " ;
 	static Map < String , Image > appIcons = new HashMap ( ) ;
 	/* maybe should attach to page, but impl like this currently */
 	public static boolean shrinkWord ;
@@ -1983,7 +2028,7 @@ public class U {
 		ss = ss . substring ( p1 ) ;
 		for ( int i = 0 ; i < ss . length ( ) ; i ++ ) {
 			char ch = ss . charAt ( i ) ;
-			if ( "+-/*^x" . indexOf ( ch ) >= 0 )
+			if ( "+-/*^xb" . indexOf ( ch ) >= 0 )
 			return ss ;
 		}
 		return "" ;
@@ -2102,5 +2147,13 @@ public class U {
 		Collections . reverse ( fs2 ) ;
 		U . save ( fs2 , UTF8 , fhn . getAbsolutePath ( ) ) ;
 		System . out . printf ( "file history optimized (%d->%d)\n" , fs . size ( ) , fs2 . size ( ) ) ;
+	}
+
+	public static void appendSearchResultHistory ( String key ) throws IOException {
+		File fn = U . getSearchHistoryName ( ) ;
+		FileOutputStream out = new FileOutputStream ( fn , true ) ;
+		out . write ( key . getBytes ( UTF8 ) ) ;
+		out . write ( '\n' ) ;
+		out . close ( ) ;
 	}
 }

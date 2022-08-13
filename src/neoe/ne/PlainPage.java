@@ -65,7 +65,7 @@ public class PlainPage {
 	public EasyEdit ptEdit = new EasyEdit ( ) ;
 	public FindAndReplace ptFind = new FindAndReplace ( this ) ;
 	public Selection ptSelection = new Selection ( ) ;
-	boolean readonly = false ;
+	public boolean readonly = false ;
 
 	boolean rectSelectMode = false ;
 	boolean savingFromSelectionCancel ;
@@ -138,17 +138,23 @@ public class PlainPage {
 	}
 
 	public void go ( String line , boolean newWindow ) throws Exception {
-		if ( line == null || line . trim ( ) . isEmpty ( ) )
+		if ( line == null )
+		return ;
+		line = line . trim ( ) ;
+		if ( line . isEmpty ( ) )
 		return ;
 		if ( line . startsWith ( "set-font:" ) ) {
 			String fn = line . substring ( "set-font:" . length ( ) ) . trim ( ) ;
 			Font font = U . getFont ( fn , fontList . getlineHeight ( ) ) ;
 			U . setFont ( uiComp , font ) ;
 		} else {
+			if ( line . startsWith ( "~/" ) )
+			line = U . getUserHome ( ) + line . substring ( 1 ) ;
 			uiComp . newWindow = newWindow ;
 			if ( pageData . searchResultOf == null || ! gotoFileLineSearchResult ( uiComp , line , pageData . searchResultOf ) )
 			if ( ! gotoFileLine ( line , uiComp , true ) )
 			if ( ! U . listDirOrOpenFile ( PlainPage . this , cy ) )
+			if ( ! Plugin . goHandle ( line , PlainPage . this ) )
 			U . launch ( line ) ;
 			uiComp . newWindow = false ;
 		}

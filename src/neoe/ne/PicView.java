@@ -523,6 +523,9 @@ public class PicView {
 			Dimension dim = new Dimension ( pw = ( int ) ( img . getWidth ( ) + 20 ) , ph = ( int ) ( img . getHeight ( ) + 20 ) ) ;
 			dim . width = Math . min ( maxWindow . width , Math . max ( 200 , dim . width ) ) ;
 			dim . height = Math . min ( maxWindow . height , Math . max ( 200 , dim . height ) ) ;
+			Dimension d0 = frame . getSize ( ) ;
+			dim . width = Math . max ( dim . width , d0 . width ) ;
+			dim . height = Math . max ( dim . height , d0 . height ) ;
 			frame . setSize ( dim ) ;
 		}
 

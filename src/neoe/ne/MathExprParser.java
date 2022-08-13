@@ -40,7 +40,7 @@ public class MathExprParser {
 	// brackets = `(` expression `)`
 	BigDecimal parseExpression ( ) {
 		BigDecimal v = parseTerm ( ) ;
-		for ( ; ; ) {
+		while ( true ) {
 			eatSpace ( ) ;
 			if ( c == '+' ) { // addition
 				eatChar ( ) ;
@@ -55,7 +55,7 @@ public class MathExprParser {
 
 	BigDecimal parseTerm ( ) {
 		BigDecimal v = parseFactor ( ) ;
-		for ( ; ; ) {
+		while ( true ) {
 			eatSpace ( ) ;
 			if ( c == '/' ) { // division
 				eatChar ( ) ;
@@ -92,17 +92,19 @@ public class MathExprParser {
 				sb . append ( ( char ) c ) ;
 				eatChar ( ) ;
 			}
-			if ( sb . length ( ) == 0 ) throw new RuntimeException ( "Unexpected: " + ( char ) c ) ;
+			if ( sb . length ( ) == 0 )
+			throw new RuntimeException ( "Unexpected: " + ( char ) c ) ;
 			if ( sb . length ( ) >= 2 && sb . substring ( 0 , 2 ) . equals ( "0x" ) )
 			v = new BigDecimal ( new BigInteger ( sb . substring ( 2 ) , 16 ) ) ;
+			else if ( sb . length ( ) >= 2 && sb . substring ( 0 , 2 ) . equals ( "0b" ) )
+			v = new BigDecimal ( new BigInteger ( sb . substring ( 2 ) , 2 ) ) ;
 			else
 			v = new BigDecimal ( removeComma ( sb ) . toString ( ) ) ;
 		}
 		eatSpace ( ) ;
 		if ( c == '^' ) { // exponentiation
 			eatChar ( ) ;
-			v = BigDecimal . valueOf (
-				Math . pow ( v . doubleValue ( ) , parseFactor ( ) . doubleValue ( ) ) ) ;
+			v = BigDecimal . valueOf ( Math . pow ( v . doubleValue ( ) , parseFactor ( ) . doubleValue ( ) ) ) ;
 		}
 		if ( negate ) // unary minus is applied after exponentiation; e.g. -3^2=-9
 		v = v . negate ( ) ;
@@ -113,7 +115,8 @@ public class MathExprParser {
 	private StringBuilder removeComma ( StringBuilder sb ) {
 		while ( true ) {
 			int p1 = sb . indexOf ( "," ) ;
-			if ( p1 < 0 ) return sb ;
+			if ( p1 < 0 )
+			return sb ;
 			sb . deleteCharAt ( p1 ) ;
 		}
 	}
