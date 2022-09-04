@@ -1343,7 +1343,7 @@ public class U {
 		if ( kc == KeyEvent . VK_SHIFT || kc == KeyEvent . VK_CONTROL || kc == KeyEvent . VK_ALT ) // fast pass
 		return null ;
 		String name = getKeyName ( env ) ;
-		// System.out.println("key name=" + name);
+		//		System . out . println ( "key name=" + name ) ;
 		Commands cmd = keys . get ( name ) ;
 		return cmd ;
 	}
