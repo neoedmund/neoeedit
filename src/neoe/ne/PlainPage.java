@@ -220,6 +220,14 @@ public class PlainPage {
 		sy = Math . max ( 0 , sy - 1 ) ;
 	}
 
+	private void doMoveViewPageDown ( ) {
+		sy = Math . min ( sy + showLineCnt , pageData . roLines . getLinesize ( ) - 1 ) ;
+	}
+
+	private void doMoveViewPageUp ( ) {
+		sy = Math . max ( 0 , sy - showLineCnt ) ;
+	}
+
 	/* let cursor get see */
 	public void focusCursor ( ) {
 		sy = U . between ( U . between ( sy , cy - showLineCnt + 3 , cy - 3 ) , 0 , pageData . roLines . getLinesize ( ) - 1 ) ;
@@ -541,12 +549,20 @@ public class PlainPage {
 			U . reloadWithEncodingByUser ( this ) ;
 			break ;
 			case moveLeft :
-			cursor . moveLeft ( ) ;
-			focusCursor ( ) ;
+			if ( readonly )
+			doMoveViewPageUp ( ) ;
+			else {
+				cursor . moveLeft ( ) ;
+				focusCursor ( ) ;
+			}
 			break ;
 			case moveRight :
-			cursor . moveRight ( ) ;
-			focusCursor ( ) ;
+			if ( readonly )
+			doMoveViewPageDown ( ) ;
+			else {
+				cursor . moveRight ( ) ;
+				focusCursor ( ) ;
+			}
 			break ;
 			case moveUp :
 			if ( readonly )
@@ -574,7 +590,7 @@ public class PlainPage {
 			break ;
 			case movePageUp :
 			if ( readonly )
-			sy = Math . max ( 0 , sy - showLineCnt ) ;
+			doMoveViewPageUp ( ) ;
 			else {
 				cursor . movePageUp ( ) ;
 				focusCursor ( ) ;
@@ -582,7 +598,7 @@ public class PlainPage {
 			break ;
 			case movePageDown :
 			if ( readonly )
-			sy = Math . min ( sy + showLineCnt , pageData . roLines . getLinesize ( ) - 1 ) ;
+			doMoveViewPageDown ( ) ;
 			else {
 				cursor . movePageDown ( ) ;
 				focusCursor ( ) ;
@@ -812,7 +828,7 @@ public class PlainPage {
 
 	public void repaint ( ) {
 		new Thread ( ( ) -> uiComp . repaint ( ) ) . start ( ) ;
-		//		SwingUtilities . invokeLater ( ) ;
+		// SwingUtilities . invokeLater ( ) ;
 	}
 
 	private void unknownCommand ( KeyEvent env ) {

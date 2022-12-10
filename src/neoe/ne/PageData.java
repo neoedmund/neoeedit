@@ -18,6 +18,7 @@ public class PageData {
 	static Map < String , PageData > dataPool = new HashMap < > ( ) ;
 
 	public static PageData newUntitled ( ) {
+		U . gc ( ) ;
 		return fromTitle ( "[Untitled]#" + U . randomID ( ) ) ;
 	}
 
@@ -43,6 +44,7 @@ public class PageData {
 		saveFileHistory ( fn , 0 ) ;
 		return pd ;
 	}
+
 	public boolean changedOutside ;
 
 	public BasicEdit editNoRec = new BasicEdit ( false , this ) ;

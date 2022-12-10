@@ -1343,7 +1343,7 @@ public class U {
 		if ( kc == KeyEvent . VK_SHIFT || kc == KeyEvent . VK_CONTROL || kc == KeyEvent . VK_ALT ) // fast pass
 		return null ;
 		String name = getKeyName ( env ) ;
-		// System.out.println("key name=" + name);
+		// System . out . println ( "key name=" + name ) ;
 		Commands cmd = keys . get ( name ) ;
 		return cmd ;
 	}
@@ -1628,6 +1628,8 @@ public class U {
 			}
 			PageData pd = page . pageData ;
 			pd . renameTo ( fn ) ;
+			U . saveFileHistory ( fn , page . cy ) ;
+			page . uiComp . changeTitle ( ) ;
 			return savePageToFile ( page ) ;
 		}
 	}
