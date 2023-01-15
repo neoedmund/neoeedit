@@ -20,6 +20,7 @@
 		[ selectLine alt-A edit ]
 		[ deleteLine ctrl-D edit ]
 		[ deleteWord ctrl-DELETE edit ]
+		[ deleteWordBack ctrl-BACK_SPACE edit ]
 		[ openFile ctrl-O file ]
 		[ newPage ctrl-N ui ]
 		[ newWindow ctrl-M ui ]
@@ -95,17 +96,13 @@
 	}
 	font : {
 		font_example : [ "font filename" fontsize <empty>|BOLD|ITALIC ]
-		console : [ FreeMono 15 ]
+		console : [ "Zen Kurenaido" 15 ]
 		list : [
-			[ 'Zen Kurenaido' 16 ]
-			[ 'TsangerYuYangT W01' 16 ]
+			[ "Kingnam Maiyuan" 16 ]
 			[ "Source Code Pro Semibold" 16 ]
-			[ "Noto Sans CJK SC DemiLight" 16 ]
+			[ "WenQuanYi Micro Hei" 16 ]
 		]
 		list_noused : [
-			[ "DejaVu Sans Mono" 12 ]
-			[ /home/neoe/oss/freefonts/荆南麦圆体.ttf 16 ]
-			console : [ /home/neoe/oss/freefonts/ZhanKuQingKeHuangYouTi-2.ttf 15 ]
 		]
 	}
 	ime : [

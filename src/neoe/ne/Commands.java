@@ -76,6 +76,7 @@ public enum Commands {
 	commandPanel ,
 	mathEval ,
 	deleteWord ,
+	deleteWordBack ,
 	pageForward ,
 	pageBack ,
 	readonlyMode ,

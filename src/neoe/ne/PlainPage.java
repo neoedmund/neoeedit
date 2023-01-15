@@ -748,6 +748,10 @@ public class PlainPage {
 			ptEdit . deleteSpace ( ) ;
 			focusCursor ( ) ;
 			break ;
+			case deleteWordBack :
+			ptEdit . deleteSpaceBack ( ) ;
+			focusCursor ( ) ;
+			break ;
 			case moveRightWord :
 			cursor . moveRightWord ( ) ;
 			focusCursor ( ) ;
@@ -1097,6 +1101,8 @@ public class PlainPage {
 			int y1 = r . y ;
 			int x2 = r . width ;
 			int y2 = r . height ;
+			if ( x1 == x2 && y1 == y2 )
+			return ;
 			if ( rectSelectMode ) {
 				for ( int i = y1 ; i <= y2 ; i ++ )
 				pageData . editRec . deleteInLine ( i , x1 , x2 ) ;
@@ -1123,6 +1129,14 @@ public class PlainPage {
 			cursor . moveRightWord ( ) ;
 			int x2 = cx , y2 = cy ;
 			deleteRect ( new Rectangle ( x0 , y0 , x2 , y2 ) ) ;
+		}
+
+		public void deleteSpaceBack ( ) {
+			// CharSequence line = pageData.roLines.getline(cy);
+			int x0 = cx , y0 = cy ;
+			cursor . moveLeftWord ( ) ;
+			int x2 = cx , y2 = cy ;
+			deleteRect ( new Rectangle ( x2 , y2 , x0 , y0 ) ) ;
 		}
 
 		String getIndent ( String s ) {
