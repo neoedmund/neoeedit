@@ -78,7 +78,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		// can i open the file?
 		if ( title . startsWith ( "[" ) ) {
 			PageData pd = PageData . dataPool . get ( title ) ;
-			//PageData . fromTitle ( title ) ;
+			// PageData . fromTitle ( title ) ;
 			if ( pd != null ) {
 				if ( newWindow /* && pp . pageData . fileLoaded */ ) {
 					openInNewWindow ( title , line ) ;
@@ -93,7 +93,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 					return true ;
 				}
 			}
-			return false ; //not likely
+			return false ; // not likely
 		}
 		File f = new File ( title ) ;
 		if ( ! f . isFile ( ) )
@@ -155,13 +155,30 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		mx = evt . getXOnScreen ( ) ;
 		my = evt . getYOnScreen ( ) ;
 		loc = getLocationOnScreen ( ) ;
+		if ( frame != null ) {
+			if ( frame instanceof JFrame ) {
+				loc = ( ( JFrame ) frame ) . getLocationOnScreen ( ) ;
+			} else if ( frame instanceof JInternalFrame ) {
+				loc = ( ( JInternalFrame ) frame ) . getLocationOnScreen ( ) ;
+			}
+		} else {
+			loc = new Point ( ) ; // dummy
+		}
 		inWindowMove = true ;
 	}
 
 	private void startWindowResize ( MouseEvent evt ) {
 		mx = evt . getXOnScreen ( ) ;
 		my = evt . getYOnScreen ( ) ;
-		dim = getSize ( ) ;
+		if ( frame != null ) {
+			if ( frame instanceof JFrame ) {
+				dim = ( ( JFrame ) frame ) . getSize ( ) ;
+			} else if ( frame instanceof JInternalFrame ) {
+				dim = ( ( JInternalFrame ) frame ) . getSize ( ) ;
+			}
+		} else {
+			dim = new Dimension ( ) ; // dummy
+		}
 		inWindowResize = true ;
 	}
 
@@ -175,8 +192,12 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		Point loc2 = new Point ( loc ) ;
 		loc2 . x += x - mx ;
 		loc2 . y += y - my ;
-		if ( realJFrame != null ) {
-			realJFrame . setLocation ( loc2 ) ;
+		if ( frame != null ) {
+			if ( frame instanceof JFrame ) {
+				( ( JFrame ) frame ) . setLocation ( loc2 ) ;
+			} else if ( frame instanceof JInternalFrame ) {
+				( ( JInternalFrame ) frame ) . setLocation ( loc2 ) ;
+			}
 		}
 	}
 
@@ -190,8 +211,12 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		Dimension dim2 = new Dimension ( dim ) ;
 		dim2 . width += x - mx ;
 		dim2 . height += y - my ;
-		if ( realJFrame != null ) {
-			realJFrame . setSize ( dim2 ) ;
+		if ( frame != null ) {
+			if ( frame instanceof JFrame ) {
+				( ( JFrame ) frame ) . setSize ( dim2 ) ;
+			} else if ( frame instanceof JInternalFrame ) {
+				( ( JInternalFrame ) frame ) . setSize ( dim2 ) ;
+			}
 		}
 	}
 
@@ -467,18 +492,18 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	}
 
 	public void openWindow ( ) throws IOException {
-		if ( frame != null ) //?
+		if ( frame != null ) // ?
 		return ;
 		openedWindows ++ ;
 		JFrame f = new JFrame ( EditorPanel . WINDOW_NAME ) ;
 		openWindow ( U . e_png , f , f , null ) ;
 		installWindowListener ( f ) ;
-		// not called, why?		f . addFocusListener ( new FocusAdapter ( ) {
-		//				@ Override
-		//				public void focusGained ( FocusEvent e ) {
-		//					System . out . println ( "JFrame.focusGained" ) ;
-		//					EditorPanel . this . requestFocusInWindow ( ) ; }
-		//			} ) ;
+		// not called, why? f . addFocusListener ( new FocusAdapter ( ) {
+		// @ Override
+		// public void focusGained ( FocusEvent e ) {
+		// System . out . println ( "JFrame.focusGained" ) ;
+		// EditorPanel . this . requestFocusInWindow ( ) ; }
+		// } ) ;
 		grabFocus ( ) ;
 	}
 
@@ -515,16 +540,17 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 
 				@ Override
 				public void windowClosing ( WindowEvent e ) {
-					//note: history record when file open, don't do when closing
-					//					StringBuilder sb = new StringBuilder ( ) ;
-					//					for ( PlainPage pp : pageSet )
-					//					if ( pp . pageData . fileLoaded )
-					//					sb . append ( String . format ( "\n%s|%s:" , pp . pageData . title , pp . cy + 1 ) ) ;
-					//					try {
-					//						U . saveFileHistorys ( sb . toString ( ) ) ;
-					//					} catch ( IOException e1 ) {
-					//						e1 . printStackTrace ( ) ;
-					//					}
+					// note: history record when file open, don't do when closing
+					// StringBuilder sb = new StringBuilder ( ) ;
+					// for ( PlainPage pp : pageSet )
+					// if ( pp . pageData . fileLoaded )
+					// sb . append ( String . format ( "\n%s|%s:" , pp . pageData . title , pp . cy
+					// + 1 ) ) ;
+					// try {
+					// U . saveFileHistorys ( sb . toString ( ) ) ;
+					// } catch ( IOException e1 ) {
+					// e1 . printStackTrace ( ) ;
+					// }
 				}
 			} ) ;
 	}

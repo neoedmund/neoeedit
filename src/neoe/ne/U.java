@@ -32,7 +32,6 @@ import java . io . OutputStreamWriter ;
 import java . io . PrintWriter ;
 import java . io . Reader ;
 import java . io . StringWriter ;
-import java . io . ObjectInputFilter . Config ;
 import java . lang . reflect . Field ;
 import java . net . URI ;
 import java . text . SimpleDateFormat ;
@@ -67,7 +66,6 @@ import javax . swing . TransferHandler ;
 import neoe . ne . PlainPage . Paint ;
 import neoe . ne . Plugin . PluginAction ;
 import neoe . ne . util . FileUtil ;
-import neoe . ne . util . PyData ;
 
 /**
  * Trivial static methods.
@@ -1587,7 +1585,7 @@ public class U {
 		JFileChooser chooser = new JFileChooser ( page . workPath ) ;
 		int returnVal = chooser . showSaveDialog ( editor ) ;
 		if ( returnVal == JFileChooser . APPROVE_OPTION ) {
-			String fn = chooser . getSelectedFile ( ) . getAbsolutePath ( ) ;
+			String fn = trimFileName ( chooser . getSelectedFile ( ) ) ;
 			if ( new File ( fn ) . exists ( ) && JOptionPane . YES_OPTION != JOptionPane . showConfirmDialog ( editor ,
 					"file exists, are you sure to overwrite?" , "save as..." , JOptionPane . YES_NO_OPTION ) ) {
 				page . ui . message ( "not renamed" ) ;
@@ -1619,7 +1617,7 @@ public class U {
 			if ( returnVal != JFileChooser . APPROVE_OPTION )
 			return false ;
 
-			String fn = chooser . getSelectedFile ( ) . getAbsolutePath ( ) ;
+			String fn = trimFileName ( chooser . getSelectedFile ( ) ) ;
 			if ( new File ( fn ) . exists ( ) )
 			if ( JOptionPane . YES_OPTION != JOptionPane . showConfirmDialog ( page . uiComp , "Are you sure to overwrite?" ,
 					"File exists" , JOptionPane . YES_NO_OPTION ) ) {
@@ -1632,6 +1630,13 @@ public class U {
 			page . uiComp . changeTitle ( ) ;
 			return savePageToFile ( page ) ;
 		}
+	}
+
+	private static String trimFileName ( File f ) {
+		File fp = f . getParentFile ( ) ;
+		if ( fp == null )
+		return f . getAbsolutePath ( ) . trim ( ) ;
+		return fp . getAbsolutePath ( ) . trim ( ) + "/" + f . getName ( ) . trim ( ) ;
 	}
 
 	static void saveFileHistory ( String fn , int line ) throws IOException {
