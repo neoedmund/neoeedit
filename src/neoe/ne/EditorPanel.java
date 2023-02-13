@@ -389,6 +389,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	@ Override
 	public void keyTyped ( KeyEvent env ) {
 		try {
+			if ( U . hardwareFailWorkaroundFilterOut ( env ) ) return ;
 			page . keyTyped ( env ) ;
 		} catch ( Throwable e ) {
 			page . ui . message ( "err:" + e ) ;

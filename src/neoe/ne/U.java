@@ -2163,4 +2163,38 @@ public class U {
 		out . write ( '\n' ) ;
 		out . close ( ) ;
 	}
+
+	private static Map < Integer , Long > keystime = new HashMap < > ( ) ;
+	public static int keymintime ;
+
+	/**
+	 * for some failing mechanical keyboard, eg. press 'i' gives 'iiiiii'. this fix
+	 * should do in libev(Linux) or alike low level. But, still for easy of hack this method
+	 * is added. note: my fast finger speed for single key is about 150ms, for
+	 * multi-keys is about 50ms(min 20ms), auto-repeat by system is about 40ms. 
+	 * so config is set to 38ms.
+	 */
+	public static boolean hardwareFailWorkaroundFilterOut ( KeyEvent env ) {
+		long now = System . currentTimeMillis ( ) ;
+		boolean debug = false ;
+		if ( debug ) {
+			int kc = 0 ;
+			Long last = keystime . get ( kc ) ;
+			if ( last == null )
+			last = 0L ;
+			keystime . put ( kc , now ) ;
+			long e = now - last ;
+			System . out . printf ( "KC0 e=%d M=%d\n" , e , keymintime ) ;
+		} {
+			int kc = env . getKeyChar ( ) ;
+			Long last = keystime . get ( kc ) ;
+			if ( last == null )
+			last = 0L ;
+			keystime . put ( kc , now ) ;
+			long e = now - last ;
+			if ( debug )
+			System . out . printf ( "kc=%d e=%d M=%d\n" , kc , e , keymintime ) ;
+			return last != null && e < keymintime ;
+		}
+	}
 }

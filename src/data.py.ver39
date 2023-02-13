@@ -116,6 +116,8 @@
 
 	shrinkWordRate : 0.62
 	shrinkWordLen : 7
+	
+	keymintime:38
 
 	lookAndFeel : ""
 	KEY_TEXT_ANTIALIASING : VALUE_TEXT_ANTIALIAS_ON

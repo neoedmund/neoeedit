@@ -15,7 +15,8 @@ public class Main {
 		Conf . initKeys ( ) ;
 		U . loadTabImage ( ) ;
 		U . addTime = "true" . equals ( System . getenv ( U . NE_ADDTIME ) ) ;
-		//		Gimp.loadFromConfig();
+		U . keymintime = Integer . parseInt ( Conf . get ( "keymintime" , "100" ) . toString ( ) ) ;
+		// Gimp.loadFromConfig();
 		Plugin . load ( ) ;
 	}
 
@@ -24,18 +25,20 @@ public class Main {
 		int pic = 0 ;
 		for ( String fn : args ) {
 			if ( fn . startsWith ( "-" ) )
-			continue ; //no opt yet
+			continue ; // no opt yet
 			File f = new File ( fn ) ;
 			if ( f . isFile ( ) )
 			if ( U . isImageFile ( f ) ) {
 				new PicView ( ) . show ( f ) ;
 				pic ++ ;
 			} else {
-				if ( editor == null ) editor = new EditorPanel ( ) ;
+				if ( editor == null )
+				editor = new EditorPanel ( ) ;
 				new PlainPage ( editor , PageData . fromFile ( f . getAbsolutePath ( ) ) , null ) ;
 			}
 			else {
-				if ( editor == null ) editor = new EditorPanel ( ) ;
+				if ( editor == null )
+				editor = new EditorPanel ( ) ;
 				PlainPage pp = new PlainPage ( editor , PageData . newUntitled ( ) , null ) ;
 				pp . pageData . setText ( fn ) ;
 			}
