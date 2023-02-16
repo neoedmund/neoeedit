@@ -61,7 +61,7 @@ public class Plugin {
 		return initPlugin ( cl ) ;
 	}
 
-	private static boolean initPlugin ( URLClassLoader cl ) throws Exception {
+	private static boolean initPlugin ( ClassLoader cl ) throws Exception {
 		try {
 			Class clz = cl . loadClass ( "neoe.ne.plugin.PluginInit" ) ;
 			Method run = clz . getMethod ( "run" , new Class [ ] { } ) ;
@@ -80,6 +80,11 @@ public class Plugin {
 		void run ( PlainPage pp ) throws Exception ;
 	}
 
+	/** another kind. not changing PluginAction for back-compatible */
+	public interface PluginAction2 {
+		void run ( PlainPage pp , String key ) throws Exception ;
+	}
+
 	public interface GoHandle {
 		boolean run ( String line , PlainPage pp ) ;
 	}
@@ -88,7 +93,12 @@ public class Plugin {
 		Object run ( Object pp ) throws Exception ;
 	}
 
+	public interface KeyHandle {
+		PluginAction2 findAction ( String key ) throws Exception ;
+	}
+
 	static Map < String , PluginCall > calls = new HashMap < > ( ) ;
+	static List < KeyHandle > keyHandles = new ArrayList < > ( ) ;
 
 	public static Object call ( String key , Object param ) throws Exception {
 		PluginCall pc = calls . get ( key ) ;
@@ -99,6 +109,11 @@ public class Plugin {
 
 	public static void registerCall ( String key , PluginCall pc ) {
 		calls . put ( key , pc ) ;
+	}
+
+	public static void registerKeyHandle ( KeyHandle h ) {
+		if ( h != null )
+		keyHandles . add ( h ) ;
 	}
 
 	/**
@@ -132,5 +147,14 @@ public class Plugin {
 			return true ;
 		}
 		return false ;
+	}
+
+	public static PluginAction2 findAction ( String key ) throws Exception {
+		for ( KeyHandle h : keyHandles ) {
+			PluginAction2 a = h . findAction ( key ) ;
+			if ( a != null )
+			return a ;
+		}
+		return null ;
 	}
 }

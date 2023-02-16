@@ -25,11 +25,11 @@ import java . util . Map ;
 import javax . swing . JFrame ;
 import javax . swing . JInternalFrame ;
 import javax . swing . JOptionPane ;
-import javax . swing . SwingUtilities ;
 
 import neoe . ne . CommandPanel . CommandPanelPaint ;
 import neoe . ne . Ime . Out ;
 import neoe . ne . Plugin . PluginAction ;
+import neoe . ne . Plugin . PluginAction2 ;
 import neoe . ne . util . FindJDK ;
 
 public class PlainPage {
@@ -291,35 +291,62 @@ public class PlainPage {
 			return ;
 		}
 
+		int kc = evt . getKeyCode ( ) ;
+		if ( kc != KeyEvent . VK_SHIFT && kc != KeyEvent . VK_CONTROL && kc != KeyEvent . VK_ALT ) {
+		} else {
+			return ;
+		}
+
 		pageData . history . beginAtom ( ) ;
 		try {
 			mshift = evt . isShiftDown ( ) ;
 			int ocx = cx ;
 			int ocy = cy ;
-			Commands cmd = U . mappingToCommand ( evt ) ;
-			if ( cmd == null ) {
-				int kc = evt . getKeyCode ( ) ;
-				boolean onlyShift = evt . isShiftDown ( ) && ! evt . isControlDown ( ) && ! evt . isAltDown ( ) ;
-				if ( ! onlyShift && ( evt . isActionKey ( ) || evt . isControlDown ( ) || evt . isAltDown ( ) )
-					&& ( kc != KeyEvent . VK_SHIFT && kc != KeyEvent . VK_CONTROL && kc != KeyEvent . VK_ALT ) ) {
-					String name = U . getKeyName ( evt ) ;
-					PluginAction ac = U . pluginKeys . get ( name ) ;
-					if ( ac != null ) {
-						try {
-							ac . run ( this ) ;
-						} catch ( Throwable e ) {
-							e . printStackTrace ( ) ;
-							if ( e . getCause ( ) != null )
-							e = e . getCause ( ) ;
-							ui . message ( "plugin:" + e . getMessage ( ) ) ;
-						}
-						evt . consume ( ) ;
-					} else
-					unknownCommand ( evt ) ;
+
+			//			int kc = evt.getKeyCode();
+			//				boolean onlyShift = evt . isShiftDown ( ) && ! evt . isControlDown ( ) && ! evt . isAltDown ( ) ;
+			//				if ( ! onlyShift 
+			////						&& ( evt . isActionKey ( ) || evt . isControlDown ( ) || evt . isAltDown ( ) )
+			////					&& ( kc != KeyEvent . VK_SHIFT && kc != KeyEvent . VK_CONTROL && kc != KeyEvent . VK_ALT )
+			//					) {
+			String name = U . getKeyName ( evt ) ;
+			PluginAction2 ac2 = Plugin . findAction ( name ) ;
+			if ( ac2 != null ) {
+				try {
+					ac2 . run ( this , name ) ;
+				} catch ( Throwable e ) {
+					e . printStackTrace ( ) ;
+					if ( e . getCause ( ) != null )
+					e = e . getCause ( ) ;
+					ui . message ( "plugin:" + e . getMessage ( ) ) ;
 				}
-			} else {
+				evt . consume ( ) ;
+				repaint ( ) ;
+				return ;
+			}
+
+			PluginAction ac = U . pluginKeys . get ( name ) ;
+			if ( ac != null ) {
+				try {
+					ac . run ( this ) ;
+				} catch ( Throwable e ) {
+					e . printStackTrace ( ) ;
+					if ( e . getCause ( ) != null )
+					e = e . getCause ( ) ;
+					ui . message ( "plugin:" + e . getMessage ( ) ) ;
+				}
+				evt . consume ( ) ;
+				repaint ( ) ;
+				return ;
+			}
+
+			Commands cmd = U . mappingToCommand ( evt ) ;
+			if ( cmd != null ) {
 				processCommand ( cmd ) ;
 				evt . consume ( ) ;
+			} else {
+				if ( evt . isControlDown ( ) || evt . isAltDown ( ) || evt . isActionKey ( ) )
+				unknownCommand ( evt ) ;
 			}
 
 			boolean cmoved = ! ( ocx == cx && ocy == cy ) ;
@@ -345,6 +372,8 @@ public class PlainPage {
 	}
 
 	public void keyTyped ( KeyEvent env ) {
+		if ( readonly )
+		return ;
 		if ( env . isControlDown ( ) || env . isAltDown ( ) ) {
 			// ignore
 		} else {
@@ -809,6 +838,9 @@ public class PlainPage {
 			break ;
 			case quickSwitchPage :
 			gotoFileLine ( uiComp . pageHis . back ( U . getLocString ( this ) ) , uiComp , true ) ;
+			break ;
+			case resetIME :
+			Ime . resetIme ( ) ;
 			break ;
 			case toggleIME :
 			Ime . nextIme ( ) ;

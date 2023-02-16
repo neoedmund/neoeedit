@@ -20,6 +20,15 @@ public abstract class Ime {
 	public static List < ImeInterface > instances = new ArrayList < ImeInterface > ( ) ;
 	private static int index ;
 
+	public static void resetIme ( ) {
+		enabled = ! enabled ;
+		//		if ( enabled ) {
+		//			enabled = false ;
+		//		} else {
+		//			enabled = true ;
+		//		}
+	}
+
 	public static void nextIme ( ) {
 		if ( instances == null || instances . size ( ) == 0 ) {
 			enabled = false ;
@@ -54,7 +63,6 @@ public abstract class Ime {
 
 		boolean longTextMode ( ) ;
 
-		void paint ( Graphics2D g2 , FontList fonts , int cursorX , int cursorY ,
-			Rectangle clipBounds ) ;
+		void paint ( Graphics2D g2 , FontList fonts , int cursorX , int cursorY , Rectangle clipBounds ) ;
 	}
 }

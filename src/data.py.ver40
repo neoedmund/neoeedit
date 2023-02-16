@@ -70,6 +70,7 @@
 		[ hex alt-H etc "show hex code for characters" ]
 		[ listFonts alt-F ui "after listed  use 'go' key to set font" ]
 		[ toggleIME ctrl-SPACE etc "toggle input method" ]
+		[ resetIME ctrl-alt-SPACE etc "reset input method to none" ]
 		[ toggleFps ctrl-alt-R etc "toggle FPS" ]
 		[ changePathSep alt-SLASH edit2 "change between / and \\" ]
 		[ commandPanel F1 help "show commands panel" ]

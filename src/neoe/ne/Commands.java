@@ -68,6 +68,7 @@ public enum Commands {
 	switchColorMode ,
 	switchLineSeperator ,
 	toggleIME ,
+	resetIME ,
 	undo ,
 	wrapLines ,
 	toggleFps ,
