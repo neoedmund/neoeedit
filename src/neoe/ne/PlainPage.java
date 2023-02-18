@@ -212,19 +212,19 @@ public class PlainPage {
 		return false ;
 	}
 
-	private void doMoveViewDown ( ) {
+	public void doMoveViewDown ( ) {
 		sy = Math . min ( sy + 1 , pageData . roLines . getLinesize ( ) - 1 ) ;
 	}
 
-	private void doMoveViewUp ( ) {
+	public void doMoveViewUp ( ) {
 		sy = Math . max ( 0 , sy - 1 ) ;
 	}
 
-	private void doMoveViewPageDown ( ) {
+	public void doMoveViewPageDown ( ) {
 		sy = Math . min ( sy + showLineCnt , pageData . roLines . getLinesize ( ) - 1 ) ;
 	}
 
-	private void doMoveViewPageUp ( ) {
+	public void doMoveViewPageUp ( ) {
 		sy = Math . max ( 0 , sy - showLineCnt ) ;
 	}
 
@@ -270,7 +270,7 @@ public class PlainPage {
 
 	public void keyPressed ( KeyEvent evt ) {
 		Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-		if ( ime != null ) {
+		if ( ime != null && evt . getKeyCode ( ) != KeyEvent . VK_TAB ) {
 			Out param = new Out ( ) ;
 			ime . keyPressed ( evt , param ) ;
 
@@ -303,12 +303,15 @@ public class PlainPage {
 			int ocx = cx ;
 			int ocy = cy ;
 
-			//			int kc = evt.getKeyCode();
-			//				boolean onlyShift = evt . isShiftDown ( ) && ! evt . isControlDown ( ) && ! evt . isAltDown ( ) ;
-			//				if ( ! onlyShift 
-			////						&& ( evt . isActionKey ( ) || evt . isControlDown ( ) || evt . isAltDown ( ) )
-			////					&& ( kc != KeyEvent . VK_SHIFT && kc != KeyEvent . VK_CONTROL && kc != KeyEvent . VK_ALT )
-			//					) {
+			// int kc = evt.getKeyCode();
+			// boolean onlyShift = evt . isShiftDown ( ) && ! evt . isControlDown ( ) && !
+			// evt . isAltDown ( ) ;
+			// if ( ! onlyShift
+			//// && ( evt . isActionKey ( ) || evt . isControlDown ( ) || evt . isAltDown (
+			// ) )
+			//// && ( kc != KeyEvent . VK_SHIFT && kc != KeyEvent . VK_CONTROL && kc !=
+			// KeyEvent . VK_ALT )
+			// ) {
 			String name = U . getKeyName ( evt ) ;
 			PluginAction2 ac2 = Plugin . findAction ( name ) ;
 			if ( ac2 != null ) {
@@ -392,7 +395,7 @@ public class PlainPage {
 					ptEdit . moveRectRight ( r . y , r . height ) ;
 				} else {
 					Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-					if ( ime != null ) {
+					if ( ime != null && kc != KeyEvent . VK_TAB ) {
 						Out param = new Out ( ) ;
 						ime . keyTyped ( env , param ) ;
 
