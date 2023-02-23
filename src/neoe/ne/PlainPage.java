@@ -451,25 +451,26 @@ public class PlainPage {
 			return ;
 		}
 		int my1 = evt . getY ( ) ;
-		if ( my1 > 0 && my1 < toolbarHeight )
-		if ( pageData . fileLoaded ) {
-			U . setClipBoard ( pageData . title ) ;
-			ui . message ( "filename copied" ) ;
-			my1 = 0 ;
-			// repaint();
-		} else if ( workPath != null ) {
-			U . setClipBoard ( workPath ) ;
-			ui . message ( "work path copied" ) ;
-			my1 = 0 ;
-		} else
-		try {
-			if ( U . saveFile ( this ) )
-			ui . message ( "saved" ) ;
-		} catch ( Throwable e ) {
-			ui . message ( "err:" + e ) ;
-			e . printStackTrace ( ) ;
-		}
-		else {
+		if ( my1 > 0 && my1 < toolbarHeight ) {
+			if ( pageData . fileLoaded ) {
+				U . setClipBoard ( pageData . title ) ;
+				ui . message ( "filename copied" ) ;
+				my1 = 0 ;
+				// repaint();
+			} else if ( workPath != null ) {
+				U . setClipBoard ( workPath ) ;
+				ui . message ( "work path copied" ) ;
+				my1 = 0 ;
+			} else {
+				try {
+					if ( U . saveFile ( this ) )
+					ui . message ( "saved" ) ;
+				} catch ( Throwable e ) {
+					ui . message ( "err:" + e ) ;
+					e . printStackTrace ( ) ;
+				}
+			}
+		} else {
 			int mx1 = evt . getX ( ) ;
 			if ( mx1 > 0 && mx1 < ui . gutterWidth ) {
 				cursor . gotoLine ( ) ;
@@ -1956,8 +1957,9 @@ public class PlainPage {
 				final int maxw = dim . width - gutterWidth ;
 				final int maxw2 = ( int ) ( maxw / scalev ) ;
 				{ // change cy if needed
-					if ( cy >= pageData . roLines . getLinesize ( ) )
-					cy = Math . max ( 0 , pageData . roLines . getLinesize ( ) - 1 ) ;
+					if ( cy >= pageData . roLines . getLinesize ( ) ) {
+						cy = Math . max ( 0 , pageData . roLines . getLinesize ( ) - 1 ) ;
+					}
 				}
 
 				g2 . setColor ( colorBg ) ;
@@ -1997,8 +1999,14 @@ public class PlainPage {
 					mx = ( int ) ( mx / scalev ) ;
 					my = ( int ) ( my / scalev ) ;
 					cy = sy + my / ( lineHeight + lineGap ) ;
-					if ( cy >= pageData . roLines . getLinesize ( ) )
-					cy = pageData . roLines . getLinesize ( ) - 1 ;
+					if ( cy >= pageData . roLines . getLinesize ( ) ) {
+						// add a empty line for sake
+						if ( ! readonly && pageData . roLines . getline ( pageData . roLines . getLinesize ( ) - 1 )
+							. length ( ) > 0 ) {
+							pageData . editRec . insertEmptyLine ( cy ) ;
+						}
+						cy = pageData . roLines . getLinesize ( ) - 1 ;
+					}
 					mousePos = true ;
 				} { // highlight current line
 					int l1 = cy - sy ;

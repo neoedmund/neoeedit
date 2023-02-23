@@ -27,7 +27,7 @@ public class BasicEdit {
 		this . pd = data ;
 	}
 
-	void insertEmptyLine ( int y ) {
+	public void insertEmptyLine ( int y ) {
 		if ( y > lines ( ) . size ( ) )
 		y = lines ( ) . size ( ) ;
 		lines ( ) . add ( y , new StringBuilder ( ) ) ;
