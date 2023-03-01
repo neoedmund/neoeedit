@@ -780,10 +780,19 @@ public class U {
 			String path = cmd . substring ( 1 , p1 ) . trim ( ) ;
 			dir = new File ( path ) ;
 			cmd = cmd . substring ( p1 + 1 ) . trim ( ) ;
-		} else if ( pp . workPath != null )
-		dir = new File ( pp . workPath ) ;
-		else
-		dir = new File ( "." ) ;
+		} else {
+			int p2 = cmd . indexOf ( ']' ) ; // "path] cmd" 
+			if ( p2 > 0 ) {
+				String path = cmd . substring ( 0 , p2 ) . trim ( ) ;
+				dir = new File ( path ) ;
+				cmd = cmd . substring ( p2 + 1 ) . trim ( ) ;
+			} else {
+				if ( pp . workPath != null )
+				dir = new File ( pp . workPath ) ;
+				else
+				dir = new File ( "." ) ;
+			}
+		}
 		addCmdHistory ( cmd , dir . getAbsolutePath ( ) ) ;
 		Process proc = Runtime . getRuntime ( ) . exec ( splitCommand ( cmd ) , getEnv ( pp ) , dir ) ;
 		OutputStream out = null ; // proc . getOutputStream ( ) ;
