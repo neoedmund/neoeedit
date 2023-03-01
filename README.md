@@ -158,7 +158,8 @@ Windows Registry Editor Version 5.00
 ```
 start javaw -Xmx2G -jar neoeedit.jar %*
 ```
-
+####  install plugins
+copy `plugins/*.jar` into `[userhome]/.neoeedit/plugins/`
 
 
 !['Work Like Magic'](https://github.com/neoedmund/neoeedit/raw/master/worklikemagic.png)
