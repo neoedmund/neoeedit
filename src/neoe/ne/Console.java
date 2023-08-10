@@ -17,9 +17,8 @@ public class Console {
 	private EditorPanel parentUI ;
 	private File dir ;
 
-	public Console ( String cmd , OutputStream out , InputStream stdout ,
-		InputStream stderr , Process proc , EditorPanel uiComp ,
-		File dir ) {
+	public Console ( String cmd , OutputStream out , InputStream stdout , InputStream stderr , Process proc ,
+		EditorPanel uiComp , File dir , boolean follow ) {
 		this . cmd = cmd ;
 		this . out = out ;
 		this . stdout = stdout ;
@@ -27,6 +26,7 @@ public class Console {
 		this . proc = proc ;
 		this . parentUI = uiComp ;
 		this . dir = dir ;
+		this . follow = follow ;
 	}
 
 	public void start ( ) throws Exception {
@@ -53,11 +53,10 @@ public class Console {
 		new Thread ( ( ) -> {
 				try {
 					proc . waitFor ( ) ;
-					pp . pageData . editRec . appendLines ( Arrays . asList (
-							String . format ( "\nExit(%s) in about %,d ms for\n%s" , proc . exitValue ( ) ,
-								System . currentTimeMillis ( ) - t1 , id ) . split ( "\n" ) ) ) ;
+					pp . pageData . editRec . appendLines ( Arrays . asList ( String . format ( "\nExit(%s) in about %,d ms for\n%s" ,
+								proc . exitValue ( ) , System . currentTimeMillis ( ) - t1 , id ) . split ( "\n" ) ) ) ;
 					pp . pageData . editRec . appendLine ( "" ) ;
-					pp . cursor . setSafePos ( 0 , Integer . MAX_VALUE ) ; //go last line
+					pp . cursor . setSafePos ( 0 , Integer . MAX_VALUE ) ; // go last line
 					finished = true ;
 					pp . adjustCursor ( ) ;
 					pp . uiComp . repaint ( ) ;

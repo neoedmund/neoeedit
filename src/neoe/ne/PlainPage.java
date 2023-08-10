@@ -72,13 +72,14 @@ public class PlainPage {
 
 	int selectstartx , selectstarty , selectstopx , selectstopy ;
 
-	int showLineCnt ;
+	int showLineCnt , showLineCnt2 ;
 	int sx , sy ;
 
 	int toolbarHeight = 25 ;
 
 	public Paint ui = new Paint ( ) ;
 	public EditorPanel uiComp ;
+	boolean follow ;
 
 	private PlainPage ( ) {
 	}
@@ -98,6 +99,7 @@ public class PlainPage {
 			fontList = Conf . defaultFontList ;
 			workPath = parent . workPath ;
 			showLineCnt = parent . showLineCnt ;
+			follow = parent . follow ;
 			if ( parent . env != null )
 			env = new LinkedHashMap < > ( parent . env ) ;
 		} else
@@ -221,11 +223,11 @@ public class PlainPage {
 	}
 
 	public void doMoveViewPageDown ( ) {
-		sy = Math . min ( sy + showLineCnt , pageData . roLines . getLinesize ( ) - 1 ) ;
+		sy = Math . min ( sy + showLineCnt2 , pageData . roLines . getLinesize ( ) - 1 ) ;
 	}
 
 	public void doMoveViewPageUp ( ) {
-		sy = Math . max ( 0 , sy - showLineCnt ) ;
+		sy = Math . max ( 0 , sy - showLineCnt2 ) ;
 	}
 
 	/* let cursor get see */
@@ -235,10 +237,13 @@ public class PlainPage {
 
 	/** change cursor to middle of page */
 	public void adjustCursor ( ) {
-		if ( showLineCnt == 0 ) { // not yet painted, \
-			showLineCnt = Math
-			. round ( ( uiComp . getSize ( ) . height - toolbarHeight ) / ( ( ui . lineHeight + ui . lineGap ) * ui . scalev ) ) ; // not
-			// work?
+		if ( showLineCnt == 0 ) { // not yet painted,
+			showLineCnt = ( int ) Math
+			. ceil ( ( uiComp . getSize ( ) . height - toolbarHeight ) / ( ( ui . lineHeight + ui . lineGap ) * ui . scalev ) ) ;
+			showLineCnt2 = ( int ) Math
+			. floor ( ( uiComp . getSize ( ) . height - toolbarHeight ) / ( ( ui . lineHeight + ui . lineGap ) * ui . scalev ) ) ;
+			if ( showLineCnt2 <= 0 )
+			showLineCnt2 = 1 ;
 		}
 		int sc = Math . max ( 5 , showLineCnt ) ;
 		sy = Math . max ( 0 , cy - sc / 2 + 1 ) ;
@@ -553,6 +558,7 @@ public class PlainPage {
 			case toggleFollowExec :
 			if ( console != null ) {
 				console . follow = ! console . follow ;
+				follow = console . follow ;
 				ui . message ( "follow the console:" + console . follow ) ;
 			}
 			break ;
@@ -1953,7 +1959,10 @@ public class PlainPage {
 				}
 
 				// g2.setFont(font);
-				showLineCnt = Math . round ( ( size . height - toolbarHeight ) / ( ( lineHeight + lineGap ) * scalev ) ) ;
+				showLineCnt = ( int ) Math . ceil ( ( size . height - toolbarHeight ) / ( ( lineHeight + lineGap ) * scalev ) ) ;
+				showLineCnt2 = ( int ) Math . floor ( ( size . height - toolbarHeight ) / ( ( lineHeight + lineGap ) * scalev ) ) ;
+				if ( showLineCnt2 <= 0 )
+				showLineCnt2 = 1 ;
 				final int maxw = dim . width - gutterWidth ;
 				final int maxw2 = ( int ) ( maxw / scalev ) ;
 				{ // change cy if needed
@@ -1978,8 +1987,9 @@ public class PlainPage {
 				drawGutter ( g2 ) ;
 				g2 . scale ( scalev , scalev ) ;
 				// draw text
-				g2 . translate ( gutterWidth / scalev , 0 ) ;
-				g2 . setClip ( 0 , 0 , maxw2 , ( int ) ( dim . height / scalev ) ) ;
+				int gws = ( int ) ( gutterWidth / scalev ) ;
+				g2 . translate ( gws , 0 ) ;
+				g2 . setClip ( - gws , 0 , maxw2 + gws , ( int ) ( dim . height / scalev ) ) ;
 
 				Graphics2D g0 = ( Graphics2D ) g2 . create ( ) ;
 				g0 . setClip ( 0 , 0 , 0 , 0 ) ; // quick hack to not do real draw
@@ -2001,8 +2011,7 @@ public class PlainPage {
 					cy = sy + my / ( lineHeight + lineGap ) ;
 					if ( cy >= pageData . roLines . getLinesize ( ) ) {
 						// add a empty line for sake
-						if ( ! readonly && pageData . roLines . getline ( pageData . roLines . getLinesize ( ) - 1 )
-							. length ( ) > 0 ) {
+						if ( ! readonly && pageData . roLines . getline ( pageData . roLines . getLinesize ( ) - 1 ) . length ( ) > 0 ) {
 							pageData . editRec . insertEmptyLine ( cy ) ;
 						}
 						cy = pageData . roLines . getLinesize ( ) - 1 ;

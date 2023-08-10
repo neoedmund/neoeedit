@@ -803,8 +803,7 @@ public class U {
 			PageData . fromTitle ( String . format ( "[cmd][%s] %s #%s" , dir . getAbsolutePath ( ) , cmd , U . randomID ( ) ) ) , pp ) ;
 		pp2 . workPath = dir . getAbsolutePath ( ) ;
 		pp2 . ptSelection . selectAll ( ) ;
-
-		new Console ( cmd , out , stdout , stderr , proc , pp . uiComp , dir ) . start ( ) ;
+		new Console ( cmd , out , stdout , stderr , proc , pp . uiComp , dir , pp . follow ) . start ( ) ;
 	}
 
 	private static void addCmdHistory ( String cmd , String path ) throws IOException {
@@ -1106,7 +1105,7 @@ public class U {
 
 	static void guessComment ( PlainPage page ) {
 		List < String > comment = new ArrayList < String > ( ) ;
-		String [ ] commentchars = { "/*" , "<!--" , "#" , "%" , "//" , "!" , ";" , "--" , } ;
+		String [ ] commentchars = { "/*" , "<!--" , "#" , "%" , "//" , "! " , "; " , "--" , } ;
 		int [ ] cnts = new int [ commentchars . length ] ;
 		int maxLines = Math . min ( 1000 , page . pageData . roLines . getLinesize ( ) ) ;
 		for ( int i = 0 ; i < maxLines ; i ++ ) {
