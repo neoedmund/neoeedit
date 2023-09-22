@@ -277,7 +277,8 @@ public class PlainPage {
 		Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
 		if ( ime != null && evt . getKeyCode ( ) != KeyEvent . VK_TAB ) {
 			Out param = new Out ( ) ;
-			ime . keyPressed ( evt , param ) ;
+			if ( ! ( evt . isControlDown ( ) || evt . isAltDown ( ) ) )
+			ime . keyPressed ( evt . getKeyCode ( ) , param ) ;
 
 			if ( param . yield != null )
 			ptEdit . insertString ( param . yield ) ;
@@ -402,7 +403,8 @@ public class PlainPage {
 					Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
 					if ( ime != null && kc != KeyEvent . VK_TAB ) {
 						Out param = new Out ( ) ;
-						ime . keyTyped ( env , param ) ;
+						if ( ! ( env . isControlDown ( ) || env . isAltDown ( ) ) )
+						ime . keyTyped ( env . getKeyChar ( ) , param ) ;
 
 						if ( param . yield != null )
 						ptEdit . insertString ( param . yield ) ;

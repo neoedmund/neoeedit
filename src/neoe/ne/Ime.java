@@ -22,11 +22,11 @@ public abstract class Ime {
 
 	public static void resetIme ( ) {
 		enabled = ! enabled ;
-		//		if ( enabled ) {
-		//			enabled = false ;
-		//		} else {
-		//			enabled = true ;
-		//		}
+		// if ( enabled ) {
+		// enabled = false ;
+		// } else {
+		// enabled = true ;
+		// }
 	}
 
 	public static void nextIme ( ) {
@@ -53,9 +53,9 @@ public abstract class Ime {
 	}
 
 	public interface ImeInterface {
-		void keyPressed ( KeyEvent env , Out param ) ;
+		void keyPressed ( int kc , Out param ) ;
 
-		void keyTyped ( KeyEvent env , Out param ) ;
+		void keyTyped ( char keyChar , Out param ) ;
 
 		void setEnabled ( boolean b ) ;
 

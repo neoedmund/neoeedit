@@ -41,7 +41,7 @@ public class Console {
 		final String id = String . format ( "[%s] %s\n" , dir . getAbsolutePath ( ) , cmd ) ;
 		{
 			PageData pageData = pp . pageData ;
-			pageData . encoding = System . getProperty ( "sun.jnu.encoding" ) ;
+			pageData . encoding = U . UTF8 ; //System . getProperty ( "sun.jnu.encoding" ) ;
 			if ( pageData . encoding == null )
 			pageData . encoding = U . UTF8 ;
 			if ( dir != null )
