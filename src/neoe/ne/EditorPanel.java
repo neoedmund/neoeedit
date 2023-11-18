@@ -476,6 +476,8 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	boolean inWindowMove ;
 	boolean inWindowResize ;
 
+	public UserFunc userfunc;
+
 	@ Override
 	public void mouseReleased ( MouseEvent arg0 ) {
 		inWindowMove = false ;
