@@ -3,32 +3,6 @@ neoeedit
 neoeedit - a smart, light, powerful text editor.
 
 
-Leaving github
-=====================
-You can find lastest `neoeedit.jar` with source code packed at https://n101n.xyz/dl/neoeedit.jar
-
-Why leaving github
-=====================
-Why no forced 2FA?
-- More personal data
-- more inconvenience
-- little gain in "security"
-
-What Github gave me
-- free OSS hosting
-- 400+ stars on my main project `neoeedit`, the text editor
-- Vanity in showing creation
-- Expecting good for job applications, but so far most interviewers just sneer at it, for whatever reason, God knows.
-
-What about all the wonderful projects on Github?
-- Github has changed, the world has changed, we all need changes. I will find them anyway.
-
-
-
-
-
-
-
 
 intro to neoeedit
 =====================
