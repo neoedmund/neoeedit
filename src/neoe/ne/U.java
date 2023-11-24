@@ -114,6 +114,8 @@ public class U {
 			neframe . setLayer ( p1 . getLayer ( ) ) ;
 			neframe . setSize ( p1 . getSize ( ) ) ;
 			neframe . setSelected ( true ) ;
+			ep.userfunc= uiComp.userfunc;
+			if (ep.userfunc!=null) ep.userfunc.run(neframe, ep);
 		}
 		// set default working path
 		ep . page . workPath = pp . workPath ;
