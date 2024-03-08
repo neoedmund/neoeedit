@@ -254,7 +254,7 @@ public class PlainPage {
 	}
 
 	private boolean isButtonBack ( MouseEvent evt ) {
-		if ( FindJDK . isWindows ) {
+		if ( !FindJDK . isLinux ) {
 			if ( isButtonDown ( 4 , evt ) )
 			return true ;
 		} else // Linux
@@ -264,7 +264,7 @@ public class PlainPage {
 	}
 
 	private boolean isButtonForward ( MouseEvent evt ) {
-		if ( FindJDK . isWindows ) {
+		if ( !FindJDK . isLinux ) {
 			if ( isButtonDown ( 5 , evt ) )
 			return true ;
 		} else // Linux
@@ -502,6 +502,7 @@ public class PlainPage {
 	}
 
 	public void mousePressed ( MouseEvent evt ) throws Exception {
+		System.out.println(evt.getButton());
 		if ( isButtonBack ( evt ) )
 		gotoFileLine ( uiComp . pageHis . back ( U . getLocString ( this ) ) , uiComp , false ) ;
 		else if ( isButtonForward ( evt ) )
