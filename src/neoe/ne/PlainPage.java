@@ -502,7 +502,7 @@ public class PlainPage {
 	}
 
 	public void mousePressed ( MouseEvent evt ) throws Exception {
-		System.out.println(evt.getButton());
+		// System.out.println(evt.getButton());
 		if ( isButtonBack ( evt ) )
 		gotoFileLine ( uiComp . pageHis . back ( U . getLocString ( this ) ) , uiComp , false ) ;
 		else if ( isButtonForward ( evt ) )
