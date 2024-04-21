@@ -2,7 +2,6 @@ package neoe . ne ;
 
 import java . awt . Graphics2D ;
 import java . awt . Rectangle ;
-import java . awt . event . KeyEvent ;
 import java . util . ArrayList ;
 import java . util . List ;
 
@@ -64,5 +63,7 @@ public abstract class Ime {
 		boolean longTextMode ( ) ;
 
 		void paint ( Graphics2D g2 , FontList fonts , int cursorX , int cursorY , Rectangle clipBounds ) ;
+
+		void reloadDict() throws Exception;
 	}
 }

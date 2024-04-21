@@ -855,12 +855,17 @@ public class PlainPage {
 			case resetIME :
 			Ime . resetIme ( ) ;
 			break ;
-			case toggleIME :
+			case toggleIME :{
 			Ime . nextIme ( ) ;
 			Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
 			if ( ime != null )
-			ime . setEnabled ( true ) ;
+			ime . setEnabled ( true ) ;}
 			break ;
+			case reloadIME :{
+				Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
+				if ( ime != null )
+				ime . reloadDict ( ) ;}
+				break;
 			// case ShellCommand :
 			// Shell . run ( PlainPage . this , cy ) ;
 			// break ;

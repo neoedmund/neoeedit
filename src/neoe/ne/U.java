@@ -927,7 +927,7 @@ public class U {
 			return false;
 		String path = cmd.substring(3).trim();
 		if (path.isEmpty())
-			path = System.getProperty("user.home");
+			path = getUserHome(); //System.getProperty("user.home");
 		else {
 			path = dequote(path);
 			File f = new File(path);
@@ -1084,7 +1084,7 @@ public class U {
 	}
 
 	public static File getMyDir() {
-		String home = System.getProperty("user.home");
+		String home = getUserHome(); //System.getProperty("user.home");
 		File dir = new File(home, ".neoeedit");
 		dir.mkdirs();
 		return dir;
@@ -1514,7 +1514,7 @@ public class U {
 		try {
 			GZIPInputStream gin = new GZIPInputStream(new FileInputStream(fn));
 			try {
-				data.bs = gin.readAllBytes();
+				data.bs = FileUtil.read(gin) ; // gin.readAllBytes();
 				gin.close();
 				return true;
 			} catch (ZipException e) {

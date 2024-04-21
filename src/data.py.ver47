@@ -79,6 +79,7 @@
 		[ moveUpLangLevel alt-BACK_SPACE cursor "move to up level of c-like source" ]
 		[ listDoc ctrl-alt-TAB page "list all opened documents" ]
 		[ toggleShrinkWord ctrl-alt-S etc "toggle ShrinkWord mode" ]
+		[ reloadIME alt-F5 etc "reload IME dict" ]
 	]
 	color : {
 		defaultBackgroundColor : 0x87a96b
@@ -99,11 +100,12 @@
 		font_example : [ "font filename" fontsize <empty>|BOLD|ITALIC ]
 		console : [ "Noto Sans Mono CJK SC" 14 ]
 		list : [
+			[ "neoeselect" 16 ]
+		]
+		list_noused : [
 			[ "Kingnam Maiyuan" 16 ]
 			[ "Source Code Pro Semibold" 16 ]
 			[ "WenQuanYi Micro Hei" 16 ]
-		]
-		list_noused : [
 		]
 	}
 	ime : [

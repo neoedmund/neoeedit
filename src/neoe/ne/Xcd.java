@@ -24,7 +24,7 @@ import javax . swing . ListSelectionModel ;
 
 public class Xcd {
 	public static String getUserHomeDir ( ) {
-		return System . getProperty ( "user.home" ) ;
+		return U.getUserHome();// . getProperty ( "user.home" ) ;
 	}
 
 	public static String readString ( InputStream ins , String enc )
