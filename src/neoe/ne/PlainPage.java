@@ -254,7 +254,7 @@ public class PlainPage {
 	}
 
 	private boolean isButtonBack ( MouseEvent evt ) {
-		if ( !FindJDK . isLinux ) {
+		if ( ! FindJDK . isLinux ) {
 			if ( isButtonDown ( 4 , evt ) )
 			return true ;
 		} else // Linux
@@ -264,7 +264,7 @@ public class PlainPage {
 	}
 
 	private boolean isButtonForward ( MouseEvent evt ) {
-		if ( !FindJDK . isLinux ) {
+		if ( ! FindJDK . isLinux ) {
 			if ( isButtonDown ( 5 , evt ) )
 			return true ;
 		} else // Linux
@@ -855,17 +855,19 @@ public class PlainPage {
 			case resetIME :
 			Ime . resetIme ( ) ;
 			break ;
-			case toggleIME :{
-			Ime . nextIme ( ) ;
-			Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-			if ( ime != null )
-			ime . setEnabled ( true ) ;}
-			break ;
-			case reloadIME :{
+			case toggleIME : {
+				Ime . nextIme ( ) ;
 				Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
 				if ( ime != null )
-				ime . reloadDict ( ) ;}
-				break;
+				ime . setEnabled ( true ) ;
+			}
+			break ;
+			case reloadIME : {
+				Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
+				if ( ime != null )
+				ime . reloadDict ( ) ;
+			}
+			break ;
 			// case ShellCommand :
 			// Shell . run ( PlainPage . this , cy ) ;
 			// break ;
