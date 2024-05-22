@@ -813,24 +813,23 @@ public class U {
 		if (isCmdExport(cmd, pp))
 			return;
 		File dir;
-		if (cmd.startsWith("[")) {
-			int p1 = cmd.indexOf("]");
-			String path = cmd.substring(1, p1).trim();
-			dir = new File(path);
-			cmd = cmd.substring(p1 + 1).trim();
-		} else {
-			int p2 = cmd.indexOf(']'); // "path] cmd"
-			if (p2 > 0) {
-				String path = cmd.substring(0, p2).trim();
-				dir = new File(path);
-				cmd = cmd.substring(p2 + 1).trim();
-			} else {
-				if (pp.workPath != null)
-					dir = new File(pp.workPath);
-				else
-					dir = new File(".");
+
+		int p2 = cmd.indexOf(']'); // "path] cmd"
+		if (p2 > 0) {
+			String path = cmd.substring(0, p2).trim();
+			int p3 = path.indexOf('[');
+			if (p3 >= 0) {
+				path = path.substring(p3 + 1).trim();
 			}
+			dir = new File(path);
+			cmd = cmd.substring(p2 + 1).trim();
+		} else {
+			if (pp.workPath != null)
+				dir = new File(pp.workPath);
+			else
+				dir = new File(".");
 		}
+
 		addCmdHistory(cmd, dir.getAbsolutePath());
 		Process proc = Runtime.getRuntime().exec(splitCommand(cmd), getEnv(pp), dir);
 		OutputStream out = null; // proc . getOutputStream ( ) ;
@@ -927,7 +926,7 @@ public class U {
 			return false;
 		String path = cmd.substring(3).trim();
 		if (path.isEmpty())
-			path = getUserHome(); //System.getProperty("user.home");
+			path = getUserHome(); // System.getProperty("user.home");
 		else {
 			path = dequote(path);
 			File f = new File(path);
@@ -1084,7 +1083,7 @@ public class U {
 	}
 
 	public static File getMyDir() {
-		String home = getUserHome(); //System.getProperty("user.home");
+		String home = getUserHome(); // System.getProperty("user.home");
 		File dir = new File(home, ".neoeedit");
 		dir.mkdirs();
 		return dir;
@@ -1422,7 +1421,7 @@ public class U {
 			name = "A" + name;
 			other = true;
 		}
-		if (evt.isControlDown()||evt.isMetaDown()) {
+		if (evt.isControlDown() || evt.isMetaDown()) {
 			name = "C" + name;
 			other = true;
 		}
@@ -1514,7 +1513,7 @@ public class U {
 		try {
 			GZIPInputStream gin = new GZIPInputStream(new FileInputStream(fn));
 			try {
-				data.bs = FileUtil.read(gin) ; // gin.readAllBytes();
+				data.bs = FileUtil.read(gin); // gin.readAllBytes();
 				gin.close();
 				return true;
 			} catch (ZipException e) {
@@ -1711,7 +1710,7 @@ public class U {
 		if (fn.equals(fhn.getAbsolutePath()))
 			return;
 		OutputStream out = new FileOutputStream(fhn, true);
-		if (line < 0)
+		if (line <= 0)
 			out.write(String.format("\n%s", fn).getBytes(UTF8));
 		else
 			out.write(String.format("\n%s|%s:", fn, line + 1).getBytes(UTF8));
@@ -2303,5 +2302,49 @@ public class U {
 				System.out.printf("kc=%d e=%d M=%d\n", kc, e, keymintime);
 			return last != null && e < keymintime;
 		}
+	}
+
+	public static void appendAllFileHistory() throws IOException {
+		List<String> lines = new ArrayList<>();
+		Set<String> fns = new HashSet<>();
+		for (EditorPanel ep : EditorPanel.insts) {
+			addFileHis(lines, fns, ep);
+		}
+		if (!lines.isEmpty()) {
+			saveFileHistory("\n" + String.join("\n", lines), 0);
+			System.out.printf("saved %,d file history at last chance.\n", lines.size());
+		}
+
+	}
+
+	public static void appendEpFileHistory(EditorPanel ep) throws IOException {
+		List<String> lines = new ArrayList<>();
+		Set<String> fns = new HashSet<>();
+		addFileHis(lines, fns, ep);
+		if (!lines.isEmpty()) {
+			saveFileHistory("\n" + String.join("\n", lines), 0);
+			System.out.printf("saved %,d file history when close EP.\n", lines.size());
+		}
+
+	}
+
+	private static void addFileHis(List<String> lines, Set<String> fns, EditorPanel ep) {
+		for (PlainPage pp : ep.pageSet) {
+			PageData pd = pp.pageData;
+			String fn = null;
+			if (pd.fileLoaded) {
+				fn = pd.title;
+			}
+			if (fn == null || fns.contains(fn))
+				continue;
+			fns.add(fn);
+			int y = pp.cy;
+			if (y > 0) {
+				lines.add(String.format("%s|%d:", fn, y + 1));
+			} else {
+				lines.add(fn);
+			}
+		}
+
 	}
 }
