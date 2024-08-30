@@ -2080,8 +2080,11 @@ public class PlainPage {
 						U . drawString ( g2 , fontList , preeditText , w + 2 , y0 + lineHeight , maxw2 ) ;
 					}
 
-					if ( ime != null )
-					ime . paint ( g2 , fontList , w , y0 + lineHeight + lineGap , g2 . getClipBounds ( ) ) ;
+					if ( ime != null ) {
+						Rectangle bs = g2 . getClipBounds ( ) ;
+						System . out . println ( "bs=" + bs ) ;
+						ime . paint ( g2 , fontList , w , y0 + lineHeight + lineGap , bs ) ;
+					}
 				}
 
 				if ( aboutOn ) { // about info

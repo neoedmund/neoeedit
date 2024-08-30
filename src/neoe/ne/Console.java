@@ -55,7 +55,7 @@ public class Console {
 					proc . waitFor ( ) ;
 					finished = true ;
 					long t2 = System . currentTimeMillis ( ) - t1 ;
-					Thread . sleep ( 550 ) ;
+					Thread . sleep ( 100 ) ;
 					pp . pageData . editRec . appendLines ( Arrays . asList (
 							String . format ( "\nExit(%s) in about %,d ms for\n%s" , proc . exitValue ( ) , t2 , id ) . split ( "\n" ) ) ) ;
 					pp . pageData . editRec . appendLine ( "" ) ;

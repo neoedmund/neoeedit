@@ -19,7 +19,6 @@ import java . awt . event . ActionListener ;
 import java . awt . event . KeyEvent ;
 import java . awt . image . BufferedImage ;
 import java . io . BufferedOutputStream ;
-import java . io . BufferedReader ;
 import java . io . BufferedWriter ;
 import java . io . File ;
 import java . io . FileInputStream ;
@@ -820,6 +819,9 @@ public class U {
 			if ( p3 >= 0 ) {
 				path = path . substring ( p3 + 1 ) . trim ( ) ;
 			}
+			if ( path . isEmpty ( ) ) {
+				path = "/tmp" ;
+			}
 			dir = new File ( path ) ;
 			cmd = cmd . substring ( p2 + 1 ) . trim ( ) ;
 		} else {
@@ -1445,7 +1447,7 @@ public class U {
 		String dir = page . workPath ;
 		if ( dir == null )
 		dir = new File ( "." ) . getAbsolutePath ( ) ;
-		String title = "[Dir]" + dir ;
+		String title = "[Dir]" + dir + "#" + U . randomID ( ) ;
 
 		if ( page . uiComp . findAndShowPage ( title , -1 , true ) )
 		return ;
@@ -2275,6 +2277,8 @@ public class U {
 	 * 40ms. so config is set to 38ms.
 	 */
 	public static boolean hardwareFailWorkaroundFilterOut ( KeyEvent env ) {
+		if ( keymintime <= 0 )
+		return false ;
 		long now = System . currentTimeMillis ( ) ;
 		boolean debug = false ;
 		if ( debug ) {

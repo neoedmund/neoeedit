@@ -34,6 +34,7 @@ import java . io . OutputStream ;
 import java . util . ArrayList ;
 import java . util . Collections ;
 import java . util . Comparator ;
+import java . util . Currency ;
 import java . util . HashMap ;
 import java . util . Iterator ;
 import java . util . LinkedList ;
@@ -183,6 +184,8 @@ public class PicView {
 					frame . dispose ( ) ;
 					else if ( kc == KeyEvent . VK_S )
 					saveCut ( ) ;
+					else if ( kc == KeyEvent . VK_C )
+					copyFilename ( ) ;
 				} else if ( kc == KeyEvent . VK_F1 || kc == KeyEvent . VK_TAB ) {
 					small = ! small ;
 					repaint1 ( ) ;
@@ -543,6 +546,7 @@ public class PicView {
 		}
 
 		private void setTitleWithSize ( File f , int index , int total ) {
+			currentFile = f ;
 			String ss1 = "" ;
 			if ( ss != null )
 			ss1 = ss . delay > 0 ? " slide:" + ss . delay + " sec" : "" ;
@@ -654,6 +658,12 @@ public class PicView {
 
 	public static void main ( String [ ] args ) throws Exception {
 		new PicView ( ) . show ( new File ( args [ 0 ] ) ) ;
+	}
+
+	private File currentFile ;
+	public void copyFilename ( ) {
+		if ( currentFile != null )
+		U . setClipBoard ( currentFile . getAbsolutePath ( ) ) ;
 	}
 
 	public BufferedImage loadImage ( File f ) throws Exception {

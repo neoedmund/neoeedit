@@ -16,7 +16,7 @@ public class Main {
 		Conf . initKeys ( ) ;
 		U . loadTabImage ( ) ;
 		U . addTime = "true" . equals ( System . getenv ( U . NE_ADDTIME ) ) ;
-		U . keymintime = Integer . parseInt ( Conf . get ( "keymintime" , "100" ) . toString ( ) ) ;
+		U . keymintime = Integer . parseInt ( Conf . get ( "keymintime" , "0" ) . toString ( ) ) ;
 		// Gimp.loadFromConfig();
 		Plugin . load ( ) ;
 	}
