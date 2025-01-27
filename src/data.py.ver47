@@ -64,7 +64,7 @@
 		[ switchColorMode alt-C etc "like some old style?" ]
 		[ moveBetweenPair alt-P cursor "work on {} [] () <>" ]
 		[ launch alt-L etc "use system laucher on file  url" ]
-		[ execute [ F9 Insert ] etc "execute on command line" ]
+		[ execute [ F9 Insert Help ] etc "execute on command line" ]
 		[ toggleTimeExec alt-F9 etc "toggle timestamp in console output" ]
 		[ toggleFollowExec ctrl-F9 etc "toggle follow the console output" ]
 		[ hex alt-H etc "show hex code for characters" ]

@@ -30,7 +30,7 @@ public class Main {
 			File f = new File ( fn ) ;
 			if ( f . isFile ( ) )
 			if ( U . isImageFile ( f ) ) {
-				new PicView ( ) . show ( f ) ;
+				new PicView ( ) . show0 ( f , null ) ;
 				pic ++ ;
 			} else {
 				if ( editor == null )
@@ -59,6 +59,13 @@ public class Main {
 					} ) ) ;
 			SwingJniJvmPatch ( ) ;
 		}
+	}
+
+	public static EditorPanel openDoc ( String fn ) throws Exception {
+		EditorPanel editor = new EditorPanel ( ) ;
+		new PlainPage ( editor , PageData . fromFile ( fn ) , null ) ;
+		editor . openWindow ( ) ;
+		return editor ;
 	}
 
 	/**

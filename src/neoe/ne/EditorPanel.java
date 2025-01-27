@@ -6,8 +6,6 @@ import java . awt . Dimension ;
 import java . awt . Graphics ;
 import java . awt . Point ;
 import java . awt . Rectangle ;
-import java . awt . event . FocusAdapter ;
-import java . awt . event . FocusEvent ;
 import java . awt . event . InputMethodEvent ;
 import java . awt . event . InputMethodListener ;
 import java . awt . event . KeyEvent ;
@@ -29,6 +27,7 @@ import java . text . CharacterIterator ;
 import java . util . ArrayList ;
 import java . util . Arrays ;
 import java . util . List ;
+
 import javax . swing . JDesktopPane ;
 import javax . swing . JFrame ;
 import javax . swing . JInternalFrame ;
@@ -36,6 +35,7 @@ import javax . swing . JPanel ;
 import javax . swing . RootPaneContainer ;
 import javax . swing . SwingUtilities ;
 import javax . swing . WindowConstants ;
+
 import neoe . ne . U . LocationHistory ;
 
 public class EditorPanel extends JPanel implements MouseMotionListener , MouseListener , MouseWheelListener , KeyListener {
@@ -56,7 +56,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		{ // show image file
 			File f = new File ( title ) ;
 			if ( f . isFile ( ) && U . isImageFile ( f ) ) {
-				new PicView ( ) . show ( f ) ;
+				new PicView ( ) . show0 ( f , this ) ;
 				return true ;
 			}
 		}

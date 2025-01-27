@@ -2082,7 +2082,7 @@ public class PlainPage {
 
 					if ( ime != null ) {
 						Rectangle bs = g2 . getClipBounds ( ) ;
-						System . out . println ( "bs=" + bs ) ;
+						//						System . out . println ( "bs=" + bs ) ;
 						ime . paint ( g2 , fontList , w , y0 + lineHeight + lineGap , bs ) ;
 					}
 				}

@@ -7,10 +7,7 @@ import java . awt . Dimension ;
 import java . awt . Graphics ;
 import java . awt . Graphics2D ;
 import java . awt . GraphicsEnvironment ;
-import java . awt . Paint ;
-import java . awt . PaintContext ;
 import java . awt . Rectangle ;
-import java . awt . RenderingHints ;
 import java . awt . Stroke ;
 import java . awt . TexturePaint ;
 import java . awt . event . KeyEvent ;
@@ -22,32 +19,32 @@ import java . awt . event . MouseWheelEvent ;
 import java . awt . event . MouseWheelListener ;
 import java . awt . event . WindowAdapter ;
 import java . awt . event . WindowEvent ;
-import java . awt . geom . AffineTransform ;
-import java . awt . geom . Rectangle2D ;
 import java . awt . image . BufferedImage ;
-import java . awt . image . ColorModel ;
 import java . io . ByteArrayOutputStream ;
 import java . io . File ;
 import java . io . FileOutputStream ;
 import java . io . IOException ;
-import java . io . OutputStream ;
 import java . util . ArrayList ;
 import java . util . Collections ;
 import java . util . Comparator ;
-import java . util . Currency ;
 import java . util . HashMap ;
 import java . util . Iterator ;
 import java . util . LinkedList ;
 import java . util . List ;
 import java . util . Map ;
+
 import javax . imageio . ImageIO ;
+import javax . swing . ImageIcon ;
 import javax . swing . JFileChooser ;
 import javax . swing . JFrame ;
+import javax . swing . JInternalFrame ;
 import javax . swing . JOptionPane ;
 import javax . swing . JPanel ;
 import javax . swing . WindowConstants ;
+import javax . swing . event . InternalFrameEvent ;
+import javax . swing . event . InternalFrameListener ;
+
 import neoe . ne . util . FileIterator ;
-import neoe . ne . util . FileUtil ;
 
 public class PicView {
 	public static class DigitFilenameCompare implements Comparator {
@@ -139,9 +136,14 @@ public class PicView {
 		int rx , ry ;
 		boolean drawMousePos = true ;
 		private int direction ;
+		private JInternalFrame iframe ;
 
-		public PicViewPanel ( JFrame f , File fn ) throws Exception {
-			this . frame = f ;
+		public PicViewPanel ( Object f , File fn ) throws Exception {
+			if ( f instanceof JFrame ) {
+				frame = ( JFrame ) f ;
+			} else {
+				iframe = ( JInternalFrame ) f ;
+			}
 			long t1 = System . currentTimeMillis ( ) ;
 			this . f = fn ;
 			GraphicsEnvironment env = GraphicsEnvironment . getLocalGraphicsEnvironment ( ) ;
@@ -180,9 +182,13 @@ public class PicView {
 			int kc = e . getKeyCode ( ) ;
 			try {
 				if ( e . isControlDown ( ) ) {
-					if ( kc == KeyEvent . VK_W )
-					frame . dispose ( ) ;
-					else if ( kc == KeyEvent . VK_S )
+					if ( kc == KeyEvent . VK_W ) {
+						if ( frame != null ) {
+							frame . dispose ( ) ;
+						} else {
+							iframe . dispose ( ) ;
+						}
+					} else if ( kc == KeyEvent . VK_S )
 					saveCut ( ) ;
 					else if ( kc == KeyEvent . VK_C )
 					copyFilename ( ) ;
@@ -539,10 +545,19 @@ public class PicView {
 			Dimension dim = new Dimension ( pw = ( int ) ( img . getWidth ( ) + 20 ) , ph = ( int ) ( img . getHeight ( ) + 20 ) ) ;
 			dim . width = Math . min ( maxWindow . width , Math . max ( 200 , dim . width ) ) ;
 			dim . height = Math . min ( maxWindow . height , Math . max ( 200 , dim . height ) ) ;
-			Dimension d0 = frame . getSize ( ) ;
-			dim . width = Math . max ( dim . width , d0 . width ) ;
-			dim . height = Math . max ( dim . height , d0 . height ) ;
-			frame . setSize ( dim ) ;
+			if ( frame != null ) {
+				Dimension d0 = frame . getSize ( ) ;
+				dim . width = Math . max ( dim . width , d0 . width ) ;
+				dim . height = Math . max ( dim . height , d0 . height ) ;
+				frame . setSize ( dim ) ;
+				frame . setPreferredSize ( dim ) ;
+			} else {
+				Dimension d0 = iframe . getSize ( ) ;
+				dim . width = Math . max ( dim . width , d0 . width ) ;
+				dim . height = Math . max ( dim . height , d0 . height ) ;
+				iframe . setSize ( dim ) ;
+				iframe . setPreferredSize ( dim ) ;
+			}
 		}
 
 		private void setTitleWithSize ( File f , int index , int total ) {
@@ -550,9 +565,14 @@ public class PicView {
 			String ss1 = "" ;
 			if ( ss != null )
 			ss1 = ss . delay > 0 ? " slide:" + ss . delay + " sec" : "" ;
-			frame . setTitle ( String . format ( "PicView %s [%dx%d] %s %,d BS%s %s - neoeedit %s" , f . getName ( ) , img . getWidth ( ) ,
-					img . getHeight ( ) , superMode ? "SP" : String . format ( "(%d/%d)" , index + 1 , total ) , f . length ( ) , ss1 ,
-					f . getAbsoluteFile ( ) . getParent ( ) , Version . REV ) ) ;
+			String title = String . format ( "PicView %s [%dx%d] %s %,d BS%s %s - neoeedit %s" , f . getName ( ) , img . getWidth ( ) ,
+				img . getHeight ( ) , superMode ? "SP" : String . format ( "(%d/%d)" , index + 1 , total ) , f . length ( ) , ss1 ,
+				f . getAbsoluteFile ( ) . getParent ( ) , Version . REV ) ;
+			if ( frame != null ) {
+				frame . setTitle ( title ) ;
+			} else {
+				iframe . setTitle ( title ) ;
+			}
 			setSize ( img ) ;
 		}
 
@@ -657,10 +677,11 @@ public class PicView {
 	}
 
 	public static void main ( String [ ] args ) throws Exception {
-		new PicView ( ) . show ( new File ( args [ 0 ] ) ) ;
+		new PicView ( ) . show0 ( new File ( args [ 0 ] ) , null ) ;
 	}
 
 	private File currentFile ;
+
 	public void copyFilename ( ) {
 		if ( currentFile != null )
 		U . setClipBoard ( currentFile . getAbsolutePath ( ) ) ;
@@ -726,20 +747,91 @@ public class PicView {
 			} ) . start ( ) ;
 	}
 
+	private void installSlideshow2 ( JInternalFrame frame , PicViewPanel p ) {
+		ss = new Slideshow ( p ) ;
+		frame . addInternalFrameListener ( new InternalFrameListener ( ) {
+				@ Override
+				public void internalFrameOpened ( InternalFrameEvent e ) {
+				}
+
+				@ Override
+				public void internalFrameIconified ( InternalFrameEvent e ) {
+					ss . iconed = true ;
+				}
+
+				@ Override
+				public void internalFrameDeiconified ( InternalFrameEvent e ) {
+					ss . iconed = false ;
+				}
+
+				@ Override
+				public void internalFrameDeactivated ( InternalFrameEvent e ) {
+					ss . exited = true ;
+				}
+
+				@ Override
+				public void internalFrameClosing ( InternalFrameEvent e ) {
+					ss . exited = true ;
+				}
+
+				@ Override
+				public void internalFrameClosed ( InternalFrameEvent e ) {
+					ss . exited = true ;
+				}
+
+				@ Override
+				public void internalFrameActivated ( InternalFrameEvent e ) {
+				}
+			} ) ;
+
+		new Thread ( ( ) -> {
+				while ( true ) {
+					if ( ss . exited )
+					break ;
+					ss . next ( ) ;
+				}
+			} ) . start ( ) ;
+	}
+
 	PicViewPanel picviewpanel ;
 
-	public void show ( File fn ) throws Exception {
-		JFrame f = new JFrame ( ) ;
+	public void show ( File fn , JInternalFrame f ) throws Exception {
 		f . setDefaultCloseOperation ( WindowConstants . DISPOSE_ON_CLOSE ) ;
-		f . setIconImage ( U . getAppIcon ( U . e3_png ) ) ;
+		f . setFrameIcon ( new ImageIcon ( U . getAppIcon ( U . e3_png ) ) ) ;
 		picviewpanel = new PicViewPanel ( f , fn ) ;
 		f . getContentPane ( ) . setLayout ( new BorderLayout ( ) ) ;
 		f . getContentPane ( ) . add ( picviewpanel ) ;
-		f . setVisible ( true ) ;
+		f . pack ( ) ;
 		U . saveFileHistory ( fn . getAbsolutePath ( ) , 0 ) ;
-		installSlideshow ( f , picviewpanel ) ;
+		installSlideshow2 ( f , picviewpanel ) ;
 		resetCut ( ) ;
 	}
+
+	public void show0 ( File fn , EditorPanel ep ) throws Exception {
+		if ( ep == null || ep . desktopPane == null ) {
+			JFrame f = new JFrame ( ) ;
+			f . setDefaultCloseOperation ( WindowConstants . DISPOSE_ON_CLOSE ) ;
+			f . setIconImage ( U . getAppIcon ( U . e3_png ) ) ;
+			picviewpanel = new PicViewPanel ( f , fn ) ;
+			f . getContentPane ( ) . setLayout ( new BorderLayout ( ) ) ;
+			f . getContentPane ( ) . add ( picviewpanel ) ;
+			f . setVisible ( true ) ;
+			installSlideshow ( f , picviewpanel ) ;
+		} else {
+			JInternalFrame f = new JInternalFrame ( "Picview" , true , true , true , true ) ;
+			picviewpanel = new PicViewPanel ( f , fn ) ;
+			f . getContentPane ( ) . setLayout ( new BorderLayout ( ) ) ;
+			f . getContentPane ( ) . add ( picviewpanel ) ;
+			ep . desktopPane . add ( f ) ;
+			f . setVisible ( true ) ;
+			f . setLayer ( 100 ) ;
+			f . setSelected ( true ) ;
+			installSlideshow2 ( f , picviewpanel ) ;
+		}
+		U . saveFileHistory ( fn . getAbsolutePath ( ) , 0 ) ;
+		resetCut ( ) ;
+	}
+
 	static TexturePaint tp1 ;
 
 	private static TexturePaint getFillImagePaint ( ) {

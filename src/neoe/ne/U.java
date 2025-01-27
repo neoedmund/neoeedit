@@ -78,30 +78,33 @@ public class U {
 		if ( new File ( font ) . isFile ( ) ) {
 			f = Font . createFont ( Font . TRUETYPE_FONT , new File ( font ) ) ;
 			f = f . deriveFont ( size ) ;
-		} else
-		f = new Font ( font , Font . PLAIN , ( int ) size ) ;
+		} else {
+			f = new Font ( font , Font . PLAIN , ( int ) size ) ;
+		}
 		return f ;
 	}
 
 	static void checkChangedOutside ( PlainPage pp ) {
-		if ( U . changedOutside ( pp . pageData ) )
-		if ( ! pp . pageData . changedOutside ) {
-			pp . pageData . changedOutside = true ;
-			if ( pp . pageData . history . size ( ) == 0 ) {
-				pp . pageData . reloadFile ( ) ;
-				U . showSelfDispMessage ( pp , "File changed outside.(reloaded)" , 4000 ) ;
-				pp . pageData . changedOutside = false ;
-			} else
-			U . showSelfDispMessage ( pp , "File changed outside." , 4000 ) ;
+		if ( U . changedOutside ( pp . pageData ) ) {
+			if ( ! pp . pageData . changedOutside ) {
+				pp . pageData . changedOutside = true ;
+				if ( pp . pageData . history . size ( ) == 0 ) {
+					pp . pageData . reloadFile ( ) ;
+					U . showSelfDispMessage ( pp , "File changed outside.(reloaded)" , 4000 ) ;
+					pp . pageData . changedOutside = false ;
+				} else {
+					U . showSelfDispMessage ( pp , "File changed outside." , 4000 ) ;
+				}
+			}
 		}
 	}
 
 	static EditorPanel newWindow ( PlainPage pp ) throws Exception {
 		EditorPanel uiComp = pp . uiComp ;
 		EditorPanel ep = new EditorPanel ( uiComp . config ) ;
-		if ( uiComp . desktopPane == null )
-		ep . openWindow ( ) ;
-		else {
+		if ( uiComp . desktopPane == null ) {
+			ep . openWindow ( ) ;
+		} else {
 			// U.e_png, parentUI, frame, frame, null
 			JInternalFrame neframe = new JInternalFrame ( "ne" , true , true , true , true ) ;
 			ep . openWindow ( U . e_png , neframe , uiComp . realJFrame , uiComp . desktopPane ) ;
@@ -114,8 +117,9 @@ public class U {
 			neframe . setSize ( p1 . getSize ( ) ) ;
 			neframe . setSelected ( true ) ;
 			ep . userfunc = uiComp . userfunc ;
-			if ( ep . userfunc != null )
-			ep . userfunc . run ( neframe , ep ) ;
+			if ( ep . userfunc != null ) {
+				ep . userfunc . run ( neframe , ep ) ;
+			}
 		}
 		// set default working path
 		ep . page . workPath = pp . workPath ;
@@ -127,10 +131,11 @@ public class U {
 		OutputStream out = new BufferedOutputStream ( new FileOutputStream ( fn0 ) , 8192 * 16 ) ;
 		boolean second = false ;
 		for ( String s : ss ) {
-			if ( second )
-			out . write ( '\n' ) ;
-			else
-			second = true ;
+			if ( second ) {
+				out . write ( '\n' ) ;
+			} else {
+				second = true ;
+			}
 			out . write ( s . getBytes ( encoding ) ) ;
 		}
 		out . close ( ) ;
@@ -140,14 +145,16 @@ public class U {
 	}
 
 	public static void setEnv ( PlainPage pp , String k , String v ) {
-		if ( pp . env == null )
-		pp . env = new LinkedHashMap < > ( System . getenv ( ) ) ;
+		if ( pp . env == null ) {
+			pp . env = new LinkedHashMap < > ( System . getenv ( ) ) ;
+		}
 
 		Map m = pp . env ;
-		if ( v . isEmpty ( ) )
-		m . remove ( k ) ;
-		else
-		m . put ( k , v ) ;
+		if ( v . isEmpty ( ) ) {
+			m . remove ( k ) ;
+		} else {
+			m . put ( k , v ) ;
+		}
 		pp . envs = null ; // clean cache
 	}
 
@@ -160,8 +167,9 @@ public class U {
 				his . set ( pos , updateCurrent ) ;
 				pos -- ;
 				return his . get ( pos ) ;
-			} else
-			return null ;
+			} else {
+				return null ;
+			}
 		}
 
 		public E forward ( E updateCurrent ) {
@@ -170,34 +178,38 @@ public class U {
 				his . set ( pos , updateCurrent ) ;
 				pos ++ ;
 				return his . get ( pos ) ;
-			} else
-			return null ;
+			} else {
+				return null ;
+			}
 		}
 
 		public void add ( E loc , E updateCurrent ) {
-			if ( his . size ( ) > pos + 1 )
-			removeLastN ( his . size ( ) - pos - 1 ) ;
+			if ( his . size ( ) > pos + 1 ) {
+				removeLastN ( his . size ( ) - pos - 1 ) ;
+			}
 			// String last = "<Empty>";
-			if ( ! his . isEmpty ( ) )
-			// last = his.getLast().toString();
-			his . set ( his . size ( ) - 1 , updateCurrent ) ; // System.out.println("[d]" + last + "=>" + updateCurrent);
+			if ( ! his . isEmpty ( ) ) // last = his.getLast().toString();
+			{
+				his . set ( his . size ( ) - 1 , updateCurrent ) ; // System.out.println("[d]" + last + "=>" + updateCurrent);
+			}
 			his . add ( loc ) ;
 			pos = his . size ( ) - 1 ;
 			// System.out.printf("his.add size=%s, pos=%s\n", his.size(), pos);
 		}
 
 		private void removeLastN ( int cnt ) {
-			for ( int i = 0 ; i < cnt ; i ++ )
-			his . removeLast ( ) ;
+			for ( int i = 0 ; i < cnt ; i ++ ) {
+				his . removeLast ( ) ;
+			}
 		}
 	}
 
 	static void drawStringShrink ( Graphics2D g2 , FontList fontList , String s , int x , int y , float maxWidth ) {
 		int max = Math . round ( maxWidth ) ;
 		int width = stringWidth ( g2 , fontList , s , max ) ;
-		if ( width <= max )
-		drawString ( g2 , fontList , s , x , y , max ) ;
-		else {
+		if ( width <= max ) {
+			drawString ( g2 , fontList , s , x , y , max ) ;
+		} else {
 			Graphics2D g3 = ( Graphics2D ) g2 . create ( ) ;
 			g3 . scale ( ( maxWidth - 3 ) / ( float ) width , 1 ) ;
 			drawString ( g3 , fontList , s , x , y , max ) ;
@@ -207,10 +219,11 @@ public class U {
 
 	static String suNotice ( ) {
 		String user = System . getProperty ( "user.name" ) ;
-		if ( "root" . equals ( user ) || "administrator" . equalsIgnoreCase ( user ) )
-		return " [su]" ;
-		else
-		return "" ;
+		if ( "root" . equals ( user ) || "administrator" . equalsIgnoreCase ( user ) ) {
+			return " [su]" ;
+		} else {
+			return "" ;
+		}
 	}
 
 	/*
@@ -236,8 +249,9 @@ public class U {
 	 */
 	public static int drawString ( Graphics2D g2 , FontList fonts , String s , int x , int y , int maxWidth ,
 		boolean isRealDraw ) {
-		if ( s == null || s . length ( ) <= 0 )
-		return 0 ;
+		if ( s == null || s . length ( ) <= 0 ) {
+			return 0 ;
+		}
 
 		// draw separated by fonts
 		int w = 0 ;
@@ -262,8 +276,9 @@ public class U {
 				cf = fo [ 0 ] ;
 			}
 			i ++ ;
-			if ( w > maxWidth )
-			break ;
+			if ( w > maxWidth ) {
+				break ;
+			}
 		}
 		if ( sb . length ( ) > 0 ) {
 			w1 = submitStr ( g2 , cf , sb . toString ( ) , x , y , isRealDraw ) ;
@@ -274,8 +289,9 @@ public class U {
 	}
 
 	public static int exactRemainChar ( Graphics2D g2 , FontList fonts , String s , int maxWidth ) {
-		if ( s == null || s . length ( ) <= 0 )
-		return 0 ;
+		if ( s == null || s . length ( ) <= 0 ) {
+			return 0 ;
+		}
 		maxWidth /= getShrinkRate ( s ) ;
 		int [ ] wc = new int [ 1 ] ;
 		// draw separated by fonts
@@ -302,8 +318,9 @@ public class U {
 				cf = fo [ 0 ] ;
 			}
 			i ++ ;
-			if ( w > maxWidth )
-			break ;
+			if ( w > maxWidth ) {
+				break ;
+			}
 		}
 		if ( sb . length ( ) > 0 ) {
 			w1 = submitStrNoDraw ( g2 , cf , sb . toString ( ) , maxWidth - x , wc ) ;
@@ -314,8 +331,9 @@ public class U {
 	}
 
 	public static int exactRemainCharWidth ( Graphics2D g2 , FontList fonts , String s , int maxlen ) {
-		if ( s == null || s . length ( ) <= 0 )
-		return 0 ;
+		if ( s == null || s . length ( ) <= 0 ) {
+			return 0 ;
+		}
 		float rate = getShrinkRate ( s ) ;
 		s = s . substring ( 0 , maxlen ) ;
 		int [ ] wc = new int [ 1 ] ;
@@ -354,34 +372,40 @@ public class U {
 	}
 
 	static int tryStrWidth ( FontMetrics fm , String s , int width , int n , int a , int b , int safe ) {
-		if ( n <= a )
-		return a ;
-		if ( n >= b )
-		return b ;
+		if ( n <= a ) {
+			return a ;
+		}
+		if ( n >= b ) {
+			return b ;
+		}
 		if ( safe > 32 ) {
 			System . out . println ( "bug in tryStrWidth()!" ) ;
 			return n ;
 		}
 		int w = fm . stringWidth ( s . substring ( 0 , n ) ) ; // shrinked(fm, s.substring(0, n));
-		if ( w < width )
-		return tryStrWidth ( fm , s , width , ( n + b ) / 2 , n , b , safe + 1 ) ;
-		else if ( w > width )
-		return tryStrWidth ( fm , s , width , ( n + a ) / 2 , a , n , safe + 1 ) ;
-		else
-		return n ;
+		if ( w < width ) {
+			return tryStrWidth ( fm , s , width , ( n + b ) / 2 , n , b , safe + 1 ) ;
+		} else if ( w > width ) {
+			return tryStrWidth ( fm , s , width , ( n + a ) / 2 , a , n , safe + 1 ) ;
+		} else {
+			return n ;
+		}
 	}
 
 	private static int shrinked ( FontMetrics fm , String s ) {
-		if ( s == null || s . isEmpty ( ) )
-		return 0 ;
+		if ( s == null || s . isEmpty ( ) ) {
+			return 0 ;
+		}
 		return Math . round ( getShrinkRate ( s ) * fm . stringWidth ( s ) ) ;
 	}
 
 	private static float getShrinkRate ( String s ) {
-		if ( s == null || s . isEmpty ( ) )
-		return 1 ;
-		if ( ! U . shrinkWord || s . length ( ) < shrinkWordLen )
-		return 1 ;
+		if ( s == null || s . isEmpty ( ) ) {
+			return 1 ;
+		}
+		if ( ! U . shrinkWord || s . length ( ) < shrinkWordLen ) {
+			return 1 ;
+		}
 		return shrinkRate ;
 	}
 
@@ -401,21 +425,24 @@ public class U {
 	static int shrinkWordLen ;
 
 	private static int submitStr ( Graphics2D g2 , Font cf , String s , int x , int y , boolean isRealDraw ) {
-		if ( s . isEmpty ( ) )
-		return 0 ;
+		if ( s . isEmpty ( ) ) {
+			return 0 ;
+		}
 		g2 . setFont ( cf ) ;
 
-		if ( isRealDraw )
-		shrinkDraw ( g2 , s , x , y ) ;
+		if ( isRealDraw ) {
+			shrinkDraw ( g2 , s , x , y ) ;
+		}
 		return shrinked ( g2 . getFontMetrics ( ) , s ) ;
 	}
 
 	private static void shrinkDraw ( Graphics2D g2 , String s , int x , int y ) {
-		if ( s == null || s . isEmpty ( ) )
-		return ;
-		if ( ! U . shrinkWord || s . length ( ) < shrinkWordLen )
-		g2 . drawString ( s , x , y ) ;
-		else {
+		if ( s == null || s . isEmpty ( ) ) {
+			return ;
+		}
+		if ( ! U . shrinkWord || s . length ( ) < shrinkWordLen ) {
+			g2 . drawString ( s , x , y ) ;
+		} else {
 			Graphics2D gshr = ( Graphics2D ) g2 . create ( ) ;
 			gshr . translate ( x , y ) ;
 			gshr . scale ( shrinkRate , 1 ) ;
@@ -425,16 +452,18 @@ public class U {
 	}
 
 	private static int submitStrNoDraw ( Graphics2D g2 , Font cf , String s , int width , int [ ] wc ) {
-		if ( s . isEmpty ( ) )
-		return 0 ;
+		if ( s . isEmpty ( ) ) {
+			return 0 ;
+		}
 		g2 . setFont ( cf ) ;
 		// g2.drawString(s, x, y);
 		FontMetrics fm = g2 . getFontMetrics ( ) ;
 		int w = fm . stringWidth ( s ) ; // shrinked(fm, s);
-		if ( w <= width )
-		wc [ 0 ] += s . length ( ) ;
-		else
-		wc [ 0 ] += tryStrWidth ( fm , s , width , s . length ( ) / 2 , 0 , s . length ( ) , 0 ) ;
+		if ( w <= width ) {
+			wc [ 0 ] += s . length ( ) ;
+		} else {
+			wc [ 0 ] += tryStrWidth ( fm , s , width , s . length ( ) / 2 , 0 , s . length ( ) , 0 ) ;
+		}
 		return w ;
 	}
 
@@ -447,19 +476,22 @@ public class U {
 		List < CharSequence > s1x = U . splitToken ( s ) ;
 		for ( CharSequence s1c : s1x ) {
 			String s1 = s1c . toString ( ) ;
-			if ( s1 . equals ( "\t" ) )
-			w += U . TAB_WIDTH ;
-			else
-			w += stringWidthSection ( g2 , fonts , s1 , maxw ) ;
-			if ( w > maxw )
-			break ;
+			if ( s1 . equals ( "\t" ) ) {
+				w += U . TAB_WIDTH ;
+			} else {
+				w += stringWidthSection ( g2 , fonts , s1 , maxw ) ;
+			}
+			if ( w > maxw ) {
+				break ;
+			}
 		}
 		return w ;
 	}
 
 	public static int stringWidthSection ( Graphics2D g2 , FontList fonts , String s , int maxw ) {
-		if ( s == null || s . length ( ) <= 0 )
-		return 0 ;
+		if ( s == null || s . length ( ) <= 0 ) {
+			return 0 ;
+		}
 
 		// draw separated by fonts
 		int w = 0 ;
@@ -503,13 +535,15 @@ public class U {
 		Object [ ] row = c < 256 ? fonts . charWidthCaches256 [ c ] : fonts . charWidthCaches . get ( c ) ;
 		if ( row == null ) {
 			row = genCharWidthCaches ( g2 , c , fonts ) ;
-			if ( c < 256 )
-			fonts . charWidthCaches256 [ c ] = row ;
-			else
-			fonts . charWidthCaches . put ( c , row ) ;
+			if ( c < 256 ) {
+				fonts . charWidthCaches256 [ c ] = row ;
+			} else {
+				fonts . charWidthCaches . put ( c , row ) ;
+			}
 		}
-		if ( fo != null )
-		fo [ 0 ] = ( Font ) row [ 0 ] ;
+		if ( fo != null ) {
+			fo [ 0 ] = ( Font ) row [ 0 ] ;
+		}
 		return ( Integer ) row [ 1 ] ;
 	}
 
@@ -519,10 +553,11 @@ public class U {
 	private static Object [ ] genCharWidthCaches ( Graphics2D g2 , char c , FontList fontList ) {
 		Font [ ] fonts = fontList . font ;
 		Font f = fonts [ 0 ] ;
-		for ( Font font : fonts )
-		if ( font . canDisplay ( c ) ) {
-			f = font ;
-			break ;
+		for ( Font font : fonts ) {
+			if ( font . canDisplay ( c ) ) {
+				f = font ;
+				break ;
+			}
 		}
 		return new Object [ ] { f , g2 . getFontMetrics ( f ) . charWidth ( c ) } ;
 	}
@@ -561,25 +596,28 @@ public class U {
 
 		@ Override
 		public boolean canImport ( TransferHandler . TransferSupport support ) {
-			if ( ! support . isDataFlavorSupported ( DataFlavor . javaFileListFlavor ) )
-			return false ;
+			if ( ! support . isDataFlavorSupported ( DataFlavor . javaFileListFlavor ) ) {
+				return false ;
+			}
 			return true ;
 		}
 
 		@ Override
 		@ SuppressWarnings ( "unchecked" )
 		public boolean importData ( TransferHandler . TransferSupport support ) {
-			if ( ! canImport ( support ) )
-			return false ;
+			if ( ! canImport ( support ) ) {
+				return false ;
+			}
 			Transferable t = support . getTransferable ( ) ;
 			try {
 				List < File > l = ( List < File > ) t . getTransferData ( DataFlavor . javaFileListFlavor ) ;
-				for ( File f : l )
-				if ( f . isFile ( ) )
-				try {
-					ep . findAndShowPage ( f . getAbsolutePath ( ) , -1 , true ) ;
-				} catch ( Exception e ) {
-					e . printStackTrace ( ) ;
+				for ( File f : l ) {
+					if ( f . isFile ( ) )
+					try {
+						ep . findAndShowPage ( f . getAbsolutePath ( ) , -1 , true ) ;
+					} catch ( Exception e ) {
+						e . printStackTrace ( ) ;
+					}
 				}
 			} catch ( Exception e ) {
 				e . printStackTrace ( ) ;
@@ -637,10 +675,11 @@ public class U {
 		}
 		try {
 			// System.out.println(""+name+":"+c1);
-			if ( keys . containsKey ( name ) )
-			System . err . println ( "duplicated key:" + name ) ;
-			else
-			keys . put ( name , c1 ) ;
+			if ( keys . containsKey ( name ) ) {
+				System . err . println ( "duplicated key:" + name ) ;
+			} else {
+				keys . put ( name , c1 ) ;
+			}
 		} catch ( Exception ex ) {
 			System . err . println ( "Error: unknow key:" + key ) ;
 		}
@@ -689,28 +728,32 @@ public class U {
 				public void run ( ) {
 					try {
 						String enc = page . pageData . encoding ;
-						if ( enc == null )
-						enc = UTF8 ;
+						if ( enc == null ) {
+							enc = UTF8 ;
+						}
 						InputStream in = std ;
 						InputStreamReader reader = new InputStreamReader ( in , enc ) ;
 						long t1 = System . currentTimeMillis ( ) ;
 						String line = "<begin " + name + ">" ;
-						if ( addTime )
-						line = sdf1 . format ( new Date ( ) ) + line ;
+						if ( addTime ) {
+							line = sdf1 . format ( new Date ( ) ) + line ;
+						}
 						page . pageData . editRec . appendLine ( line ) ;
 						StringBuilder sb = new StringBuilder ( ) ;
 						boolean r = false ;
 						while ( true ) {
 							int c = reader . read ( ) ;
-							if ( c == -1 )
-							break ;
-							if ( c == '\r' )
-							r = true ;
-							else if ( c == '\n' ) {
+							if ( c == -1 ) {
+								break ;
+							}
+							if ( c == '\r' ) {
+								r = true ;
+							} else if ( c == '\n' ) {
 								r = false ;
 								line = sb . toString ( ) ;
-								if ( addTime )
-								line = sdf1 . format ( new Date ( ) ) + line ;
+								if ( addTime ) {
+									line = sdf1 . format ( new Date ( ) ) + line ;
+								}
 								sb . setLength ( 0 ) ;
 								page . pageData . editRec . appendLine ( line ) ;
 								if ( page . console != null && page . console . follow ) {
@@ -722,8 +765,9 @@ public class U {
 								if ( r ) {
 									r = false ;
 									line = sb . toString ( ) ;
-									if ( addTime )
-									line = sdf1 . format ( new Date ( ) ) + line ;
+									if ( addTime ) {
+										line = sdf1 . format ( new Date ( ) ) + line ;
+									}
 									sb . setLength ( 0 ) ;
 									page . pageData . lines . set ( page . pageData . roLines . getLinesize ( ) - 1 , line ) ;
 								}
@@ -745,8 +789,9 @@ public class U {
 							}
 						}
 						line = "<end " + name + ">" ;
-						if ( addTime )
-						line = sdf1 . format ( new Date ( ) ) + line ;
+						if ( addTime ) {
+							line = sdf1 . format ( new Date ( ) ) + line ;
+						}
 						String line0 = line ;
 						new Thread ( ( ) -> {
 								try {
@@ -767,8 +812,9 @@ public class U {
 	static boolean changedOutside ( PageData pd ) {
 		if ( pd . fileLoaded ) {
 			long t = new File ( pd . title ) . lastModified ( ) ;
-			if ( t > pd . fileLastModified + 100 )
-			return true ;
+			if ( t > pd . fileLastModified + 100 ) {
+				return true ;
+			}
 		}
 		return false ;
 	}
@@ -782,14 +828,18 @@ public class U {
 			opt = JOptionPane . showConfirmDialog ( editor , "Are you sure to SAVE and close?" , "Changes made" ,
 				JOptionPane . YES_NO_CANCEL_OPTION , JOptionPane . QUESTION_MESSAGE ) ;
 
-			if ( opt == JOptionPane . CANCEL_OPTION || opt == -1 )
-			return ;
-			if ( opt == JOptionPane . YES_OPTION )
-			if ( ! saveFile ( page ) )
-			return ;
+			if ( opt == JOptionPane . CANCEL_OPTION || opt == -1 ) {
+				return ;
+			}
+			if ( opt == JOptionPane . YES_OPTION ) {
+				if ( ! saveFile ( page ) ) {
+					return ;
+				}
+			}
 		}
-		if ( page . pageData . fileLoaded )
-		saveFileHistory ( page . pageData . title , page . cy ) ;
+		if ( page . pageData . fileLoaded ) {
+			saveFileHistory ( page . pageData . title , page . cy ) ;
+		}
 		page . close ( ) ;
 	}
 
@@ -804,14 +854,19 @@ public class U {
 
 	public static void exec ( PlainPage pp , String cmd ) throws Exception {
 		cmd = cmd . trim ( ) ;
-		if ( cmd . length ( ) <= 0 )
-		return ;
-		if ( isCmdCd ( cmd , pp ) )
-		return ;
-		if ( isCmdExport ( cmd , pp ) )
-		return ;
+		if ( cmd . length ( ) <= 0 ) {
+			return ;
+		}
+		if ( isCmdCd ( cmd , pp ) ) {
+			return ;
+		}
+		if ( isCmdExport ( cmd , pp ) ) {
+			return ;
+		}
 		File dir ;
-
+		if ( cmd . startsWith ( "[cmd]" ) ) {
+			cmd = cmd . substring ( 5 ) . trim ( ) ;
+		}
 		int p2 = cmd . indexOf ( ']' ) ; // "path] cmd"
 		if ( p2 > 0 ) {
 			String path = cmd . substring ( 0 , p2 ) . trim ( ) ;
@@ -823,12 +878,21 @@ public class U {
 				path = "/tmp" ;
 			}
 			dir = new File ( path ) ;
+			boolean isAbs = path . startsWith ( "/" ) || ( path . length ( ) > 1 && path . charAt ( 1 ) == ':' ) ; //windows X:
+			if ( ! isAbs && pp . workPath != null ) {
+				dir = new File ( pp . workPath , path ) ;
+				if ( ! dir . isDirectory ( ) ) {
+					showSelfDispMessage ( pp , "dir not exists:" + path , 1000 ) ;
+					return ;
+				}
+			}
 			cmd = cmd . substring ( p2 + 1 ) . trim ( ) ;
 		} else {
-			if ( pp . workPath != null )
-			dir = new File ( pp . workPath ) ;
-			else
-			dir = new File ( "." ) ;
+			if ( pp . workPath != null ) {
+				dir = new File ( pp . workPath ) ;
+			} else {
+				dir = new File ( "." ) ;
+			}
 		}
 
 		addCmdHistory ( cmd , dir . getAbsolutePath ( ) ) ;
@@ -868,15 +932,18 @@ public class U {
 	}
 
 	private static String [ ] getEnv ( PlainPage pp ) {
-		if ( pp . envs != null )
-		return pp . envs ;
-		if ( pp . env == null )
-		return null ;
+		if ( pp . envs != null ) {
+			return pp . envs ;
+		}
+		if ( pp . env == null ) {
+			return null ;
+		}
 		int size = pp . env . size ( ) ;
 		String [ ] ss = new String [ size ] ;
 		int i = 0 ;
-		for ( Entry < String , String > en : pp . env . entrySet ( ) )
-		ss [ i ++ ] = en . getKey ( ) + "=" + en . getValue ( ) ;
+		for ( Entry < String , String > en : pp . env . entrySet ( ) ) {
+			ss [ i ++ ] = en . getKey ( ) + "=" + en . getValue ( ) ;
+		}
 		pp . envs = ss ;
 		return ss ;
 	}
@@ -890,14 +957,16 @@ public class U {
 		int p1 = 0 ;
 		int len = s . length ( ) ;
 		while ( true ) {
-			if ( p1 >= len )
-			break ;
+			if ( p1 >= len ) {
+				break ;
+			}
 			char c = s . charAt ( p1 ) ;
 			if ( c == '"' || c == '\'' ) {
 				char c0 = c ;
 				int p2 = s . indexOf ( c0 , p1 + 1 ) ;
-				if ( p2 < 0 )
-				p2 = len ;
+				if ( p2 < 0 ) {
+					p2 = len ;
+				}
 				r . add ( s . substring ( p1 + 1 , p2 ) ) ;
 				p1 = p2 + 1 ;
 			} else if ( c == ' ' || c == '\t' ) {
@@ -911,8 +980,9 @@ public class U {
 						break ;
 					}
 				}
-				if ( p2 < 0 )
-				p2 = len ;
+				if ( p2 < 0 ) {
+					p2 = len ;
+				}
 				r . add ( s . substring ( p1 , p2 ) . trim ( ) ) ;
 				p1 = p2 + 1 ;
 			}
@@ -921,14 +991,16 @@ public class U {
 	}
 
 	private static boolean isCmdCd ( String cmd , PlainPage pp ) {
-		if ( "cd" . equals ( cmd ) )
-		cmd = "cd " ;
-		if ( ! cmd . startsWith ( "cd " ) )
-		return false ;
+		if ( "cd" . equals ( cmd ) ) {
+			cmd = "cd " ;
+		}
+		if ( ! cmd . startsWith ( "cd " ) ) {
+			return false ;
+		}
 		String path = cmd . substring ( 3 ) . trim ( ) ;
-		if ( path . isEmpty ( ) )
-		path = getUserHome ( ) ; // System.getProperty("user.home");
-		else {
+		if ( path . isEmpty ( ) ) {
+			path = getUserHome ( ) ; // System.getProperty("user.home");
+		} else {
 			path = dequote ( path ) ;
 			File f = new File ( path ) ;
 			if ( ! f . exists ( ) ) {
@@ -938,8 +1010,9 @@ public class U {
 					return true ;
 				}
 				path = path2 ;
-			} else if ( f . isFile ( ) )
-			path = f . getParent ( ) ;
+			} else if ( f . isFile ( ) ) {
+				path = f . getParent ( ) ;
+			}
 		}
 		pp . workPath = path ;
 		pp . ui . message ( "CWD=" + path ) ;
@@ -947,18 +1020,21 @@ public class U {
 	}
 
 	private static String dequote ( String s ) {
-		if ( s . startsWith ( "\"" ) && s . endsWith ( "\"" ) )
-		s = s . substring ( 1 , s . length ( ) - 1 ) ;
+		if ( s . startsWith ( "\"" ) && s . endsWith ( "\"" ) ) {
+			s = s . substring ( 1 , s . length ( ) - 1 ) ;
+		}
 		return s ;
 	}
 
 	private static boolean isCmdExport ( String cmd , PlainPage pp ) {
-		if ( ! cmd . startsWith ( "export " ) )
-		return false ;
+		if ( ! cmd . startsWith ( "export " ) ) {
+			return false ;
+		}
 		String kv = cmd . substring ( 7 ) . trim ( ) ;
 		int p1 = kv . indexOf ( '=' ) ;
-		if ( p1 <= 0 )
-		return false ;
+		if ( p1 <= 0 ) {
+			return false ;
+		}
 		String k = kv . substring ( 0 , p1 ) . trim ( ) ;
 		String v = kv . substring ( p1 + 1 ) . trim ( ) ;
 		v = dequote ( v ) ;
@@ -990,16 +1066,18 @@ public class U {
 			Object o ;
 			if ( clip . isDataFlavorAvailable ( DataFlavor . stringFlavor ) ) {
 				o = clip . getData ( DataFlavor . stringFlavor ) ;
-				if ( o != null )
-				return o . toString ( ) ;
+				if ( o != null ) {
+					return o . toString ( ) ;
+				}
 			}
 			if ( clip . isDataFlavorAvailable ( DataFlavor . javaFileListFlavor ) ) {
 				o = clip . getData ( DataFlavor . javaFileListFlavor ) ;
 				if ( o != null ) {
 					List < File > l = ( List < File > ) o ;
 					StringBuffer sb = new StringBuffer ( ) ;
-					for ( File f : l )
-					sb . append ( f . getAbsolutePath ( ) ) . append ( '\n' ) ;
+					for ( File f : l ) {
+						sb . append ( f . getAbsolutePath ( ) ) . append ( '\n' ) ;
+					}
 					return sb . toString ( ) ;
 				}
 			}
@@ -1011,29 +1089,33 @@ public class U {
 
 	public static File getFileHistoryName ( ) throws IOException {
 		File f = new File ( getMyDir ( ) , "fh.txt" ) ;
-		if ( ! f . exists ( ) )
-		new FileOutputStream ( f ) . close ( ) ;
+		if ( ! f . exists ( ) ) {
+			new FileOutputStream ( f ) . close ( ) ;
+		}
 		return f ;
 	}
 
 	public static File getSearchHistoryName ( ) throws IOException {
 		File f = new File ( getMyDir ( ) , "sh.txt" ) ;
-		if ( ! f . exists ( ) )
-		new FileOutputStream ( f ) . close ( ) ;
+		if ( ! f . exists ( ) ) {
+			new FileOutputStream ( f ) . close ( ) ;
+		}
 		return f ;
 	}
 
 	static File getDirHistoryName ( ) throws IOException {
 		File f = new File ( getMyDir ( ) , "dh.txt" ) ;
-		if ( ! f . exists ( ) )
-		new FileOutputStream ( f ) . close ( ) ;
+		if ( ! f . exists ( ) ) {
+			new FileOutputStream ( f ) . close ( ) ;
+		}
 		return f ;
 	}
 
 	static File getCmdHistoryName ( ) throws IOException {
 		File f = new File ( getMyDir ( ) , "ch.txt" ) ;
-		if ( ! f . exists ( ) )
-		new FileOutputStream ( f ) . close ( ) ;
+		if ( ! f . exists ( ) ) {
+			new FileOutputStream ( f ) . close ( ) ;
+		}
 		return f ;
 	}
 
@@ -1043,20 +1125,22 @@ public class U {
 		} catch ( IOException e ) {
 			e . printStackTrace ( ) ;
 		}
-		if ( Arrays . binarySearch ( KWS , s ) >= 0 || Arrays . binarySearch ( KWS , s . toLowerCase ( ) ) >= 0 )
-		g2 . setColor ( colorKeyword ) ;
-		else if ( isAllDigital ( s ) )
-		g2 . setColor ( colorDigital ) ;
-		else
-		g2 . setColor ( color ) ;
+		if ( Arrays . binarySearch ( KWS , s ) >= 0 || Arrays . binarySearch ( KWS , s . toLowerCase ( ) ) >= 0 ) {
+			g2 . setColor ( colorKeyword ) ;
+		} else if ( isAllDigital ( s ) ) {
+			g2 . setColor ( colorDigital ) ;
+		} else {
+			g2 . setColor ( color ) ;
+		}
 		return 0 ;
 	}
 
 	public static String [ ] KWS ;
 
 	private static void initKeyWords ( ) throws IOException {
-		if ( KWS != null )
-		return ;
+		if ( KWS != null ) {
+			return ;
+		}
 		List < String > kw = ( List < String > ) Conf . get ( "KWS" , null ) ;
 		if ( kw == null ) {
 			KWS = new String [ 0 ] ;
@@ -1093,10 +1177,11 @@ public class U {
 	public static List < CharSequence > getPageListStrings ( EditorPanel ep ) {
 		List < CharSequence > ss = new ArrayList < > ( ) ;
 		Collections . sort ( ep . pageSet , ( a , b ) -> a . pageData . title . compareTo ( b . pageData . title ) ) ;
-		for ( PlainPage pp : ep . pageSet )
-		ss . add ( pp . pageData . title + "|" + ( pp . cy + 1 ) + ":" + " Edited:" + pp . pageData . history . size ( )
-			+ ( pp . pageData . encoding == null ? "" : " " + pp . pageData . encoding )
-			+ ( changedOutside ( pp . pageData ) ? " [Changed Outside!!]" : "" ) ) ;
+		for ( PlainPage pp : ep . pageSet ) {
+			ss . add ( pp . pageData . title + "|" + ( pp . cy + 1 ) + ":" + " Edited:" + pp . pageData . history . size ( )
+				+ ( pp . pageData . encoding == null ? "" : " " + pp . pageData . encoding )
+				+ ( changedOutside ( pp . pageData ) ? " [Changed Outside!!]" : "" ) ) ;
+		}
 		return ss ;
 	}
 
@@ -1108,8 +1193,9 @@ public class U {
 	}
 
 	static String getLocString ( PlainPage pp ) {
-		if ( pp == null )
-		return null ;
+		if ( pp == null ) {
+			return null ;
+		}
 		return pp . pageData . title + "|" + ( pp . cy + 1 ) + ":" ;
 	}
 
@@ -1118,8 +1204,9 @@ public class U {
 	}
 
 	public static String getStr ( List row , int i ) {
-		if ( i < 0 || i >= row . size ( ) )
-		return "" ;
+		if ( i < 0 || i >= row . size ( ) ) {
+			return "" ;
+		}
 		return "" + row . get ( i ) ;
 	}
 
@@ -1127,16 +1214,19 @@ public class U {
 		for ( Object [ ] row : BOMS ) {
 			int [ ] seq = ( int [ ] ) row [ 0 ] ;
 			// compare 2 array
-			if ( seq . length > src . length )
-			continue ;
-			boolean same = true ;
-			for ( int i = 0 ; i < seq . length ; i ++ )
-			if ( ( byte ) seq [ i ] != src [ i ] ) {
-				same = false ;
-				break ;
+			if ( seq . length > src . length ) {
+				continue ;
 			}
-			if ( same )
-			return ( String ) row [ 1 ] ;
+			boolean same = true ;
+			for ( int i = 0 ; i < seq . length ; i ++ ) {
+				if ( ( byte ) seq [ i ] != src [ i ] ) {
+					same = false ;
+					break ;
+				}
+			}
+			if ( same ) {
+				return ( String ) row [ 1 ] ;
+			}
 		}
 		return null ;
 	}
@@ -1152,32 +1242,37 @@ public class U {
 			String s = tl . subSequence ( 0 , Math . min ( 40 , tl . length ( ) ) ) . toString ( ) ;
 			for ( int j = 0 ; j < cnts . length ; j ++ ) {
 				String k = commentchars [ j ] ;
-				if ( s . startsWith ( k ) || s . indexOf ( k ) >= 0 )
-				cnts [ j ] += k . length ( ) ;
+				if ( s . startsWith ( k ) || s . indexOf ( k ) >= 0 ) {
+					cnts [ j ] += k . length ( ) ;
+				}
 			}
 		}
 		int kind = 0 ;
 		int max = 0 ;
-		for ( int j = 0 ; j < cnts . length ; j ++ )
-		if ( cnts [ j ] > 0 ) {
-			kind ++ ;
-			max = Math . max ( max , cnts [ j ] ) ;
+		for ( int j = 0 ; j < cnts . length ; j ++ ) {
+			if ( cnts [ j ] > 0 ) {
+				kind ++ ;
+				max = Math . max ( max , cnts [ j ] ) ;
+			}
 		}
 		if ( kind == 1 ) {
-			for ( int j = 0 ; j < cnts . length ; j ++ )
-			if ( cnts [ j ] > 0 ) {
-				comment . add ( commentchars [ j ] ) ;
-				break ;
+			for ( int j = 0 ; j < cnts . length ; j ++ ) {
+				if ( cnts [ j ] > 0 ) {
+					comment . add ( commentchars [ j ] ) ;
+					break ;
+				}
 			}
 		} else {
 			int lv2 = Math . max ( 5 , max / 10 ) ;
-			for ( int j = 0 ; j < cnts . length ; j ++ )
-			if ( cnts [ j ] > lv2 )
-			comment . add ( commentchars [ j ] ) ;
+			for ( int j = 0 ; j < cnts . length ; j ++ ) {
+				if ( cnts [ j ] > lv2 ) {
+					comment . add ( commentchars [ j ] ) ;
+				}
+			}
 		}
-		if ( comment . isEmpty ( ) )
-		comment = null ; // page.ui.message("no comment found");
-		else {
+		if ( comment . isEmpty ( ) ) {
+			comment = null ; // page.ui.message("no comment found");
+		} else {
 			// page.ui.message("comment found:" + comment);
 		}
 		page . pageData . comment = comment == null ? null : comment . toArray ( new String [ comment . size ( ) ] ) ;
@@ -1188,46 +1283,56 @@ public class U {
 		// S/ystem.out.println("guessing encoding");
 		String [ ] encodings = { UTF8 , "gbk" , "sjis" , "unicode" , "euc-jp" , "big5" } ;
 		int maxLen ;
-		if ( data != null && data . gzip )
-		maxLen = data . bs . length ;
-		else
-		maxLen = ( int ) new File ( fn ) . length ( ) ;
+		if ( data != null && data . gzip ) {
+			maxLen = data . bs . length ;
+		} else {
+			maxLen = ( int ) new File ( fn ) . length ( ) ;
+		}
 		final int defsize = 1024 * 1024 * 2 ;
 		int len = Math . min ( defsize , maxLen ) ;
 		if ( len < 0 ) // a large file over 2GB
-		len = defsize ;
+		{
+			len = defsize ;
+		}
 		byte [ ] buf ;
-		if ( data != null && data . gzip )
-		buf = data . bs ;
-		else {
+		if ( data != null && data . gzip ) {
+			buf = data . bs ;
+		} else {
 			buf = new byte [ len ] ;
 			FileInputStream in = new FileInputStream ( fn ) ;
 			len = in . read ( buf ) ;
 			in . close ( ) ;
 		}
 		String encoding = guessByBOM ( buf ) ;
-		if ( encoding != null )
-		return encoding ;
+		if ( encoding != null ) {
+			return encoding ;
+		}
 		for ( String enc : encodings ) {
 			String s = new String ( buf , 0 , len , enc ) ;
-			if ( s . toLowerCase ( ) . indexOf ( enc . toLowerCase ( ) ) >= 0 )
-			return enc ; // mentioned
+			if ( s . toLowerCase ( ) . indexOf ( enc . toLowerCase ( ) ) >= 0 ) {
+				return enc ; // mentioned
+			}
 			if ( s . length ( ) > 3 ) // multi bytes string, so tail may be mistaken
-			s = s . substring ( 0 , s . length ( ) - 3 ) ;
-			else
-			return UTF8 ; // utf8 for empty file
+			{
+				s = s . substring ( 0 , s . length ( ) - 3 ) ;
+			} else {
+				return UTF8 ; // utf8 for empty file
+			}
 			byte [ ] bs2 = s . getBytes ( enc ) ;
 			// bs2 maybe short than buf
-			if ( bsCompare ( buf , bs2 , bs2 . length ) )
-			return enc ;
+			if ( bsCompare ( buf , bs2 , bs2 . length ) ) {
+				return enc ;
+			}
 		}
 		return null ;
 	}
 
 	private static boolean bsCompare ( byte [ ] b1 , byte [ ] b2 , int len ) {
-		for ( int i = 0 ; i < len ; i ++ )
-		if ( b1 [ i ] != b2 [ i ] )
-		return false ;
+		for ( int i = 0 ; i < len ; i ++ ) {
+			if ( b1 [ i ] != b2 [ i ] ) {
+				return false ;
+			}
+		}
 		return true ;
 	}
 
@@ -1235,7 +1340,9 @@ public class U {
 		try {
 			String s = guessEncoding ( fn , data ) ;
 			if ( s == null ) // unknow
-			return UTF8 ;
+			{
+				return UTF8 ;
+			}
 			return s ;
 		} catch ( Exception e ) {
 			return UTF8 ;
@@ -1246,15 +1353,16 @@ public class U {
 		try {
 			// S/ystem.out.println("guessing encoding");
 			int maxLen ;
-			if ( data . gzip )
-			maxLen = data . bs . length ;
-			else
-			maxLen = ( int ) new File ( fn ) . length ( ) ;
+			if ( data . gzip ) {
+				maxLen = data . bs . length ;
+			} else {
+				maxLen = ( int ) new File ( fn ) . length ( ) ;
+			}
 			int len = Math . min ( 4096 , maxLen ) ;
 			byte [ ] buf ;
-			if ( data . gzip )
-			buf = data . bs ;
-			else {
+			if ( data . gzip ) {
+				buf = data . bs ;
+			} else {
 				buf = new byte [ len ] ;
 				FileInputStream in = new FileInputStream ( fn ) ;
 				len = in . read ( buf ) ;
@@ -1267,9 +1375,11 @@ public class U {
 	}
 
 	static boolean isAllDigital ( String s ) {
-		for ( char c : s . toCharArray ( ) )
-		if ( ! Character . isDigit ( c ) )
-		return false ;
+		for ( char c : s . toCharArray ( ) ) {
+			if ( ! Character . isDigit ( c ) ) {
+				return false ;
+			}
+		}
 		return true ;
 	}
 
@@ -1280,18 +1390,20 @@ public class U {
 	}
 
 	static boolean isSkipChar ( char ch , char ch1 ) {
-		if ( U . isSpaceChar ( ch1 ) )
-		return U . isSpaceChar ( ch ) ;
-		else
-		return Character . isJavaIdentifierPart ( ch ) ;
+		if ( U . isSpaceChar ( ch1 ) ) {
+			return U . isSpaceChar ( ch ) ;
+		} else {
+			return Character . isJavaIdentifierPart ( ch ) ;
+		}
 	}
 
 	static String km ( long v ) {
 		float m = 1024 * 1024f ;
-		if ( v > m )
-		return String . format ( "%.1fMB" , v / m ) ;
-		else if ( v > 1024 )
-		return String . format ( "%.1fKB" , v / 1024f ) ;
+		if ( v > m ) {
+			return String . format ( "%.1fMB" , v / m ) ;
+		} else if ( v > 1024 ) {
+			return String . format ( "%.1fKB" , v / 1024f ) ;
+		}
 		return "" + v ;
 	}
 
@@ -1299,85 +1411,101 @@ public class U {
 		s = s . trim ( ) ;
 		String slo = s . toLowerCase ( ) ;
 		Desktop dt = Desktop . getDesktop ( ) ;
-		if ( slo . startsWith ( "mailto:" ) )
-		dt . mail ( new URI ( s ) ) ;
-		else if ( slo . startsWith ( "http://" ) || slo . startsWith ( "https://" ) )
-		dt . browse ( new URI ( s ) ) ;
-		else if ( new File ( s ) . exists ( ) )
-		dt . open ( new File ( s ) ) ;
-		else
-		return false ;
+		if ( slo . startsWith ( "mailto:" ) ) {
+			dt . mail ( new URI ( s ) ) ;
+		} else if ( slo . startsWith ( "http://" ) || slo . startsWith ( "https://" ) ) {
+			dt . browse ( new URI ( s ) ) ;
+		} else if ( new File ( s ) . exists ( ) ) {
+			dt . open ( new File ( s ) ) ;
+		} else {
+			return false ;
+		}
 		return true ;
 	}
 
 	static boolean listDirOrOpenFile ( PlainPage page , int atLine ) throws Exception {
 		String line0 = page . pageData . roLines . getline ( atLine ) . toString ( ) ;
 		String line = line0 ;
-		if ( line . startsWith ( "~/" ) )
-		line = U . getUserHome ( ) + line . substring ( 1 ) ;
+		if ( line . startsWith ( "~/" ) ) {
+			line = U . getUserHome ( ) + line . substring ( 1 ) ;
+		}
 
 		File f = findFile ( page . workPath , line ) ;
-		if ( f == null )
-		return false ;
+		if ( f == null ) {
+			return false ;
+		}
 		f = f . getCanonicalFile ( ) ;
-		if ( f . isFile ( ) && f . exists ( ) )
-		return page . uiComp . findAndShowPage ( f . getCanonicalPath ( ) , -1 , true ) ;
+		if ( f . isFile ( ) && f . exists ( ) ) {
+			return page . uiComp . findAndShowPage ( f . getCanonicalPath ( ) , -1 , true ) ;
+		}
 		if ( f . isDirectory ( ) ) {
 			File [ ] fs = f . listFiles ( ) ;
 			page . cx = line0 . length ( ) ;
 			page . ptEdit . insertString ( "\n{-----" ) ;
 			Arrays . sort ( fs ) ; // for god's sake
-			for ( File f1 : fs )
-			if ( f1 . isDirectory ( ) )
-			page . ptEdit . insertString ( "\n" + f1 . getAbsolutePath ( ) + " | <DIR>" ) ;
-			else
-			page . ptEdit . insertString ( "\n" + f1 . getAbsolutePath ( ) ) ;
+			for ( File f1 : fs ) {
+				if ( f1 . isDirectory ( ) ) {
+					page . ptEdit . insertString ( "\n" + f1 . getAbsolutePath ( ) + " | <DIR>" ) ;
+				} else {
+					page . ptEdit . insertString ( "\n" + f1 . getAbsolutePath ( ) ) ;
+				}
+			}
 			page . ptEdit . insertString ( "\n-----}" ) ;
 			return true ;
-		} else
-		return false ;
+		} else {
+			return false ;
+		}
 	}
 
 	private static File findFile ( String dir , String line ) {
-		if ( dir == null )
-		dir = "." ;
+		if ( dir == null ) {
+			dir = "." ;
+		}
 		String fn = line . trim ( ) ;
 		{
 			int p1 = fn . indexOf ( '|' ) ;
-			if ( p1 >= 0 )
-			fn = fn . substring ( 0 , p1 ) . trim ( ) ;
+			if ( p1 >= 0 ) {
+				fn = fn . substring ( 0 , p1 ) . trim ( ) ;
+			}
 		} {
 			int p1 = fn . indexOf ( '\t' ) ;
-			if ( p1 >= 0 )
-			fn = fn . substring ( 0 , p1 ) . trim ( ) ;
+			if ( p1 >= 0 ) {
+				fn = fn . substring ( 0 , p1 ) . trim ( ) ;
+			}
 		} {
 			File f = new File ( fn ) ;
-			if ( f . exists ( ) )
-			return f ;
+			if ( f . exists ( ) ) {
+				return f ;
+			}
 			f = new File ( dir , fn ) ;
-			if ( f . exists ( ) )
-			return f ;
+			if ( f . exists ( ) ) {
+				return f ;
+			}
 		} {
 			int p1 = fn . indexOf ( ' ' ) ; // more try
 			if ( p1 >= 0 ) {
 				String fn2 = fn . substring ( 0 , p1 ) . trim ( ) ;
 				File f = new File ( fn2 ) ;
-				if ( f . exists ( ) )
-				return f ;
+				if ( f . exists ( ) ) {
+					return f ;
+				}
 				f = new File ( dir , fn2 ) ;
-				if ( f . exists ( ) )
-				return f ;
+				if ( f . exists ( ) ) {
+					return f ;
+				}
 			}
 		} {
 			int p1 = fn . lastIndexOf ( ':' ) ; // more try
 			if ( p1 >= 0 ) {
 				String fn2 = fn . substring ( 0 , p1 ) . trim ( ) ;
 				File f = new File ( fn2 ) ;
-				if ( f . exists ( ) )
-				return f ;
+				if ( f . exists ( ) ) {
+					return f ;
+				}
 				f = new File ( dir , fn2 ) ;
-				if ( f . exists ( ) )
-				return f ;
+				if ( f . exists ( ) ) {
+					return f ;
+				}
 			}
 		}
 		return null ;
@@ -1387,8 +1515,9 @@ public class U {
 		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( "[Fonts]" ) , pp ) ;
 		List < CharSequence > sbs = new ArrayList < > ( ) ;
 		String fonts [ ] = GraphicsEnvironment . getLocalGraphicsEnvironment ( ) . getAvailableFontFamilyNames ( ) ;
-		for ( String font : fonts )
-		sbs . add ( "set-font:" + font ) ;
+		for ( String font : fonts ) {
+			sbs . add ( "set-font:" + font ) ;
+		}
 		p2 . pageData . resetLines ( sbs ) ;
 	}
 
@@ -1402,7 +1531,9 @@ public class U {
 	public static Commands mappingToCommand ( KeyEvent env ) {
 		int kc = env . getKeyCode ( ) ;
 		if ( kc == KeyEvent . VK_SHIFT || kc == KeyEvent . VK_CONTROL || kc == KeyEvent . VK_ALT ) // fast pass
-		return null ;
+		{
+			return null ;
+		}
 		String name = getKeyName ( env ) ;
 		// System . out . println ( "key name=" + name ) ;
 		Commands cmd = keys . get ( name ) ;
@@ -1437,20 +1568,23 @@ public class U {
 				w1 = U . stringWidth ( g , fonts , row [ 0 ] . toString ( ) , maxw ) ;
 				row [ 2 ] = w1 ;
 			}
-			if ( w1 > max )
-			max = w1 ;
+			if ( w1 > max ) {
+				max = w1 ;
+			}
 		}
 		return max ;
 	}
 
 	static void listDirToNewPage ( PlainPage page ) throws Exception {
 		String dir = page . workPath ;
-		if ( dir == null )
-		dir = new File ( "." ) . getAbsolutePath ( ) ;
+		if ( dir == null ) {
+			dir = new File ( "." ) . getAbsolutePath ( ) ;
+		}
 		String title = "[Dir]" + dir + "#" + U . randomID ( ) ;
 
-		if ( page . uiComp . findAndShowPage ( title , -1 , true ) )
-		return ;
+		if ( page . uiComp . findAndShowPage ( title , -1 , true ) ) {
+			return ;
+		}
 
 		PageData pd = PageData . fromTitle ( title ) ;
 		pd . setText ( dir ) ;
@@ -1487,15 +1621,17 @@ public class U {
 
 	public static int parseInt ( Object o ) {
 		int v ;
-		if ( o == null )
-		throw new RuntimeException ( "expect int but get null" ) ;
+		if ( o == null ) {
+			throw new RuntimeException ( "expect int but get null" ) ;
+		}
 		String s = o . toString ( ) ;
-		if ( s . startsWith ( "0x" ) )
-		v = Integer . parseInt ( s . substring ( 2 ) , 16 ) ;
-		else if ( s . startsWith ( "0b" ) )
-		v = Integer . parseInt ( s . substring ( 2 ) , 2 ) ;
-		else
-		v = Integer . parseInt ( s ) ;
+		if ( s . startsWith ( "0x" ) ) {
+			v = Integer . parseInt ( s . substring ( 2 ) , 16 ) ;
+		} else if ( s . startsWith ( "0b" ) ) {
+			v = Integer . parseInt ( s . substring ( 2 ) , 2 ) ;
+		} else {
+			v = Integer . parseInt ( s ) ;
+		}
 		return v ;
 	}
 
@@ -1530,8 +1666,9 @@ public class U {
 			if ( data . gzip ) {
 				ls = FileUtil . readStringBig ( data . bs , encoding ) ;
 				data . bs = null ; // can release
-			} else
-			ls = FileUtil . readStringBig ( new File ( fn ) , encoding ) ;
+			} else {
+				ls = FileUtil . readStringBig ( new File ( fn ) , encoding ) ;
+			}
 			return U . removeTailR ( ls ) ;
 		} catch ( Throwable e ) {
 			e . printStackTrace ( ) ;
@@ -1547,8 +1684,9 @@ public class U {
 			return ;
 		}
 		// need save changes?
-		if ( setEncodingByUser ( pp , "Reload with Encoding:" ) )
-		pp . pageData . reloadFile ( ) ;
+		if ( setEncodingByUser ( pp , "Reload with Encoding:" ) ) {
+			pp . pageData . reloadFile ( ) ;
+		}
 	}
 
 	static String removeAsciiZero ( String s ) {
@@ -1556,8 +1694,9 @@ public class U {
 		char zero = ( char ) 0 ;
 
 		int p = s . indexOf ( zero ) ;
-		if ( p < 0 )
-		return s ;
+		if ( p < 0 ) {
+			return s ;
+		}
 		String zeros = "" + zero ;
 		StringBuilder sb = new StringBuilder ( s ) ;
 		while ( p >= 0 ) {
@@ -1570,10 +1709,12 @@ public class U {
 	}
 
 	static CharSequence removeTailR ( CharSequence s ) {
-		if ( s . length ( ) == 0 )
-		return s ;
-		if ( s . charAt ( s . length ( ) - 1 ) == '\r' )
-		s = s . subSequence ( 0 , s . length ( ) - 1 ) ;
+		if ( s . length ( ) == 0 ) {
+			return s ;
+		}
+		if ( s . charAt ( s . length ( ) - 1 ) == '\r' ) {
+			s = s . subSequence ( 0 , s . length ( ) - 1 ) ;
+		}
 		return s ;
 	}
 
@@ -1581,10 +1722,12 @@ public class U {
 		for ( int i = 0 ; i < data . roLines . getLinesize ( ) ; i ++ ) {
 			CharSequence sb = data . roLines . getline ( i ) ;
 			int p = sb . length ( ) - 1 ;
-			while ( p >= 0 && "\r\n\t " . indexOf ( sb . charAt ( p ) ) >= 0 )
-			p -- ;
-			if ( p < sb . length ( ) - 1 )
-			data . editRec . deleteInLine ( i , p + 1 , sb . length ( ) ) ;
+			while ( p >= 0 && "\r\n\t " . indexOf ( sb . charAt ( p ) ) >= 0 ) {
+				p -- ;
+			}
+			if ( p < sb . length ( ) - 1 ) {
+				data . editRec . deleteInLine ( i , p + 1 , sb . length ( ) ) ;
+			}
 		}
 	}
 
@@ -1637,8 +1780,9 @@ public class U {
 		List < CharSequence > export = new ArrayList < > ( ) ;
 		{
 			int size = lines . getLinesize ( ) ;
-			for ( int i = 0 ; i < size ; i ++ )
-			export . add ( lines . getline ( i ) ) ; // hmmm...
+			for ( int i = 0 ; i < size ; i ++ ) {
+				export . add ( lines . getline ( i ) ) ; // hmmm...
+			}
 		}
 		new ScriptUtil ( ) . runSingleScript ( ppTarget , script , export ) ;
 	}
@@ -1665,8 +1809,9 @@ public class U {
 	static boolean saveFile ( PlainPage page ) throws Exception {
 		if ( page . pageData . fileLoaded ) {
 			String fn0 = page . pageData . title ;
-			if ( ! page . pageData . changedOutside && new File ( fn0 ) . lastModified ( ) > page . pageData . fileLastModified )
-			page . pageData . changedOutside = true ;
+			if ( ! page . pageData . changedOutside && new File ( fn0 ) . lastModified ( ) > page . pageData . fileLastModified ) {
+				page . pageData . changedOutside = true ;
+			}
 			if ( page . pageData . changedOutside && JOptionPane . YES_OPTION != JOptionPane . showConfirmDialog ( page . uiComp ,
 					"File Changed Outside!! Do you really want to overwrite it?" , "File Changed Outside!!" ,
 					JOptionPane . YES_NO_OPTION ) ) {
@@ -1677,15 +1822,17 @@ public class U {
 		} else {
 			JFileChooser chooser = new JFileChooser ( page . workPath ) ;
 			int returnVal = chooser . showSaveDialog ( page . uiComp ) ;
-			if ( returnVal != JFileChooser . APPROVE_OPTION )
-			return false ;
+			if ( returnVal != JFileChooser . APPROVE_OPTION ) {
+				return false ;
+			}
 
 			String fn = trimFileName ( chooser . getSelectedFile ( ) ) ;
-			if ( new File ( fn ) . exists ( ) )
-			if ( JOptionPane . YES_OPTION != JOptionPane . showConfirmDialog ( page . uiComp , "Are you sure to overwrite?" ,
-					"File exists" , JOptionPane . YES_NO_OPTION ) ) {
-				page . ui . message ( "saved canceled" ) ;
-				return false ;
+			if ( new File ( fn ) . exists ( ) ) {
+				if ( JOptionPane . YES_OPTION != JOptionPane . showConfirmDialog ( page . uiComp , "Are you sure to overwrite?" ,
+						"File exists" , JOptionPane . YES_NO_OPTION ) ) {
+					page . ui . message ( "saved canceled" ) ;
+					return false ;
+				}
 			}
 			PageData pd = page . pageData ;
 			pd . renameTo ( fn ) ;
@@ -1697,20 +1844,23 @@ public class U {
 
 	private static String trimFileName ( File f ) {
 		File fp = f . getParentFile ( ) ;
-		if ( fp == null )
-		return f . getAbsolutePath ( ) . trim ( ) ;
+		if ( fp == null ) {
+			return f . getAbsolutePath ( ) . trim ( ) ;
+		}
 		return fp . getAbsolutePath ( ) . trim ( ) + "/" + f . getName ( ) . trim ( ) ;
 	}
 
 	static void saveFileHistory ( String fn , int line ) throws IOException {
 		File fhn = getFileHistoryName ( ) ;
-		if ( fn . equals ( fhn . getAbsolutePath ( ) ) )
-		return ;
+		if ( fn . equals ( fhn . getAbsolutePath ( ) ) ) {
+			return ;
+		}
 		OutputStream out = new FileOutputStream ( fhn , true ) ;
-		if ( line <= 0 )
-		out . write ( String . format ( "\n%s" , fn ) . getBytes ( UTF8 ) ) ;
-		else
-		out . write ( String . format ( "\n%s|%s:" , fn , line + 1 ) . getBytes ( UTF8 ) ) ;
+		if ( line <= 0 ) {
+			out . write ( String . format ( "\n%s" , fn ) . getBytes ( UTF8 ) ) ;
+		} else {
+			out . write ( String . format ( "\n%s|%s:" , fn , line + 1 ) . getBytes ( UTF8 ) ) ;
+		}
 		out . close ( ) ;
 		saveDirHistory ( fn ) ;
 	}
@@ -1723,8 +1873,9 @@ public class U {
 	// }
 	private static void saveDirHistory ( String fn ) throws IOException {
 		File dir = new File ( fn ) . getParentFile ( ) ;
-		if ( dir == null )
-		return ;
+		if ( dir == null ) {
+			return ;
+		}
 		String s = dir . getAbsolutePath ( ) ;
 
 		String old = FileUtil . readString ( new FileInputStream ( getDirHistoryName ( ) ) , null ) ;
@@ -1753,16 +1904,19 @@ public class U {
 			String fn = page . pageData . title ;
 			System . out . println ( "save " + fn ) ;
 			File f = new File ( fn ) ;
-			if ( page . pageData . encoding == null )
-			page . pageData . encoding = UTF8 ;
+			if ( page . pageData . encoding == null ) {
+				page . pageData . encoding = UTF8 ;
+			}
 			OutputStream out ;
-			if ( fn . endsWith ( ".gz" ) )
-			page . pageData . gzip = true ;
+			if ( fn . endsWith ( ".gz" ) ) {
+				page . pageData . gzip = true ;
+			}
 			String encoding = page . pageData . encoding ;
-			if ( ! page . pageData . gzip )
-			out = new BufferedOutputStream ( new FileOutputStream ( fn ) , 8192 * 16 ) ;
-			else
-			out = new BufferedOutputStream ( new GZIPOutputStream ( new FileOutputStream ( fn ) ) , 8192 * 16 ) ;
+			if ( ! page . pageData . gzip ) {
+				out = new BufferedOutputStream ( new FileOutputStream ( fn ) , 8192 * 16 ) ;
+			} else {
+				out = new BufferedOutputStream ( new GZIPOutputStream ( new FileOutputStream ( fn ) ) , 8192 * 16 ) ;
+			}
 			byte [ ] sep = page . pageData . lineSep . getBytes ( encoding ) ;
 			for ( int i = 0 ; i < page . pageData . lines . size ( ) ; i ++ ) {
 				out . write ( page . pageData . lines . get ( i ) . toString ( ) . getBytes ( encoding ) ) ;
@@ -1783,10 +1937,11 @@ public class U {
 	}
 
 	static void scale ( int amount , Paint ui ) {
-		if ( amount > 0 )
-		ui . scalev *= 1.1f ;
-		else if ( amount < 0 )
-		ui . scalev *= 0.9f ;
+		if ( amount > 0 ) {
+			ui . scalev *= 1.1f ;
+		} else if ( amount < 0 ) {
+			ui . scalev *= 0.9f ;
+		}
 	}
 
 	static void setClipBoard ( String s ) {
@@ -1795,8 +1950,9 @@ public class U {
 
 	static boolean setEncodingByUser ( PlainPage pp , String msg ) {
 		String s = JOptionPane . showInputDialog ( pp . uiComp , msg , pp . pageData . encoding ) ;
-		if ( s == null )
-		return false ;
+		if ( s == null ) {
+			return false ;
+		}
 		try {
 			"a" . getBytes ( s ) ;
 		} catch ( Exception e ) {
@@ -1811,8 +1967,9 @@ public class U {
 		ArrayList fonts = new ArrayList ( Arrays . asList ( Conf . defaultFontList . font ) ) ;
 		fonts . add ( 0 , f ) ;
 		FontList font2 = new FontList ( ( Font [ ] ) fonts . toArray ( new Font [ fonts . size ( ) ] ) ) ;
-		for ( PlainPage pp : ep . pageSet )
-		pp . fontList = font2 ;
+		for ( PlainPage pp : ep . pageSet ) {
+			pp . fontList = font2 ;
+		}
 	}
 
 	static void setFrameSize ( JFrame f ) {
@@ -1822,8 +1979,9 @@ public class U {
 	}
 
 	static void showHelp ( final Paint ui , final EditorPanel uiComp ) {
-		if ( ui . aboutImg != null )
-		return ;
+		if ( ui . aboutImg != null ) {
+			return ;
+		}
 		U . startDaemonThread ( new Thread ( ) {
 				@ Override
 				public void run ( ) {
@@ -1880,8 +2038,9 @@ public class U {
 			pp ) ;
 		List < CharSequence > sbs = new ArrayList < CharSequence > ( ) ;
 		sbs . add ( new StringBuilder ( String . format ( "Hex for '%s'" , s ) ) ) ;
-		for ( char c : s . toCharArray ( ) )
-		sbs . add ( c + ":" + UnicodeFormatter . charToHex ( c ) ) ;
+		for ( char c : s . toCharArray ( ) ) {
+			sbs . add ( c + ":" + UnicodeFormatter . charToHex ( c ) ) ;
+		}
 		p2 . pageData . resetLines ( sbs ) ;
 	}
 
@@ -1922,14 +2081,17 @@ public class U {
 	static String SPACES = "                                                                                         " ;
 
 	static String spaces ( int cx ) {
-		if ( cx <= 0 )
-		return "" ;
-		if ( cx <= SPACES . length ( ) )
-		return SPACES . substring ( 0 , cx ) ;
+		if ( cx <= 0 ) {
+			return "" ;
+		}
+		if ( cx <= SPACES . length ( ) ) {
+			return SPACES . substring ( 0 , cx ) ;
+		}
 		StringBuilder sb = new StringBuilder ( cx ) ;
 		sb . setLength ( cx ) ;
-		for ( int i = 0 ; i < cx ; i ++ )
-		sb . setCharAt ( i , ' ' ) ;
+		for ( int i = 0 ; i < cx ; i ++ ) {
+			sb . setCharAt ( i , ' ' ) ;
+		}
 		return sb . toString ( ) ;
 	}
 
@@ -1944,8 +2106,9 @@ public class U {
 					sb . setLength ( 0 ) ;
 				}
 				sl . add ( "" + c ) ;
-			} else
-			sb . append ( c ) ;
+			} else {
+				sb . append ( c ) ;
+			}
 		}
 		if ( sb . length ( ) > 0 ) {
 			sl . add ( sb . toString ( ) ) ;
@@ -1977,13 +2140,15 @@ public class U {
 				@ Override
 				public void run ( ) {
 					try { // noise thread
-						while ( true )
-						if ( ui . noise && ! ui . closed ) {
-							uiComp . repaint ( ) ;
-							// System.out.println("paint noise");
-							Thread . sleep ( ui . noisesleep ) ;
-						} else
-						break ;
+						while ( true ) {
+							if ( ui . noise && ! ui . closed ) {
+								uiComp . repaint ( ) ;
+								// System.out.println("paint noise");
+								Thread . sleep ( ui . noisesleep ) ;
+							} else {
+								break ;
+							}
+						}
 						System . out . println ( "noise stopped" ) ;
 					} catch ( InterruptedException e ) {
 						e . printStackTrace ( ) ;
@@ -1993,14 +2158,18 @@ public class U {
 	}
 
 	static CharSequence subs ( CharSequence sb , int a , int b ) {
-		if ( a >= b )
-		return "" ;
-		if ( a >= sb . length ( ) )
-		return "" ;
-		if ( a < 0 || b < 0 )
-		return "" ;
-		if ( b > sb . length ( ) )
-		b = sb . length ( ) ;
+		if ( a >= b ) {
+			return "" ;
+		}
+		if ( a >= sb . length ( ) ) {
+			return "" ;
+		}
+		if ( a < 0 || b < 0 ) {
+			return "" ;
+		}
+		if ( b > sb . length ( ) ) {
+			b = sb . length ( ) ;
+		}
 		return sb . subSequence ( a , b ) ;
 	}
 
@@ -2010,8 +2179,9 @@ public class U {
 
 	static CharSequence trimLeft ( CharSequence s ) {
 		int i = 0 ;
-		while ( i < s . length ( ) && ( s . charAt ( i ) == ' ' || s . charAt ( i ) == '\t' ) )
-		i ++ ;
+		while ( i < s . length ( ) && ( s . charAt ( i ) == ' ' || s . charAt ( i ) == '\t' ) ) {
+			i ++ ;
+		}
 		return i > 0 ? s . subSequence ( i , s . length ( ) ) : s ;
 	}
 
@@ -2019,10 +2189,11 @@ public class U {
 		StringBuilder sb = new StringBuilder ( ) ;
 		boolean notfirst = false ;
 		for ( CharSequence cs : ss ) {
-			if ( notfirst )
-			sb . append ( lineSep ) ;
-			else
-			notfirst = true ;
+			if ( notfirst ) {
+				sb . append ( lineSep ) ;
+			} else {
+				notfirst = true ;
+			}
 			sb . append ( cs ) ;
 		}
 		return sb . toString ( ) ;
@@ -2033,14 +2204,17 @@ public class U {
 		for ( String s : split ) {
 			s = U . removeTailR ( s ) . toString ( ) ;
 			// for console
-			if ( s . startsWith ( "\r" ) )
-			s = s . substring ( 1 ) ;
+			if ( s . startsWith ( "\r" ) ) {
+				s = s . substring ( 1 ) ;
+			}
 			if ( s . contains ( "\r" ) ) { // lines that replacing the last line
 				String [ ] ss = s . split ( "\\r" ) ;
-				for ( String s1 : ss )
-				r . add ( s1 ) ;
-			} else
-			r . add ( s ) ;
+				for ( String s1 : ss ) {
+					r . add ( s1 ) ;
+				}
+			} else {
+				r . add ( s ) ;
+			}
 		}
 		return r ;
 	}
@@ -2059,8 +2233,9 @@ public class U {
 
 	public static Image getAppIcon ( String name ) throws IOException {
 		Image appIcon = appIcons . get ( name ) ;
-		if ( appIcon != null )
-		return appIcon ;
+		if ( appIcon != null ) {
+			return appIcon ;
+		}
 		appIcon = ImageIO . read ( EditorPanel . class . getResourceAsStream ( "/" + name ) ) ;
 		appIcons . put ( name , appIcon ) ;
 		return appIcon ;
@@ -2071,17 +2246,19 @@ public class U {
 	}
 
 	public static void changePathSep ( PageData pageData , int cy ) {
-		if ( cy >= pageData . lines . size ( ) )
-		return ;
+		if ( cy >= pageData . lines . size ( ) ) {
+			return ;
+		}
 		String line = pageData . lines . get ( cy ) . toString ( ) ;
 		int p1 = line . indexOf ( '/' ) ;
 		String line2 = null ;
-		if ( p1 >= 0 )
-		line2 = line . replace ( '/' , '\\' ) ;
-		else {
+		if ( p1 >= 0 ) {
+			line2 = line . replace ( '/' , '\\' ) ;
+		} else {
 			int p2 = line . indexOf ( '\\' ) ;
-			if ( p2 >= 0 )
-			line2 = line . replace ( '\\' , '/' ) ;
+			if ( p2 >= 0 ) {
+				line2 = line . replace ( '\\' , '/' ) ;
+			}
 		}
 		if ( line2 != null ) {
 			pageData . editRec . deleteInLine ( cy , 0 , line . length ( ) ) ;
@@ -2106,8 +2283,9 @@ public class U {
 		if ( s1 . length ( ) > 6 ) {
 			s1 = addCommaInt ( s1 ) ;
 		}
-		if ( s2 . length ( ) > 0 )
-		s1 = s1 + "." + s2 ;
+		if ( s2 . length ( ) > 0 ) {
+			s1 = s1 + "." + s2 ;
+		}
 		return s1 ;
 	}
 
@@ -2132,13 +2310,15 @@ public class U {
 
 	public static String getMathExprTail ( String ss ) {
 		int p1 = ss . length ( ) ;
-		while ( p1 > 0 && isMathExprChar ( ss . charAt ( p1 - 1 ) ) )
-		p1 -- ;
+		while ( p1 > 0 && isMathExprChar ( ss . charAt ( p1 - 1 ) ) ) {
+			p1 -- ;
+		}
 		ss = ss . substring ( p1 ) ;
 		for ( int i = 0 ; i < ss . length ( ) ; i ++ ) {
 			char ch = ss . charAt ( i ) ;
-			if ( "+-/*^xb" . indexOf ( ch ) >= 0 )
-			return ss ;
+			if ( "+-/*^xb" . indexOf ( ch ) >= 0 ) {
+				return ss ;
+			}
 		}
 		return "" ;
 	}
@@ -2153,39 +2333,49 @@ public class U {
 	}
 
 	public static char charAtWhenMove ( CharSequence line , int index ) {
-		if ( line . length ( ) == 0 )
-		return ' ' ;
-		if ( index >= line . length ( ) )
-		return ' ' ;
+		if ( line . length ( ) == 0 ) {
+			return ' ' ;
+		}
+		if ( index >= line . length ( ) ) {
+			return ' ' ;
+		}
 		return line . charAt ( index ) ;
 	}
 
 	public static boolean getBool ( Object o ) {
-		if ( o == null )
-		return false ;
-		if ( o instanceof Boolean )
-		return ( ( Boolean ) o ) . booleanValue ( ) ;
+		if ( o == null ) {
+			return false ;
+		}
+		if ( o instanceof Boolean ) {
+			return ( ( Boolean ) o ) . booleanValue ( ) ;
+		}
 		String s = o . toString ( ) . toLowerCase ( ) ;
-		if ( "y" . equals ( s ) || "1" . equals ( s ) || "true" . equals ( s ) )
-		return true ;
-		if ( "n" . equals ( s ) || "0" . equals ( s ) || "false" . equals ( s ) )
-		return false ;
+		if ( "y" . equals ( s ) || "1" . equals ( s ) || "true" . equals ( s ) ) {
+			return true ;
+		}
+		if ( "n" . equals ( s ) || "0" . equals ( s ) || "false" . equals ( s ) ) {
+			return false ;
+		}
 		return false ;
 	}
 
 	public static int getInt ( Object o ) {
-		if ( o == null )
-		return 0 ;
-		if ( o instanceof Number )
-		return ( ( Number ) o ) . intValue ( ) ;
+		if ( o == null ) {
+			return 0 ;
+		}
+		if ( o instanceof Number ) {
+			return ( ( Number ) o ) . intValue ( ) ;
+		}
 		return ( int ) Float . parseFloat ( o . toString ( ) ) ;
 	}
 
 	public static float getFloat ( Object o ) {
-		if ( o == null )
-		return 0 ;
-		if ( o instanceof Number )
-		return ( ( Number ) o ) . floatValue ( ) ;
+		if ( o == null ) {
+			return 0 ;
+		}
+		if ( o instanceof Number ) {
+			return ( ( Number ) o ) . floatValue ( ) ;
+		}
 		return Float . parseFloat ( o . toString ( ) ) ;
 	}
 
@@ -2227,9 +2417,11 @@ public class U {
 	}
 
 	public static PlainPage findPageByData ( List < PlainPage > pageSet , PageData data ) {
-		for ( PlainPage pp : pageSet )
-		if ( pp . pageData . equals ( data ) )
-		return pp ;
+		for ( PlainPage pp : pageSet ) {
+			if ( pp . pageData . equals ( data ) ) {
+				return pp ;
+			}
+		}
 		return null ;
 	}
 
@@ -2240,16 +2432,20 @@ public class U {
 		List < String > fs2 = new ArrayList < > ( ) ;
 		for ( int i = fs . size ( ) - 1 ; i >= 0 ; i -- ) {
 			String s = fs . get ( i ) . trim ( ) ;
-			if ( s . endsWith ( "|0:" ) || s . endsWith ( "|1:" ) )
-			s = s . substring ( 0 , s . length ( ) - 3 ) . trim ( ) ;
-			if ( s . isEmpty ( ) )
-			continue ;
+			if ( s . endsWith ( "|0:" ) || s . endsWith ( "|1:" ) ) {
+				s = s . substring ( 0 , s . length ( ) - 3 ) . trim ( ) ;
+			}
+			if ( s . isEmpty ( ) ) {
+				continue ;
+			}
 			String fn = s ;
 			int p1 = fn . lastIndexOf ( '|' ) ;
-			if ( p1 > 0 )
-			fn = fn . substring ( 0 , p1 ) ;
-			if ( e . contains ( fn ) )
-			continue ;
+			if ( p1 > 0 ) {
+				fn = fn . substring ( 0 , p1 ) ;
+			}
+			if ( e . contains ( fn ) ) {
+				continue ;
+			}
 			e . add ( fn ) ;
 			fs2 . add ( s ) ;
 		}
@@ -2270,34 +2466,38 @@ public class U {
 	public static int keymintime ;
 
 	/**
-	 * for some failing mechanical keyboard, eg. press 'i' gives 'iiiiii'. this fix
-	 * should do in libev(Linux) or alike low level. But, still for easy of hack
-	 * this method is added. note: my fast finger speed for single key is about
-	 * 150ms, for multi-keys is about 50ms(min 20ms), auto-repeat by system is about
-	 * 40ms. so config is set to 38ms.
+	 * for some failing mechanical keyboard, eg. press 'i' gives 'iiiiii'. this
+	 * fix should do in libev(Linux) or alike low level. But, still for easy of
+	 * hack this method is added. note: my fast finger speed for single key is
+	 * about 150ms, for multi-keys is about 50ms(min 20ms), auto-repeat by
+	 * system is about 40ms. so config is set to 38ms.
 	 */
 	public static boolean hardwareFailWorkaroundFilterOut ( KeyEvent env ) {
-		if ( keymintime <= 0 )
-		return false ;
+		if ( keymintime <= 0 ) {
+			return false ;
+		}
 		long now = System . currentTimeMillis ( ) ;
 		boolean debug = false ;
 		if ( debug ) {
 			int kc = 0 ;
 			Long last = keystime . get ( kc ) ;
-			if ( last == null )
-			last = 0L ;
+			if ( last == null ) {
+				last = 0L ;
+			}
 			keystime . put ( kc , now ) ;
 			long e = now - last ;
 			System . out . printf ( "KC0 e=%d M=%d\n" , e , keymintime ) ;
 		} {
 			int kc = env . getKeyChar ( ) ;
 			Long last = keystime . get ( kc ) ;
-			if ( last == null )
-			last = 0L ;
+			if ( last == null ) {
+				last = 0L ;
+			}
 			keystime . put ( kc , now ) ;
 			long e = now - last ;
-			if ( debug )
-			System . out . printf ( "kc=%d e=%d M=%d\n" , kc , e , keymintime ) ;
+			if ( debug ) {
+				System . out . printf ( "kc=%d e=%d M=%d\n" , kc , e , keymintime ) ;
+			}
 			return last != null && e < keymintime ;
 		}
 	}
@@ -2331,8 +2531,9 @@ public class U {
 			if ( pd . fileLoaded ) {
 				fn = pd . title ;
 			}
-			if ( fn == null || fns . contains ( fn ) )
-			continue ;
+			if ( fn == null || fns . contains ( fn ) ) {
+				continue ;
+			}
 			fns . add ( fn ) ;
 			int y = pp . cy ;
 			if ( y > 0 ) {
