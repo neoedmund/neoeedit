@@ -120,6 +120,9 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 			if ( p . pageData . title . equals ( title ) )
 			return p ;
 		}
+
+		assert !pageSet.contains(null) : "pageSet must not contain null elements";
+
 		return null ;
 	}
 
@@ -218,6 +221,9 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 				( ( JInternalFrame ) frame ) . setSize ( dim2 ) ;
 			}
 		}
+
+		assert dim2.width > 0 && dim2.height > 0 : "Window size must be positive after resize";
+
 	}
 
 	/**
@@ -294,6 +300,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 
 	public EditorPanel ( ) throws Exception {
 		this ( DEFAULT ) ;
+		assert this.config != null : "EditorPanel config should not be null";
 	}
 
 	public EditorPanel ( EditorPanelConfig config ) throws Exception {
@@ -339,11 +346,20 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		setMyCursor ( Cursor . TEXT_CURSOR ) ;
 		setFocusTraversalKeysEnabled ( false ) ;
 		PlainPage pp = new PlainPage ( this , PageData . newUntitled ( ) , null ) ;
+
+		assert pp.pageData.title != null && !pp.pageData.title.isEmpty() : "New page must have a title";
+
 		pp . ptSelection . selectAll ( ) ;
+
+		// assert false : "Assertions enabled!";
+		assert this.page != null : "PlainPage must be initialized in EditorPanel constructor";
+		assert this.config != null : "EditorPanel config should not be null";
 	}
 
 	void setMyCursor ( int type ) {
 		setCursor ( new Cursor ( myCursor = type ) ) ;
+
+		assert myCursor == Cursor.TEXT_CURSOR || myCursor == Cursor.MOVE_CURSOR || myCursor == Cursor.SE_RESIZE_CURSOR : "Invalid cursor type";
 	}
 
 	void changeTitle ( ) {
@@ -502,6 +518,9 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		return ;
 		openedWindows ++ ;
 		insts . add ( this ) ;
+
+		assert insts.contains(this) : "EditorPanel must be registered in insts list after opening";
+
 		JFrame f = new JFrame ( EditorPanel . WINDOW_NAME ) ;
 		openWindow ( U . e_png , f , f , null ) ;
 		installWindowListener ( f ) ;
@@ -592,9 +611,15 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	public EditorPanel setPage ( PlainPage pp , boolean rec ) {
 		lastPage = page ;
 		page = pp ;
+
+		assert this.page != null : "EditorPanel.page should not be null after setPage()";
+
 		if ( rec )
 		pageHis . add ( U . getLocString ( pp ) , U . getLocString ( lastPage ) ) ;
 		changeTitle ( ) ;
+
+		assert !pageSet.contains(null) : "pageSet must not contain null elements";
+
 		return pp . uiComp ;
 	}
 }
