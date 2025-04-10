@@ -1,7 +1,52 @@
-build/
-_build/
+# IntelliJ IDEA project files
+.idea/
+*.iml
+
+# Build output directories
+out/
 bin/
+classes/
+target/
+
+# Gradle
+.gradle/
+build/
+
+# Maven
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+dependency-reduced-pom.xml
+
+# Java compiled files
 *.class
+*.jar
+*.war
+*.ear
+
+# Logs
 *.log
 
+# OS-specific files
+.DS_Store
+Thumbs.db
 
+# Temporary files
+*.swp
+*.swo
+
+# Java dependency caches
+.gradle/
+out/
+
+# AspectJ generated files (if using ajc)
+ajc_generated/
+ajc_temp/
+
+# Generated documentation
+docs/
+javadoc/
+
+# User-specific settings
+*.env
+.vscode/
