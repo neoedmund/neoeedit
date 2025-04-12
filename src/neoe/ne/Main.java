@@ -22,6 +22,7 @@ public class Main {
 	}
 
 	public static void main ( String [ ] args ) throws Exception {
+//		assert false: "Assertions enabled";
 		EditorPanel editor = null ;
 		int pic = 0 ;
 		for ( String fn : args ) {
