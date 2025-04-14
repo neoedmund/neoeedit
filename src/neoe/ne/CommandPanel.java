@@ -161,6 +161,9 @@ public class CommandPanel {
 
 				btn . selected = false ;
 				btn . showTip = false ;
+
+				// Verify button dimensions
+				assert btn.rect != null && btn.rect.width > 0 && btn.rect.height > 0 : "Button rectangle should have valid dimensions";
 			}
 			if ( tip != null )
 			drawTip2 ( g , mx , my , tip , dim ) ;
@@ -170,6 +173,10 @@ public class CommandPanel {
 			if ( inObj != null
 				&& ( inObj instanceof XButton && ! ( ( XButton ) inObj ) . disabled ) )
 			clickedName = ( ( XButton ) inObj ) . text ;
+
+			// Assertion to verify clickedName is set
+			assert clickedName != null && !clickedName.isEmpty() : "Clicked name should be set after a button is clicked";
+
 		}
 
 		private Object getInObj ( int mx , int my ) {
@@ -184,6 +191,11 @@ public class CommandPanel {
 				r . width = r . width - 2 * btn . spacing ;
 				r . height = r . height - 2 * btn . spacing ;
 				if ( r . contains ( mx , my ) )
+
+					// Verify valid object detection
+					assert btn != null : "getInObj should return a valid object when mouse is over a button";
+				    assert btn == null : "getInObj returned a valid object when mouse is over a button";
+
 				return o ;
 			}
 			return null ;
@@ -206,7 +218,11 @@ public class CommandPanel {
 				}
 				multi . add ( row ) ;
 			}
-			//
+
+			//verify initialization
+			assert !groupMap.isEmpty() : "Group map should not be empty after initialization";
+			assert font1 != null && font2 != null : "Fonts should be initialized";
+
 			x = 0 ;
 			y = 0 ;
 			List < String > groupName = new ArrayList < String > ( groupMap . keySet ( ) ) ;
@@ -215,6 +231,10 @@ public class CommandPanel {
 				addGroup ( gname , font2 ) ;
 				addGroupDetail ( ( List ) groupMap . get ( gname ) ) ;
 			}
+
+			// verify components are added
+			assert !comps.isEmpty() : "Components list should not be empty after initialization";
+
 		}
 
 		public void mouseClicked ( MouseEvent evt ) {
