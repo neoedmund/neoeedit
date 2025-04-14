@@ -4,6 +4,7 @@ import java . io . File ;
 import java . io . IOException ;
 
 public class Main {
+
 	static boolean init = false ;
 
 	public static void doinit ( ) throws Exception {
@@ -22,7 +23,8 @@ public class Main {
 	}
 
 	public static void main ( String [ ] args ) throws Exception {
-//		assert false: "Assertions enabled";
+
+		assert true: "Assertions enabled"; // test assertion to confirm assertions are enabled.
 		EditorPanel editor = null ;
 		int pic = 0 ;
 		for ( String fn : args ) {
