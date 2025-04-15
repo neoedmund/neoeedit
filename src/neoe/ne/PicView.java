@@ -493,11 +493,19 @@ public class PicView {
 			int h = getHeight ( ) ;
 			int sw = w / 4 ;
 			int sh = h / 4 ;
-			if ( ph / pw > h / w )
-			sw = sh * pw / ph ;
-			else
-			sh = sw * ph / pw ;
-			return new int [ ] { sw , sh , w , h } ;
+
+			// Avoid division by zero
+			if (pw == 0 || ph == 0 || w == 0 || h == 0) {
+				return new int[]{sw, sh, w, h}; // Return default values
+			}
+
+			if ((double) ph / pw > (double) h / w) {
+				sw = sh * pw / ph;
+			} else {
+				sh = sw * ph / pw;
+			}
+
+			return new int[]{sw, sh, w, h};
 		}
 
 		private void drawCut ( Graphics2D g ) {
