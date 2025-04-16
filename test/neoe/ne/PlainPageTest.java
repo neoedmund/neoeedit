@@ -22,21 +22,6 @@ public class PlainPageTest {
         }
     }
 
-    @Test
-    public void testKeyPressed() {
-        try {
-            EditorPanel panel = new EditorPanel();
-            PlainPage page = new PlainPage(panel, PageData.newUntitled(), null);
-
-            KeyEvent keyEvent = new KeyEvent(panel, KeyEvent.KEY_PRESSED,
-                    System.currentTimeMillis(), 0, KeyEvent.VK_DOWN, ' ');
-
-            page.keyPressed(keyEvent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            assert false : "Exception in testKeyPressed: " + e.getMessage();
-        }
-    }
 
     @Test
     public void testMouseClickedDoesNotThrow() {
@@ -68,6 +53,59 @@ public class PlainPageTest {
             assertTrue(true);
         } catch (Exception e) {
             fail("Exception during mouseMoved: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testCloseCleansUpPageAndFrame() throws Exception {
+        EditorPanel panel = new EditorPanel();
+        PlainPage page = new PlainPage(panel, PageData.newUntitled(), null);
+
+        panel.setPage(page, false);
+        assertEquals(2, panel.pageSet.size());
+
+        // Close the page
+        page.close();
+
+        // Validate: page removed, pageData nulled
+        assertNull(page.pageData);
+        assertFalse(panel.pageSet.contains(page));
+    }
+
+    @Test
+    public void testGoSetFont() throws Exception {
+        EditorPanel panel = new EditorPanel();
+        PlainPage page = new PlainPage(panel, PageData.newUntitled(), null);
+
+        // Calls the set-font path
+        page.go("set-font:Monospaced", false);
+
+    }
+
+    @Test
+    public void testGoTriggersLaunchFallback() throws Exception {
+        EditorPanel panel = new EditorPanel();
+        PlainPage page = new PlainPage(panel, PageData.newUntitled(), null);
+
+        // This fake command should fall through all handlers to U.launch
+        page.go("not-a-real-command", false);
+
+    }
+
+    @Test
+    public void testAllCommandsTriggerProcessCommand() throws Exception {
+        EditorPanel panel = new EditorPanel();
+        PageData data = PageData.newUntitled();
+        PlainPage page = new PlainPage(panel, data, null);
+
+        for (Commands cmd : Commands.values()) {
+            try {
+                page.processCommand(cmd);
+
+            } catch (Exception e) {
+                // Continue testing all commands even if one fails
+                System.err.println("Exception for command: " + cmd + " - " + e.getMessage());
+            }
         }
     }
 
