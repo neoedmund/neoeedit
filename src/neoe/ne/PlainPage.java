@@ -167,7 +167,7 @@ public class PlainPage {
 		return false ;
 		int p1 , p2 ;
 		String fn = s ;
-		if ( ( p1 = s . indexOf ( '|' ) ) >= 0 ) {
+		if ( ( p1 = s . lastIndexOf ( '|' ) ) >= 0 ) {
 			fn = s . substring ( 0 , p1 ) . trim ( ) ;
 			if ( ( p2 = s . indexOf ( ':' , p1 ) ) >= 0 ) { // search result
 				int line = -1 ;
@@ -181,7 +181,7 @@ public class PlainPage {
 					return true ;
 				}
 			}
-		} else if ( ( p1 = s . indexOf ( ':' , 2 ) ) > 0 ) { // try filename:lineno pattern
+		} else if ( ( p1 = s . lastIndexOf ( ':' ) ) > 0 ) { // try filename:lineno pattern
 			int line = 0 ;
 			try {
 				fn = s . substring ( 0 , p1 ) . trim ( ) ;
@@ -254,7 +254,7 @@ public class PlainPage {
 	}
 
 	private boolean isButtonBack ( MouseEvent evt ) {
-		if ( !FindJDK . isLinux ) {
+		if ( ! FindJDK . isLinux ) {
 			if ( isButtonDown ( 4 , evt ) )
 			return true ;
 		} else // Linux
@@ -264,7 +264,7 @@ public class PlainPage {
 	}
 
 	private boolean isButtonForward ( MouseEvent evt ) {
-		if ( !FindJDK . isLinux ) {
+		if ( ! FindJDK . isLinux ) {
 			if ( isButtonDown ( 5 , evt ) )
 			return true ;
 		} else // Linux
@@ -855,17 +855,19 @@ public class PlainPage {
 			case resetIME :
 			Ime . resetIme ( ) ;
 			break ;
-			case toggleIME :{
-			Ime . nextIme ( ) ;
-			Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
-			if ( ime != null )
-			ime . setEnabled ( true ) ;}
-			break ;
-			case reloadIME :{
+			case toggleIME : {
+				Ime . nextIme ( ) ;
 				Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
 				if ( ime != null )
-				ime . reloadDict ( ) ;}
-				break;
+				ime . setEnabled ( true ) ;
+			}
+			break ;
+			case reloadIME : {
+				Ime . ImeInterface ime = Ime . getCurrentIme ( ) ;
+				if ( ime != null )
+				ime . reloadDict ( ) ;
+			}
+			break ;
 			// case ShellCommand :
 			// Shell . run ( PlainPage . this , cy ) ;
 			// break ;
@@ -2078,8 +2080,11 @@ public class PlainPage {
 						U . drawString ( g2 , fontList , preeditText , w + 2 , y0 + lineHeight , maxw2 ) ;
 					}
 
-					if ( ime != null )
-					ime . paint ( g2 , fontList , w , y0 + lineHeight + lineGap , g2 . getClipBounds ( ) ) ;
+					if ( ime != null ) {
+						Rectangle bs = g2 . getClipBounds ( ) ;
+						//						System . out . println ( "bs=" + bs ) ;
+						ime . paint ( g2 , fontList , w , y0 + lineHeight + lineGap , bs ) ;
+					}
 				}
 
 				if ( aboutOn ) { // about info

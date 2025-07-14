@@ -30,6 +30,7 @@ public class BasicEdit {
 	public void insertEmptyLine ( int y ) {
 		if ( y > lines ( ) . size ( ) )
 		y = lines ( ) . size ( ) ;
+		if ( y < 0 ) y = 0 ;
 		lines ( ) . add ( y , new StringBuilder ( ) ) ;
 		if ( record )
 		history ( ) . addOne (

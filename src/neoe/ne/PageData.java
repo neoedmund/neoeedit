@@ -113,6 +113,13 @@ public class PageData {
 		lines = newLines ;
 		history . clear ( ) ;
 	}
+	public String exportText ( ) {
+		StringBuilder sb = new StringBuilder ( ) ;
+		for ( CharSequence line : lines ) {
+			sb . append ( line ) . append ( '\n' ) ;
+		}
+		return sb . toString ( ) ;
+	}
 
 	public void setText ( String s ) {
 		List < CharSequence > ss = U . removeTailR ( U . split ( s , U . N ) ) ;

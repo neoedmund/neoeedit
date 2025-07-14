@@ -22,11 +22,9 @@ import neoe . ne . util . PyData ;
  * @author neoe
  */
 class FindAndReplace {
-	private static final String [ ] binExt = {
-		".jar" , ".class" , ".o" , ".so" , ".out" , ".ko" , ".exe" , ".dll" ,
-		".jpg" , ".gif" , ".png" , ".mp3" , ".mp4" , ".war" , ".zip" , ".gz" ,
-		".rar" , ".7z" , ".ttc" , ".ttf" , ".pdf" , ".xlsx" , ".xls" , ".mpeg" ,
-		".bz2" , ".bin" , ".xz" , ".bz2" , ".iso" } ;
+	private static final String [ ] binExt = { ".jar" , ".class" , ".o" , ".so" , ".out" , ".ko" , ".exe" , ".dll" , ".jpg" ,
+		".gif" , ".png" , ".mp3" , ".mp4" , ".war" , ".zip" , ".gz" , ".rar" , ".7z" , ".ttc" , ".ttf" , ".pdf" , ".xlsx" ,
+		".xls" , ".mpeg" , ".bz2" , ".bin" , ".xz" , ".bz2" , ".iso" } ;
 
 	private static boolean _endsWithAny ( String [ ] binExt , String name ) {
 		name = name . toLowerCase ( ) ;
@@ -45,9 +43,8 @@ class FindAndReplace {
 		}
 	}
 
-	static void doFindInDir ( PlainPage page , String text , boolean ignoreCase ,
-		boolean selected2 , boolean inDir , String dir ,
-		String fnFilter , boolean word ) throws Exception {
+	static void doFindInDir ( PlainPage page , String text , boolean ignoreCase , boolean selected2 , boolean inDir ,
+		String dir , String fnFilter , boolean word ) throws Exception {
 		Iterable < File > it = new FileIterator ( dir ) ;
 		List < String > all = new ArrayList < String > ( ) ;
 		fnFilter = fnFilter . trim ( ) . toLowerCase ( ) ;
@@ -81,8 +78,7 @@ class FindAndReplace {
 		page . uiComp . repaint ( ) ;
 	}
 
-	static void doFindInPage ( PlainPage page , String text2find , boolean ignoreCase ,
-		boolean word ) throws Exception {
+	static void doFindInPage ( PlainPage page , String text2find , boolean ignoreCase , boolean word ) throws Exception {
 		text2find = text2find . trim ( ) ;
 		page . ptFind . text2find = text2find ;
 		if ( text2find != null && text2find . length ( ) > 0 ) {
@@ -97,8 +93,7 @@ class FindAndReplace {
 			else {
 				List < String > all = new ArrayList < String > ( ) ;
 				while ( true ) {
-					all . add ( String . format ( "%s:%s" , p . y + 1 ,
-							page . pageData . roLines . getline ( p . y ) ) ) ;
+					all . add ( String . format ( "%s:%s" , p . y + 1 , page . pageData . roLines . getline ( p . y ) ) ) ;
 					Point p2 = find ( page , tfs , 0 , p . y + 1 , ignoreCase , word ) ;
 					if ( p2 == null || p2 . y <= p . y )
 					break ;
@@ -106,15 +101,13 @@ class FindAndReplace {
 					p = p2 ;
 				}
 				String type = page . pageData . fileLoaded ? "file" : "page" ;
-				showResult ( page , all , type , page . pageData . title , text2find , null ,
-					null , word ) ;
+				showResult ( page , all , type , page . pageData . title , text2find , null , null , word ) ;
 				page . uiComp . repaint ( ) ;
 			}
 		}
 	}
 
-	static void doReplace ( PlainPage page , String text , boolean ignoreCase ,
-		boolean selected2 , String text2 , boolean all ,
+	static void doReplace ( PlainPage page , String text , boolean ignoreCase , boolean selected2 , String text2 , boolean all ,
 		boolean inDir , String dir ) {
 		page . ptFind . text2find = text ;
 		Point p0 = all ? new Point ( 0 , 0 ) : new Point ( page . cx , page . cy ) ;
@@ -134,21 +127,19 @@ class FindAndReplace {
 		page . uiComp . repaint ( ) ;
 	}
 
-	static void doReplaceAll ( PlainPage page , String text , boolean ignoreCase ,
-		boolean selected2 , String text2 , boolean inDir ,
-		String dir , String fnFilter ) throws Exception {
+	static void doReplaceAll ( PlainPage page , String text , boolean ignoreCase , boolean selected2 , String text2 ,
+		boolean inDir , String dir , String fnFilter ) throws Exception {
 		if ( inDir ) {
 			int ret = JOptionPane . showConfirmDialog ( page . uiComp , "Do you really want to do replace in files in dir?" ) ;
-			if ( ret != JOptionPane . OK_OPTION ) return ;
+			if ( ret != JOptionPane . OK_OPTION )
+			return ;
 			doReplaceInDir ( page , text , ignoreCase , text2 , inDir , dir , fnFilter ) ;
-		}
-		else
+		} else
 		doReplace ( page , text , ignoreCase , selected2 , text2 , true , inDir , dir ) ;
 	}
 
-	static void doReplaceInDir ( PlainPage page , String text , boolean ignoreCase2 ,
-		String text2 , boolean inDir , String dir ,
-		String fnFilter ) throws Exception {
+	static void doReplaceInDir ( PlainPage page , String text , boolean ignoreCase2 , String text2 , boolean inDir ,
+		String dir , String fnFilter ) throws Exception {
 		Iterable < File > it = new FileIterator ( dir ) ;
 		List < String > all = new ArrayList < > ( ) ;
 		fnFilter = fnFilter . trim ( ) . toLowerCase ( ) ;
@@ -166,8 +157,7 @@ class FindAndReplace {
 			List < String > res = findInFilePlain ( f , text , page . ignoreCase , cnts ) ;
 			if ( ! res . isEmpty ( ) ) {
 				page . uiComp . findAndShowPage ( f . getAbsolutePath ( ) , -1 , true ) ;
-				doReplaceAll ( page . uiComp . page , text , ignoreCase2 , false , text2 , false , null ,
-					fnFilter ) ;
+				doReplaceAll ( page . uiComp . page , text , ignoreCase2 , false , text2 , false , null , fnFilter ) ;
 				all . addAll ( res ) ;
 			}
 		}
@@ -175,16 +165,14 @@ class FindAndReplace {
 		page . uiComp . repaint ( ) ;
 	}
 
-	static Point find ( PlainPage page , String s , int x , int y , boolean ignoreCase ,
-		boolean word ) {
+	static Point find ( PlainPage page , String s , int x , int y , boolean ignoreCase , boolean word ) {
 		if ( y >= page . pageData . roLines . getLinesize ( ) )
 		return null ;
 		if ( ignoreCase )
 		s = s . toLowerCase ( ) ;
 		x = Math . min ( x , page . pageData . roLines . getline ( y ) . length ( ) ) ;
 		// first half row
-		int p1
-		= indexOfSeq ( page . pageData . roLines . getline ( y ) , ignoreCase , s , x , word ) ;
+		int p1 = indexOfSeq ( page . pageData . roLines . getline ( y ) , ignoreCase , s , x , word ) ;
 		if ( p1 >= 0 )
 		return new Point ( p1 , y ) ;
 		// middle rows
@@ -205,8 +193,7 @@ class FindAndReplace {
 		return null ;
 	}
 
-	static Point find ( PlainPage page , List < String > ss , int x , int y ,
-		boolean ignoreCase , boolean word ) {
+	static Point find ( PlainPage page , List < String > ss , int x , int y , boolean ignoreCase , boolean word ) {
 		if ( ss == null || ss . size ( ) <= 0 )
 		return null ;
 		if ( y >= page . pageData . roLines . getLinesize ( ) )
@@ -214,15 +201,15 @@ class FindAndReplace {
 		x = 0 ; // Math.min(x, page.pageData.roLines.getline(y).length());
 		// first half row
 		int p1 = indexOf ( page . pageData . roLines . getline ( y ) , ignoreCase , ss , x , word ) ;
-		if ( p1 >= 0 ) return new Point ( p1 , y ) ;
+		if ( p1 >= 0 )
+		return new Point ( p1 , y ) ;
 		// middle rows
 		int fy = y ;
 		for ( int i = 0 ; i < page . pageData . roLines . getLinesize ( ) - 1 ; i ++ ) {
 			fy += 1 ;
 			if ( fy >= page . pageData . roLines . getLinesize ( ) )
 			fy = 0 ;
-			p1
-			= indexOf ( page . pageData . roLines . getline ( fy ) , ignoreCase , ss , 0 , word ) ;
+			p1 = indexOf ( page . pageData . roLines . getline ( fy ) , ignoreCase , ss , 0 , word ) ;
 			if ( p1 >= 0 )
 			return new Point ( p1 , fy ) ;
 		}
@@ -234,8 +221,7 @@ class FindAndReplace {
 		return null ;
 	}
 
-	static List < String > findInFile ( File f , String text , boolean ignoreCase2 ,
-		int [ ] cnts , boolean word ) {
+	static List < String > findInFile ( File f , String text , boolean ignoreCase2 , int [ ] cnts , boolean word ) {
 		// System.out.println("find in "+f.getName());
 		int MAX_SHOW_CHARS_IN_LINE = 30 ;
 		List < String > a = new ArrayList < String > ( ) ;
@@ -245,15 +231,13 @@ class FindAndReplace {
 				cnts [ 1 ] ++ ;
 				return a ;
 			}
-			String enc = U . guessEncoding ( f . getAbsolutePath ( ) ,
-				null /* not to search in gzip file */ ) ;
+			String enc = U . guessEncoding ( f . getAbsolutePath ( ) , null /* not to search in gzip file */ ) ;
 			if ( enc != null ) { // skip binary
 				String fn = f . getAbsolutePath ( ) ;
 				if ( ignoreCase2 )
 				text = text . toLowerCase ( ) ;
 				List ts = ( List ) PyData . parseAll ( "[" + text + "]" , false , true ) ;
-				BufferedReader in = new BufferedReader (
-					new InputStreamReader ( new FileInputStream ( f ) , enc ) ) ;
+				BufferedReader in = new BufferedReader ( new InputStreamReader ( new FileInputStream ( f ) , enc ) ) ;
 				String line ;
 				int lineno = 0 ;
 				while ( ( line = in . readLine ( ) ) != null ) {
@@ -276,8 +260,7 @@ class FindAndReplace {
 		return a ;
 	}
 
-	static List < String > findInFilePlain ( File f , String text , boolean ignoreCase2 ,
-		int [ ] cnts ) {
+	static List < String > findInFilePlain ( File f , String text , boolean ignoreCase2 , int [ ] cnts ) {
 		// System.out.println("find in "+f.getName());
 		int MAX_SHOW_CHARS_IN_LINE = 30 ;
 		List < String > a = new ArrayList < String > ( ) ;
@@ -287,14 +270,12 @@ class FindAndReplace {
 				cnts [ 1 ] ++ ;
 				return a ;
 			}
-			String enc = U . guessEncoding ( f . getAbsolutePath ( ) ,
-				null /* not to search in gzip file */ ) ;
+			String enc = U . guessEncoding ( f . getAbsolutePath ( ) , null /* not to search in gzip file */ ) ;
 			if ( enc != null ) { // skip binary
 				String fn = f . getAbsolutePath ( ) ;
 				if ( ignoreCase2 )
 				text = text . toLowerCase ( ) ;
-				BufferedReader in = new BufferedReader (
-					new InputStreamReader ( new FileInputStream ( f ) , enc ) ) ;
+				BufferedReader in = new BufferedReader ( new InputStreamReader ( new FileInputStream ( f ) , enc ) ) ;
 				String line ;
 				int lineno = 0 ;
 				while ( ( line = in . readLine ( ) ) != null ) {
@@ -317,8 +298,7 @@ class FindAndReplace {
 		return a ;
 	}
 
-	static Point find_prev ( PlainPage page , String s , int x , int y ,
-		boolean ignoreCase , boolean word ) {
+	static Point find_prev ( PlainPage page , String s , int x , int y , boolean ignoreCase , boolean word ) {
 		if ( y >= page . pageData . roLines . getLinesize ( ) )
 		return null ;
 		if ( ignoreCase )
@@ -372,13 +352,14 @@ class FindAndReplace {
 		return false ;
 	}
 
-	private static int indexOf ( CharSequence t , boolean ignoreCase ,
-		List < String > ss , int x , boolean word ) {
-		if ( ignoreCase ) t = t . toString ( ) . toLowerCase ( ) ;
+	private static int indexOf ( CharSequence t , boolean ignoreCase , List < String > ss , int x , boolean word ) {
+		if ( ignoreCase )
+		t = t . toString ( ) . toLowerCase ( ) ;
 		int p = 0 ;
 		for ( int i = 0 ; i < ss . size ( ) ; i ++ ) {
 			p = FindAndReplace . indexOfSeq ( t , ss . get ( i ) , x , word ) ;
-			if ( p < 0 ) return p ;
+			if ( p < 0 )
+			return p ;
 		}
 		return p ;
 	}
@@ -386,22 +367,28 @@ class FindAndReplace {
 	public static int indexOfLast ( CharSequence input , String kw , int start , boolean word ) {
 		String target = input . toString ( ) ;
 		int fromIndex = start ;
-		while ( true ) { //if one fail , search another		
+		while ( true ) { // if one fail , search another
 			int p1 = target . lastIndexOf ( kw , fromIndex ) ;
-			if ( p1 < 0 ) return p1 ;
-			if ( isWordMatch ( target , kw , p1 , word ) >= 0 ) return p1 ;
-			fromIndex = p1 -1 ;
-			if ( fromIndex < 0 ) return -1 ;
+			if ( p1 < 0 )
+			return p1 ;
+			if ( isWordMatch ( target , kw , p1 , word ) >= 0 )
+			return p1 ;
+			fromIndex = p1 - 1 ;
+			if ( fromIndex < 0 )
+			return -1 ;
 		}
 	}
 
 	private static int indexOfLast ( CharSequence t , boolean ignoreCase , String s , int x , boolean word ) {
-		if ( ! ignoreCase ) return indexOfLast ( t , s , x , word ) ;
-		else return indexOfLast ( t . toString ( ) . toLowerCase ( ) , s , x , word ) ;
+		if ( ! ignoreCase )
+		return indexOfLast ( t , s , x , word ) ;
+		else
+		return indexOfLast ( t . toString ( ) . toLowerCase ( ) , s , x , word ) ;
 	}
 
 	private static int indexOfSeq ( CharSequence t , boolean ignoreCase , String s , int x , boolean word ) {
-		if ( ! ignoreCase ) return FindAndReplace . indexOfSeq ( t , s , x , word ) ;
+		if ( ! ignoreCase )
+		return FindAndReplace . indexOfSeq ( t , s , x , word ) ;
 		else {
 			String t2 = t . toString ( ) . toLowerCase ( ) ;
 			return FindAndReplace . indexOfSeq ( t2 , s , x , word ) ;
@@ -426,27 +413,32 @@ class FindAndReplace {
 		int fromIndex = start ;
 		while ( true ) {
 			int p1 = target . indexOf ( kw , fromIndex ) ;
-			if ( p1 < 0 ) return p1 ;
-			if ( isWordMatch ( target , kw , p1 , word ) >= 0 ) return p1 ;
+			if ( p1 < 0 )
+			return p1 ;
+			if ( isWordMatch ( target , kw , p1 , word ) >= 0 )
+			return p1 ;
 			fromIndex = p1 + kw . length ( ) ;
-			if ( fromIndex >= target . length ( ) ) return -1 ;
+			if ( fromIndex >= target . length ( ) )
+			return -1 ;
 		}
 	}
 
 	private static boolean isIdChar ( char c ) {
-		return c == '_' || c == '$' || Character . isAlphabetic ( c )
-		|| Character . isDigit ( c ) ;
+		return c == '_' || c == '$' || Character . isAlphabetic ( c ) || Character . isDigit ( c ) ;
 	}
+
 	private static int isWordMatch ( CharSequence t , String s , int p , boolean word ) {
-		if ( ! word || p <= 0 ) return p ;
-		if ( isIdChar ( t . charAt ( p - 1 ) ) ) return -1 ;
+		if ( ! word || p < 0 )
+		return p ;
+		if ( p > 0 && isIdChar ( t . charAt ( p - 1 ) ) )
+		return -1 ;
 		int q = p + s . length ( ) ;
-		if ( q < t . length ( ) && isIdChar ( t . charAt ( q ) ) ) return -1 ;
+		if ( q < t . length ( ) && isIdChar ( t . charAt ( q ) ) )
+		return -1 ;
 		return p ;
 	}
 
-	static Point replace ( PlainPage page , String s , int x , int y , String s2 ,
-		boolean all , boolean ignoreCase ) {
+	static Point replace ( PlainPage page , String s , int x , int y , String s2 , boolean all , boolean ignoreCase ) {
 		int cnt = 0 ;
 		BasicEdit editRec = page . pageData . editRec ;
 		if ( ignoreCase )
@@ -473,8 +465,7 @@ class FindAndReplace {
 			fy = 0 ;
 			p1 = 0 ;
 			while ( true ) {
-				p1 = indexOfSeq ( page . pageData . roLines . getline ( fy ) , ignoreCase , s , p1 ,
-					false ) ;
+				p1 = indexOfSeq ( page . pageData . roLines . getline ( fy ) , ignoreCase , s , p1 , false ) ;
 				if ( p1 >= 0 ) {
 					cnt ++ ;
 					editRec . deleteInLine ( fy , p1 , p1 + s . length ( ) ) ;
@@ -511,9 +502,8 @@ class FindAndReplace {
 		return null ;
 	}
 
-	static void showResult ( PlainPage pp , List < String > all , String type ,
-		String name , String text , String fnFilter , int [ ] cnts ,
-		boolean word ) throws Exception {
+	static void showResult ( PlainPage pp , List < String > all , String type , String name , String text , String fnFilter ,
+		int [ ] cnts , boolean word ) throws Exception {
 		String withFilter = "" ;
 		if ( fnFilter != null && fnFilter . length ( ) > 0 )
 		withFilter = String . format ( " with filter '" + fnFilter + "'" ) ;
@@ -527,20 +517,18 @@ class FindAndReplace {
 		}
 		if ( word )
 		cntInfo += " in word mode" ;
-		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format (
-					"[find]'%s'(%s) in %s '%s'%s %s #%s" , text , all . size ( ) , type ,
-					name , withFilter , cntInfo , U . randomID ( ) ) ) , pp ) ;
+		PlainPage p2 = new PlainPage ( pp . uiComp , PageData . fromTitle ( String . format ( "[find]'%s'(%s) in %s '%s'%s %s #%s" ,
+					text , all . size ( ) , type , name , withFilter , cntInfo , U . randomID ( ) ) ) , pp ) ;
 		List < CharSequence > sbs = new ArrayList < > ( ) ;
 		String key ;
-		sbs . add ( new StringBuilder (
-				key = String . format ( "find %s results in '%s'%s for '%s' %s" , all . size ( ) , name ,
+		sbs . add ( new StringBuilder ( key = String . format ( "find %s results in '%s'%s for '%s' %s" , all . size ( ) , name ,
 					withFilter , text , cntInfo ) ) ) ;
 		U . appendSearchResultHistory ( key ) ;
 		for ( Object o : all )
 		sbs . add ( o . toString ( ) ) ;
 		p2 . pageData . resetLines ( sbs ) ;
 		p2 . pageData . searchResultOf = name ;
-		//		gc();
+		// gc();
 	}
 
 	boolean back ;
@@ -553,9 +541,8 @@ class FindAndReplace {
 		this . pp = plainPage ;
 	}
 
-	void doFind ( String text , boolean ignoreCase , boolean selected2 ,
-		boolean inDir , String dir , String fnFilter , boolean backward ,
-		boolean word ) throws Exception {
+	void doFind ( String text , boolean ignoreCase , boolean selected2 , boolean inDir , String dir , String fnFilter ,
+		boolean backward , boolean word ) throws Exception {
 		text2find = text ;
 		this . word = word ;
 		if ( ! inDir ) {
@@ -582,8 +569,7 @@ class FindAndReplace {
 
 	void findPrev ( boolean word ) {
 		if ( text2find != null && text2find . length ( ) > 0 ) {
-			Point p
-			= find_prev ( pp , text2find , pp . cx - 1 , pp . cy , pp . ignoreCase , word ) ;
+			Point p = find_prev ( pp , text2find , pp . cx - 1 , pp . cy , pp . ignoreCase , word ) ;
 			if ( p == null )
 			pp . ui . message ( "string not found" ) ;
 			else
@@ -621,6 +607,7 @@ class FindAndReplace {
 		}
 		if ( t . length ( ) > 0 )
 		findWindow . jta1 . setText ( t ) ;
+		findWindow . jta1 . selectAll ( ) ;
 		findWindow . show ( ) ;
 		findWindow . jta1 . requestFocusInWindow ( ) ;
 	}

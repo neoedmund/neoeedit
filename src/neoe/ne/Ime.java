@@ -64,6 +64,6 @@ public abstract class Ime {
 
 		void paint ( Graphics2D g2 , FontList fonts , int cursorX , int cursorY , Rectangle clipBounds ) ;
 
-		void reloadDict() throws Exception;
+		void reloadDict ( ) throws Exception ;
 	}
 }

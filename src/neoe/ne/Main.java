@@ -1,6 +1,7 @@
 package neoe . ne ;
 
 import java . io . File ;
+import java . io . IOException ;
 
 public class Main {
 	static boolean init = false ;
@@ -15,7 +16,7 @@ public class Main {
 		Conf . initKeys ( ) ;
 		U . loadTabImage ( ) ;
 		U . addTime = "true" . equals ( System . getenv ( U . NE_ADDTIME ) ) ;
-		U . keymintime = Integer . parseInt ( Conf . get ( "keymintime" , "100" ) . toString ( ) ) ;
+		U . keymintime = Integer . parseInt ( Conf . get ( "keymintime" , "0" ) . toString ( ) ) ;
 		// Gimp.loadFromConfig();
 		Plugin . load ( ) ;
 	}
@@ -29,7 +30,7 @@ public class Main {
 			File f = new File ( fn ) ;
 			if ( f . isFile ( ) )
 			if ( U . isImageFile ( f ) ) {
-				new PicView ( ) . show ( f ) ;
+				new PicView ( ) . show0 ( f , null ) ;
 				pic ++ ;
 			} else {
 				if ( editor == null )
@@ -49,8 +50,22 @@ public class Main {
 		if ( editor != null ) {
 			editor . openWindow ( ) ;
 			U . optimizeFileHistory ( ) ;
+			//			Runtime . getRuntime ( ) . addShutdownHook ( new Thread ( ( ) -> {
+			//						try {
+			//							U . appendAllFileHistory ( ) ;
+			//						} catch ( Exception e ) {
+			//							e . printStackTrace ( ) ;
+			//						}
+			//					} ) ) ;
 			SwingJniJvmPatch ( ) ;
 		}
+	}
+
+	public static EditorPanel openDoc ( String fn ) throws Exception {
+		EditorPanel editor = new EditorPanel ( ) ;
+		new PlainPage ( editor , PageData . fromFile ( fn ) , null ) ;
+		editor . openWindow ( ) ;
+		return editor ;
 	}
 
 	/**
