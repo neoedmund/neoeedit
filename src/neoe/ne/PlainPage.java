@@ -2296,18 +2296,34 @@ public class PlainPage {
 				if ( sb . length ( ) > x2 && Character . isJavaIdentifierPart ( sb . charAt ( x2 ) ) )
 				while ( x2 < sb . length ( ) - 1 && Character . isJavaIdentifierPart ( sb . charAt ( x2 + 1 ) ) )
 				x2 += 1 ;
-				selectstartx = x1 ;
-				selectstarty = cy ;
-				selectstopx = x2 + 1 ;
-				selectstopy = cy ;
+				if ( mshift ) {
+					if ( U . compare2d ( x1 , cy , selectstartx , selectstarty ) < 0 ) {
+						selectstartx = x1 ;
+						selectstarty = cy ;
+					}
+					if ( U . compare2d ( x2 + 1 , cy , selectstopx , selectstopy ) > 0 ) {
+						selectstopx = x2 + 1 ;
+						selectstopy = cy ;
+					}
+				} else {
+					selectstartx = x1 ;
+					selectstarty = cy ;
+					selectstopx = x2 + 1 ;
+					selectstopy = cy ;
+				}
 			} else if ( mcount == 3 ) {
 				selectstartx = 0 ;
 				selectstarty = cy ;
 				selectstopx = sb . length ( ) ;
 				selectstopy = cy ;
 			} else if ( mshift ) {
-				selectstopx = cx ;
-				selectstopy = cy ;
+				if ( U . compare2d ( cx , cy , selectstartx , selectstarty ) < 0 ) {
+					selectstartx = cx ;
+					selectstarty = cy ;
+				} else if ( U . compare2d ( cx , cy , selectstopx , selectstopy ) > 0 ) {
+					selectstopx = cx ;
+					selectstopy = cy ;
+				}
 				if ( cy == sy && cy > 0 ) {
 					sy -- ;
 					return true ;

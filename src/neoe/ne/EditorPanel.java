@@ -107,7 +107,11 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 			openInNewWindow ( title , line ) ;
 			return true ;
 		}
-		pp = new PlainPage ( this , PageData . fromFile ( title ) , page ) ;
+		PageData pd = PageData . fromFile ( title ) ;
+		pp = U . findPageByData ( pageSet , pd ) ;
+		if ( pp == null ) {
+			pp = new PlainPage ( this , pd , page ) ;
+		}
 		if ( line > 0 )
 		pp . cursor . setSafePos ( 0 , line - 1 ) ;
 		pp . adjustCursor ( ) ;

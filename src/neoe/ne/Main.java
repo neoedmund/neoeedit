@@ -50,13 +50,13 @@ public class Main {
 		if ( editor != null ) {
 			editor . openWindow ( ) ;
 			U . optimizeFileHistory ( ) ;
-			//			Runtime . getRuntime ( ) . addShutdownHook ( new Thread ( ( ) -> {
-			//						try {
-			//							U . appendAllFileHistory ( ) ;
-			//						} catch ( Exception e ) {
-			//							e . printStackTrace ( ) ;
-			//						}
-			//					} ) ) ;
+			Runtime . getRuntime ( ) . addShutdownHook ( new Thread ( ( ) -> {
+						try {
+							U . appendAllFileHistory ( ) ;
+						} catch ( Exception e ) {
+							e . printStackTrace ( ) ;
+						}
+					} ) ) ;
 			SwingJniJvmPatch ( ) ;
 		}
 	}

@@ -1806,7 +1806,6 @@ public class U {
 				return ;
 			}
 			page . pageData . renameTo ( fn ) ;
-			U . saveFileHistoryWrite ( fn , page . cy ) ;
 			editor . changeTitle ( ) ;
 			page . ui . message ( "file renamed" ) ;
 			savePageToFile ( page ) ;
@@ -1843,7 +1842,6 @@ public class U {
 			}
 			PageData pd = page . pageData ;
 			pd . renameTo ( fn ) ;
-			U . saveFileHistoryWrite ( fn , page . cy ) ;
 			page . uiComp . changeTitle ( ) ;
 			return savePageToFile ( page ) ;
 		}
@@ -1949,6 +1947,7 @@ public class U {
 			page . pageData . fileLoaded = true ;
 			page . pageData . isCommentChecked = false ;
 			page . workPath = f . getParent ( ) ;
+			U . saveFileHistoryWrite ( fn , page . cy ) ;
 			return true ;
 		} catch ( Throwable ex ) {
 			U . showSelfDispMessage ( page , "error when save file:" + ex , 1000 * 8 ) ;
@@ -2565,5 +2564,11 @@ public class U {
 				lines . add ( fn ) ;
 			}
 		}
+	}
+
+	public static int compare2d ( int x1 , int y1 , int x2 , int y2 ) {
+		if ( y1 < y2 ) return -1 ;
+		if ( y1 > y2 ) return 1 ;
+		return x1 - x2 ;
 	}
 }
