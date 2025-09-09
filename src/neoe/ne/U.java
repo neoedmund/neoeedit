@@ -877,8 +877,11 @@ public class U {
 			if ( path . isEmpty ( ) ) {
 				path = "/tmp" ;
 			}
+			if ( path . startsWith ( "~/" ) ) {
+				path = getUserHome ( ) + path . substring ( 1 ) ;
+			}
 			dir = new File ( path ) ;
-			boolean isAbs = path . startsWith ( "/" ) || ( path . length ( ) > 1 && path . charAt ( 1 ) == ':' ) ; //windows X:
+			boolean isAbs = path . startsWith ( "/" ) || ( path . length ( ) > 1 && path . charAt ( 1 ) == ':' ) ; // windows X:
 			if ( ! isAbs && pp . workPath != null ) {
 				dir = new File ( pp . workPath , path ) ;
 				if ( ! dir . isDirectory ( ) ) {
@@ -1094,6 +1097,7 @@ public class U {
 		}
 		return f ;
 	}
+
 	public static File getFileHistoryNameWrite ( ) throws IOException {
 		File f = new File ( getMyDir ( ) , "fhw.txt" ) ;
 		if ( ! f . exists ( ) ) {
@@ -1393,7 +1397,7 @@ public class U {
 	public static boolean isImageFile ( File f ) {
 		String fn = f . getName ( ) . toLowerCase ( ) ;
 		return ( fn . endsWith ( ".gif" ) || fn . endsWith ( ".jpg" ) || fn . endsWith ( ".png" ) || fn . endsWith ( ".bmp" )
-			|| fn . endsWith ( ".jpeg" ) || fn . endsWith ( ".tga" ) || fn . endsWith ( ".webp" ) ) ;
+			|| fn . endsWith ( ".jpeg" ) || fn . endsWith ( ".tga" ) || fn . endsWith ( ".webp" ) || fn . endsWith ( ".avif" ) ) ;
 	}
 
 	static boolean isSkipChar ( char ch , char ch1 ) {
@@ -1643,6 +1647,7 @@ public class U {
 	}
 
 	static int idIndex ;
+	private static int hisCnt ;
 	static final int IDRANGE = 36 * 36 * 36 ;
 
 	public static String randomID ( ) {
@@ -1854,6 +1859,7 @@ public class U {
 		}
 		return fp . getAbsolutePath ( ) . trim ( ) + "/" + f . getName ( ) . trim ( ) ;
 	}
+
 	static void saveFileHistory ( String fn , int line ) throws IOException {
 		File fhn = getFileHistoryName ( ) ;
 		if ( fn . equals ( fhn . getAbsolutePath ( ) ) ) {
@@ -1867,6 +1873,10 @@ public class U {
 		}
 		out . close ( ) ;
 		saveDirHistory ( fn ) ;
+		if ( hisCnt ++ > 10 ) {
+			hisCnt = 0 ;
+			optimizeFileHistory ( ) ;
+		}
 	}
 
 	static void saveFileHistoryWrite ( String fn , int line ) throws IOException {
@@ -1882,6 +1892,10 @@ public class U {
 		}
 		out . close ( ) ;
 		saveDirHistory ( fn ) ;
+		if ( hisCnt ++ > 10 ) {
+			hisCnt = 0 ;
+			optimizeFileHistory ( ) ;
+		}
 	}
 
 	// static void saveFileHistorys ( String text ) throws IOException {
@@ -2444,10 +2458,12 @@ public class U {
 		}
 		return null ;
 	}
+
 	public static void optimizeFileHistory ( ) throws IOException {
 		optimizeFileHistory ( U . getFileHistoryName ( ) ) ;
 		optimizeFileHistory ( U . getFileHistoryNameWrite ( ) ) ;
 	}
+
 	public static void optimizeFileHistory ( File fhn ) throws IOException {
 		List < String > fs = FileUtil . readStringBig ( fhn , UTF8 ) ;
 		Set < String > e = new HashSet < > ( ) ;
@@ -2488,11 +2504,11 @@ public class U {
 	public static int keymintime ;
 
 	/**
-	 * for some failing mechanical keyboard, eg. press 'i' gives 'iiiiii'. this
-	 * fix should do in libev(Linux) or alike low level. But, still for easy of
-	 * hack this method is added. note: my fast finger speed for single key is
-	 * about 150ms, for multi-keys is about 50ms(min 20ms), auto-repeat by
-	 * system is about 40ms. so config is set to 38ms.
+	 * for some failing mechanical keyboard, eg. press 'i' gives 'iiiiii'. this fix
+	 * should do in libev(Linux) or alike low level. But, still for easy of hack
+	 * this method is added. note: my fast finger speed for single key is about
+	 * 150ms, for multi-keys is about 50ms(min 20ms), auto-repeat by system is about
+	 * 40ms. so config is set to 38ms.
 	 */
 	public static boolean hardwareFailWorkaroundFilterOut ( KeyEvent env ) {
 		if ( keymintime <= 0 ) {
@@ -2567,8 +2583,10 @@ public class U {
 	}
 
 	public static int compare2d ( int x1 , int y1 , int x2 , int y2 ) {
-		if ( y1 < y2 ) return -1 ;
-		if ( y1 > y2 ) return 1 ;
+		if ( y1 < y2 )
+		return -1 ;
+		if ( y1 > y2 )
+		return 1 ;
 		return x1 - x2 ;
 	}
 }

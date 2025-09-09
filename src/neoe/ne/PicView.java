@@ -691,6 +691,9 @@ public class PicView {
 		if ( f . getName ( ) . endsWith ( ".webp" ) ) {
 			return ( BufferedImage ) Plugin . call ( "webp" , f ) ;
 		}
+		if ( f . getName ( ) . endsWith ( ".avif" ) ) {
+			return ( BufferedImage ) Plugin . call ( "avif" , f ) ;
+		}
 		return ImageIO . read ( f ) ;
 	}
 

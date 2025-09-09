@@ -24,6 +24,9 @@ public class ReadonlyLines {
 		x1 = 0 ;
 		if ( x2 > cs . length ( ) )
 		x2 = cs . length ( ) ;
+		if ( x1 >= cs . length ( ) )
+		return "" ;
+
 		return getline ( y ) . subSequence ( x1 , x2 ) ;
 	}
 

@@ -1,1 +1,1 @@
-start javaw  -Xmx4G  -jar dist\neoeedit.jar %1
+start javaw --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED   -jar dist\neoeedit.jar %1
