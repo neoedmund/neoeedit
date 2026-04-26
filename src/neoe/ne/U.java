@@ -760,6 +760,7 @@ public class U {
 									int y = page . pageData . roLines . getLinesize ( ) - 1 ;
 									page . cursor . setSafePos ( 0 , y ) ;
 									page . focusCursor ( ) ;
+									page . repaint ( ) ;
 								}
 							} else {
 								if ( r ) {
@@ -899,7 +900,15 @@ public class U {
 		}
 
 		addCmdHistory ( cmd , dir . getAbsolutePath ( ) ) ;
-		Process proc = Runtime . getRuntime ( ) . exec ( splitCommand ( cmd ) , getEnv ( pp ) , dir ) ;
+		// Process proc = Runtime . getRuntime ( ) . exec ( splitCommand ( cmd ) ,
+		// getEnv ( pp ) , dir ) ;
+		// pb.redirectErrorStream(true);
+		ProcessBuilder pb = new ProcessBuilder ( splitCommand ( cmd ) ) . directory ( dir ) ;
+		Map < String , String > env = pb . environment ( ) ;
+		if ( pp . env != null )
+		env . putAll ( pp . env ) ;
+		// pb . inheritIO ( ) ;
+		Process proc = pb . start ( ) ;
 		OutputStream out = null ; // proc . getOutputStream ( ) ;
 		InputStream stdout = proc . getInputStream ( ) ;
 		InputStream stderr = proc . getErrorStream ( ) ;
@@ -952,6 +961,7 @@ public class U {
 	}
 
 	private static String [ ] splitCommand ( String s ) {
+		//		return new String [ ] { "bash" , "-c" , s } ;
 		if ( s . contains ( "*" ) || s . contains ( "~" ) || s . contains ( "|" ) || s . contains ( "&" ) || s . contains ( ">" ) ) {
 			return new String [ ] { "bash" , "-c" , s } ;
 		}

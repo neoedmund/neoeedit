@@ -137,6 +137,7 @@ public class PicView {
 		boolean drawMousePos = true ;
 		private int direction ;
 		private JInternalFrame iframe ;
+		private boolean moveMode ;
 
 		public PicViewPanel ( Object f , File fn ) throws Exception {
 			if ( f instanceof JFrame ) {
@@ -182,40 +183,74 @@ public class PicView {
 			int kc = e . getKeyCode ( ) ;
 			try {
 				if ( e . isControlDown ( ) ) {
-					if ( kc == KeyEvent . VK_W ) {
-						if ( frame != null ) {
-							frame . dispose ( ) ;
-						} else {
-							iframe . dispose ( ) ;
-						}
-					} else if ( kc == KeyEvent . VK_S )
-					saveCut ( ) ;
-					else if ( kc == KeyEvent . VK_C )
-					copyFilename ( ) ;
-				} else if ( kc == KeyEvent . VK_F1 || kc == KeyEvent . VK_TAB ) {
-					small = ! small ;
-					repaint1 ( ) ;
-				} else if ( kc == KeyEvent . VK_LEFT || kc == KeyEvent . VK_BACK_SPACE )
-				viewFile ( -1 ) ;
-				else if ( kc == KeyEvent . VK_RIGHT || kc == KeyEvent . VK_SPACE )
-				viewFile ( 1 ) ;
-				else if ( kc == KeyEvent . VK_UP )
-				rotate ( 1 ) ;
-				else if ( kc == KeyEvent . VK_DOWN )
-				rotate ( -1 ) ;
-				else if ( kc == KeyEvent . VK_P )
-				ss . stop ( ) ;
-				else if ( kc == KeyEvent . VK_S )
-				toggleSuperMode ( ) ;
-				else if ( kc == KeyEvent . VK_OPEN_BRACKET )
-				ss . decDelay ( ) ;
-				else if ( kc == KeyEvent . VK_CLOSE_BRACKET )
-				ss . incDelay ( ) ;
-				else if ( kc == KeyEvent . VK_0 ) {
-					rate = 1 ;
-					vx = 0 ;
-					vy = 0 ;
-					repaint1 ( ) ;
+					switch ( kc ) {
+						case KeyEvent . VK_W :
+						if ( frame != null )
+						frame . dispose ( ) ;
+						else
+						iframe . dispose ( ) ;
+						break ;
+						case KeyEvent . VK_S :
+						saveCut ( ) ;
+						break ;
+						case KeyEvent . VK_C :
+						copyFilename ( ) ;
+						break ;
+					}
+				} else {
+					switch ( kc ) {
+						case KeyEvent . VK_F1 :
+						case KeyEvent . VK_TAB :
+						small = ! small ;
+						repaint1 ( ) ;
+						break ;
+
+						case KeyEvent . VK_LEFT :
+						case KeyEvent . VK_BACK_SPACE :
+						viewFile ( -1 ) ;
+						break ;
+
+						case KeyEvent . VK_RIGHT :
+						case KeyEvent . VK_SPACE :
+						viewFile ( 1 ) ;
+						break ;
+
+						case KeyEvent . VK_UP :
+						rotate ( 1 ) ;
+						break ;
+
+						case KeyEvent . VK_DOWN :
+						rotate ( -1 ) ;
+						break ;
+
+						case KeyEvent . VK_P :
+						ss . stop ( ) ;
+						break ;
+
+						case KeyEvent . VK_S :
+						toggleSuperMode ( ) ;
+						break ;
+
+						case KeyEvent . VK_OPEN_BRACKET :
+						ss . decDelay ( ) ;
+						break ;
+
+						case KeyEvent . VK_CLOSE_BRACKET :
+						ss . incDelay ( ) ;
+						break ;
+
+						case KeyEvent . VK_0 :
+						rate = 1 ;
+						vx = 0 ;
+						vy = 0 ;
+						repaint1 ( ) ;
+						break ;
+						case KeyEvent . VK_M :
+						moveMode = ! moveMode ;
+						mx = rx ;
+						my = ry ;
+						break ;
+					}
 				}
 			} catch ( Exception e1 ) {
 				e1 . printStackTrace ( ) ;
@@ -366,8 +401,21 @@ public class PicView {
 
 		@ Override
 		public void mouseMoved ( MouseEvent e ) {
-			rx = e . getX ( ) ;
-			ry = e . getY ( ) ;
+			int x = e . getX ( ) ;
+			int y = e . getY ( ) ;
+			if ( moveMode ) {
+				if ( inSmall ( x , y ) )
+				setPosSmall ( x , y ) ;
+				else {
+					int dx = x - mx ;
+					int dy = y - my ;
+					vx = ( int ) ( vx1 + dx ) ;
+					vy = ( int ) ( vy1 + dy ) ;
+				}
+			} else {
+				rx = x ;
+				ry = y ;
+			}
 			repaint1 ( ) ;
 		}
 
@@ -463,7 +511,14 @@ public class PicView {
 					x = ( int ) ( ( - vx + rx ) / rate ) ;
 					y = ( int ) ( ( - vy + ry ) / rate ) ;
 				}
-				String spos = String . format ( "%d,%d" , ( int ) x , ( int ) y ) ;
+				int x0 = ( int ) x ;
+				int y0 = ( int ) y ;
+				int c = 0 ;
+				if ( x0 >= 0 && x0 < img . getWidth ( ) && y0 >= 0 && y0 < img . getHeight ( ) ) {
+					c = img . getRGB ( x0 , y0 ) ;
+				}
+				String spos = String . format ( "%d,%d(%02X%02X%02X%02X)" , x0 , y0 , ( c >> 24 ) & 0xff , ( c >> 16 ) & 0xff ,
+					( c >> 8 ) & 0xff , c & 0xff ) ;
 				int textW = g . getFontMetrics ( ) . stringWidth ( spos ) ;
 				int textH = g . getFont ( ) . getSize ( ) ;
 				int x2 = rx ;

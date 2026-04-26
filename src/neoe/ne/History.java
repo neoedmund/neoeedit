@@ -17,29 +17,27 @@ public class History {
 	LinkedList < List < HistoryCell >> data ;
 	private boolean inAtom ;
 	int p ;
-	//		PageData pageData;
+
+	// PageData pageData;
 	public History ( PageData pageData ) {
 		data = new LinkedList < > ( ) ;
 		p = 0 ;
 		atom = new ArrayList < > ( ) ;
-		//			this.pageData = pageData;
+		// this.pageData = pageData;
 	}
 
 	void add ( List < HistoryCell > o ) {
 		if ( p < data . size ( ) && p >= 0 )
 		for ( int i = 0 ; i < data . size ( ) - p ; i ++ )
 		data . removeLast ( ) ;
+		// bugfix by Deekseek v4(using 1 second), need more inspect maybe
 		List < HistoryCell > last = data . peekLast ( ) ;
-		// stem.out.println("last=" + last);
 		if ( ! append ( last , o ) ) {
-			// System.out.println("add:" + o);
 			data . add ( o ) ;
-			if ( data . size ( ) > MAXSIZE )
-			data . removeFirst ( ) ;
-			else
-			p += 1 ;
-		} else {
-			// System.out.println("append:" + o);
+			if ( data . size ( ) > MAXSIZE ) {
+				data . removeFirst ( ) ;
+			}
+			p = data . size ( ) ; // Keep p in sync with actual size
 		}
 	}
 
