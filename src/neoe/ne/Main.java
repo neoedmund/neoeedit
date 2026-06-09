@@ -1,7 +1,6 @@
 package neoe . ne ;
 
 import java . io . File ;
-import java . io . IOException ;
 
 public class Main {
 	static boolean init = false ;
@@ -18,7 +17,9 @@ public class Main {
 		U . addTime = "true" . equals ( System . getenv ( U . NE_ADDTIME ) ) ;
 		U . keymintime = Integer . parseInt ( Conf . get ( "keymintime" , "0" ) . toString ( ) ) ;
 		// Gimp.loadFromConfig();
-		Plugin . load ( ) ;
+		if ( Plugin . LoadPlugins ) {
+			Plugin . load ( ) ;
+		}
 	}
 
 	public static void main ( String [ ] args ) throws Exception {

@@ -41,7 +41,7 @@ public class PlainPage {
 
 	// boolean changedOutside = false ;
 	public Console console ;
-	Cursor cursor = new Cursor ( ) ;
+	public Cursor cursor = new Cursor ( ) ;
 	public int cx ;
 	public int cy ;
 	public Map < String , String > env ;
@@ -915,7 +915,7 @@ public class PlainPage {
 		ui . xpaint ( g , size ) ;
 	}
 
-	class Cursor {
+	public class Cursor {
 		void gotoLine ( ) {
 			String s = JOptionPane . showInputDialog ( uiComp , "Goto Line" ) ;
 			int line = -1 ;
@@ -1123,7 +1123,7 @@ public class PlainPage {
 			repaint ( ) ;
 		}
 
-		void setSafePos ( int x , int y ) {
+		public void setSafePos ( int x , int y ) {
 			cy = U . between ( y , 0 , pageData . roLines . getLinesize ( ) - 1 ) ;
 			cx = U . between ( x , 0 , pageData . roLines . getline ( cy ) . length ( ) ) ;
 		}

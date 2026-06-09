@@ -60,6 +60,14 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 				return true ;
 			}
 		}
+		boolean isFile = true ;
+		File f = new File ( title ) ;
+		if ( ! f . isFile ( ) )
+		f = new File ( page . workPath , title ) ;
+		if ( ! f . isFile ( ) )
+		isFile = false ;
+		else
+		title = f . getCanonicalPath ( ) ;
 		PlainPage pp = findPage ( title ) ;
 		if ( pp != null ) {
 			if ( newWindow /* && pp . pageData . fileLoaded */ ) {
@@ -95,13 +103,8 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 			}
 			return false ; // not likely
 		}
-		File f = new File ( title ) ;
-		if ( ! f . isFile ( ) )
-		f = new File ( page . workPath , title ) ;
-		if ( ! f . isFile ( ) )
-		return false ;
-		else
-		title = f . getCanonicalPath ( ) ;
+
+		if ( ! isFile ) return false ;
 
 		if ( newWindow ) {
 			openInNewWindow ( title , line ) ;
@@ -118,7 +121,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		return true ;
 	}
 
-	private PlainPage findPage ( String title ) {
+	private PlainPage findPage ( String title ) throws IOException {
 		for ( int i = 0 ; i < pageSet . size ( ) ; i ++ ) {
 			PlainPage p = pageSet . get ( i ) ;
 			if ( p . pageData . title . equals ( title ) )
@@ -293,7 +296,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 
 	JDesktopPane desktopPane ;
 
-	JFrame realJFrame ;
+	public JFrame realJFrame ;
 	private static final EditorPanelConfig DEFAULT = new EditorPanelConfig ( ) ;
 
 	public EditorPanel ( ) throws Exception {
