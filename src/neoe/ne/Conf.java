@@ -39,6 +39,7 @@ public class Conf {
 			System . out . println ( "load " + Version . CONFIG_FN ) ;
 			BufferedReader in = new BufferedReader ( U . getInstalledReader ( Version . CONFIG_FN ) ) ;
 			conf = ( Map ) new PyData ( ) . parseAll ( in ) ;
+			//			System . out . println ( "[d]conf=" + conf ) ;
 			return conf ;
 		} catch ( Exception ex ) {
 			throw new RuntimeException ( "fatal: cannot read conf " + Version . CONFIG_FN , ex ) ;

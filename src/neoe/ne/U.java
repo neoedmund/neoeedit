@@ -100,26 +100,27 @@ public class U {
 	}
 
 	static EditorPanel newWindow ( PlainPage pp ) throws Exception {
-		EditorPanel uiComp = pp . uiComp ;
-		EditorPanel ep = new EditorPanel ( uiComp . config ) ;
-		if ( uiComp . desktopPane == null ) {
+		EditorPanel uiCompFrom = pp . uiComp ;
+		EditorPanel ep = new EditorPanel ( uiCompFrom . config ) ;
+		if ( uiCompFrom . desktopPane == null ) {
 			ep . openWindow ( ) ;
 		} else {
 			// U.e_png, parentUI, frame, frame, null
-			JInternalFrame neframe = new JInternalFrame ( "ne" , true , true , true , true ) ;
-			ep . openWindow ( U . e_png , neframe , uiComp . realJFrame , uiComp . desktopPane ) ;
-			uiComp . desktopPane . add ( neframe ) ;
-			neframe . setVisible ( true ) ;
-			int fc = uiComp . desktopPane . getAllFrames ( ) . length ;
-			JInternalFrame p1 = ( JInternalFrame ) uiComp . frame ;
-			neframe . setLocation ( p1 . getLocation ( ) . x + 5 * fc , p1 . getLocation ( ) . y + 5 * fc ) ;
-			neframe . setLayer ( p1 . getLayer ( ) ) ;
-			neframe . setSize ( p1 . getSize ( ) ) ;
-			neframe . setSelected ( true ) ;
-			ep . userfunc = uiComp . userfunc ;
-			if ( ep . userfunc != null ) {
-				ep . userfunc . run ( neframe , ep ) ;
-			}
+			JInternalFrame iframe = new JInternalFrame ( "ne" , true , true , true , true ) ;
+			EditorPanel . addFocusForIFrame ( iframe , uiCompFrom . fcb ) ;
+			ep . openWindowInIFrame ( null , iframe , uiCompFrom . iframesFrame , uiCompFrom . desktopPane , uiCompFrom . fcb ) ;
+			uiCompFrom . desktopPane . add ( iframe ) ;
+			iframe . setVisible ( true ) ;
+
+			JInternalFrame p1 = uiCompFrom . iframe ;
+			iframe . setLocation ( p1 . getLocation ( ) . x + 25 , p1 . getLocation ( ) . y + 25 ) ;
+			iframe . setLayer ( p1 . getLayer ( ) ) ;
+			iframe . setSize ( p1 . getSize ( ) ) ;
+			iframe . setSelected ( true ) ;
+			//			ep.userfunc = uiCompFrom.userfunc;
+			//			if (ep.userfunc != null) {
+			//				ep.userfunc.run(iframe, ep);
+			//			}
 		}
 		// set default working path
 		ep . page . workPath = pp . workPath ;
@@ -961,7 +962,7 @@ public class U {
 	}
 
 	private static String [ ] splitCommand ( String s ) {
-		//		return new String [ ] { "bash" , "-c" , s } ;
+		// return new String [ ] { "bash" , "-c" , s } ;
 		if ( s . contains ( "*" ) || s . contains ( "~" ) || s . contains ( "|" ) || s . contains ( "&" ) || s . contains ( ">" ) ) {
 			return new String [ ] { "bash" , "-c" , s } ;
 		}

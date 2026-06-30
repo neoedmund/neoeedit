@@ -22,8 +22,6 @@ import java . util . LinkedHashMap ;
 import java . util . List ;
 import java . util . Map ;
 
-import javax . swing . JFrame ;
-import javax . swing . JInternalFrame ;
 import javax . swing . JOptionPane ;
 
 import neoe . ne . CommandPanel . CommandPanelPaint ;
@@ -41,7 +39,7 @@ public class PlainPage {
 
 	// boolean changedOutside = false ;
 	public Console console ;
-	Cursor cursor = new Cursor ( ) ;
+	public Cursor cursor = new Cursor ( ) ;
 	public int cx ;
 	public int cy ;
 	public Map < String , String > env ;
@@ -124,19 +122,33 @@ public class PlainPage {
 
 		if ( uiComp . pageSet . size ( ) <= 0 ) {
 			// nothing to show
-			if ( uiComp . frame != null )
-			if ( uiComp . frame instanceof JFrame )
-			( ( JFrame ) uiComp . frame ) . dispose ( ) ;
-			else if ( uiComp . frame instanceof JFrame )
-			( ( JInternalFrame ) uiComp . frame ) . dispose ( ) ;
-			else
-			System . out . println ( "cannot close frame, bug" ) ;
-		} else
-		gotoFileLine ( lastPageAndPos , uiComp , false ) ;
+			if ( uiComp . tabs != null ) {
+				int index = uiComp . tabs . indexOfComponent ( uiComp ) ;
+				Tabs . closeTab ( uiComp , index ) ;
+			} else if ( uiComp . frame != null ) {
+				uiComp . frame . dispose ( ) ;
+			} else if ( uiComp . iframe != null ) {
+				if ( uiComp . iframe . isClosable ( ) ) {
+					uiComp . iframe . dispose ( ) ;
+				} else {
+					PlainPage pp = new PlainPage ( uiComp , PageData . newUntitled ( ) , this ) ;
+				}
+			} else {
+				System . out . println ( "cannot close frame, bug" ) ;
+			}
+		} else {
+			// System.out.println("[d]lastPageAndPos:"+lastPageAndPos);
+			gotoFileLine ( lastPageAndPos , uiComp , false ) ;
+		}
 		if ( uiComp . page == null && ! uiComp . pageSet . isEmpty ( ) ) { // if anything failed
 			PlainPage lp = uiComp . pageSet . get ( 0 ) ;
 			uiComp . setPage ( lp , false ) ;
 		}
+		System . out . println ( "[d]pp closed, and uiComp.page:" + uiComp . page ) ;
+		// if (uiComp.page==null) {
+		// System.out.println("[d]uiComp.page is null, panic");
+		// System.exit(1);
+		// }
 	}
 
 	public void go ( String line , boolean newWindow ) throws Exception {
@@ -744,6 +756,9 @@ public class PlainPage {
 			case newWindow :
 			U . newWindow ( this ) ;
 			break ;
+			case newTab :
+			Tabs . newTab ( this ) ;
+			break ;
 			case save :
 			if ( U . saveFile ( this ) )
 			ui . message ( "saved" ) ;
@@ -915,7 +930,7 @@ public class PlainPage {
 		ui . xpaint ( g , size ) ;
 	}
 
-	class Cursor {
+	public class Cursor {
 		void gotoLine ( ) {
 			String s = JOptionPane . showInputDialog ( uiComp , "Goto Line" ) ;
 			int line = -1 ;
@@ -1123,7 +1138,7 @@ public class PlainPage {
 			repaint ( ) ;
 		}
 
-		void setSafePos ( int x , int y ) {
+		public void setSafePos ( int x , int y ) {
 			cy = U . between ( y , 0 , pageData . roLines . getLinesize ( ) - 1 ) ;
 			cx = U . between ( x , 0 , pageData . roLines . getline ( cy ) . length ( ) ) ;
 		}
@@ -2082,7 +2097,7 @@ public class PlainPage {
 
 					if ( ime != null ) {
 						Rectangle bs = g2 . getClipBounds ( ) ;
-						//						System . out . println ( "bs=" + bs ) ;
+						// System . out . println ( "bs=" + bs ) ;
 						ime . paint ( g2 , fontList , w , y0 + lineHeight + lineGap , bs ) ;
 					}
 				}

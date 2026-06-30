@@ -3,17 +3,18 @@
  */
 package neoe . ne ;
 
-import java . awt . Container ;
+import java . awt . Component ;
 import java . awt . Point ;
-import java . awt . Window ;
 import java . io . BufferedReader ;
 import java . io . File ;
 import java . io . FileInputStream ;
 import java . io . InputStreamReader ;
 import java . util . ArrayList ;
 import java . util . List ;
-import javax . swing . JFrame ;
+
+import javax . swing . JDialog ;
 import javax . swing . JOptionPane ;
+
 import neoe . ne . util . FileIterator ;
 import neoe . ne . util . PyData ;
 
@@ -577,19 +578,18 @@ class FindAndReplace {
 		}
 	}
 
-	private Window findWindow ( Container c ) {
-		int safe = 100 ;
-		while ( true ) {
-			if ( c == null )
-			return null ;
-			if ( c instanceof Window )
-			return ( Window ) c ;
-			c = c . getParent ( ) ;
-			if ( -- safe <= 0 )
-			return null ;
-		}
-	}
-
+	//	private Window findWindow ( Container c ) {
+	//		int safe = 100 ;
+	//		while ( true ) {
+	//			if ( c == null )
+	//			return null ;
+	//			if ( c instanceof Window )
+	//			return ( Window ) c ;
+	//			c = c . getParent ( ) ;
+	//			if ( -- safe <= 0 )
+	//			return null ;
+	//		}
+	//	}
 	void showFindDialog ( ) {
 		List < CharSequence > ss = pp . ptSelection . getSelected ( ) ;
 
@@ -598,12 +598,20 @@ class FindAndReplace {
 		if ( t . length ( ) == 0 && text2find != null )
 		t = text2find ;
 		if ( findWindow == null ) {
-			Window f0 = null ;
-			if ( pp . uiComp . frame instanceof JFrame )
-			f0 = ( JFrame ) pp . uiComp . frame ;
-			else
-			f0 = findWindow ( pp . uiComp . frame . getContentPane ( ) ) ;
-			findWindow = new FindReplaceWindow ( f0 , pp ) ;
+			Component f0 = null ;
+			JDialog dialog = null ;
+			if ( pp . uiComp . frame != null ) {
+				f0 = pp . uiComp . frame ;
+				dialog = new JDialog ( pp . uiComp . frame , "Find/Replace" ) ;
+			} else if ( pp . uiComp . iframe != null ) {
+				f0 = pp . uiComp . iframe ;
+				dialog = new JDialog ( pp . uiComp . iframesFrame , "Find/Replace" ) ;
+			} else {
+				System . out . println ( "[w]cannot find window for find dialog" ) ;
+				return ;
+			}
+
+			findWindow = new FindReplaceWindow ( dialog , pp , f0 ) ;
 		}
 		if ( t . length ( ) > 0 )
 		findWindow . jta1 . setText ( t ) ;

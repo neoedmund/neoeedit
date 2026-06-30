@@ -24,6 +24,7 @@
 		[ openFile ctrl-O file ]
 		[ newPage ctrl-N ui ]
 		[ newWindow ctrl-M ui ]
+		[ newTab ctrl-T ui ]
 		[ pageBack alt-UP cursor ]
 		[ pageForward alt-DOWN cursor ]
 		[ save ctrl-S file ]

@@ -16,8 +16,11 @@ import java . util . Map ;
  * one plug-in in one jar, or in one directory
  */
 public class Plugin {
+	public static boolean LoadPlugins = true ;
 	public static boolean loaded = false ; // ClassLoader cl;
 	public static void load ( ) throws Exception {
+		if ( ! LoadPlugins )
+		return ;
 		if ( loaded ) {
 			System . out . println ( "plugin seems already loaded, pass" ) ;
 			return ;

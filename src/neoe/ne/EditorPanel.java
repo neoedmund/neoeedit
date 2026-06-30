@@ -1,11 +1,14 @@
 package neoe . ne ;
 
 import java . awt . AWTEvent ;
+import java . awt . Component ;
 import java . awt . Cursor ;
 import java . awt . Dimension ;
 import java . awt . Graphics ;
 import java . awt . Point ;
 import java . awt . Rectangle ;
+import java . awt . event . FocusEvent ;
+import java . awt . event . FocusListener ;
 import java . awt . event . InputMethodEvent ;
 import java . awt . event . InputMethodListener ;
 import java . awt . event . KeyEvent ;
@@ -32,9 +35,12 @@ import javax . swing . JDesktopPane ;
 import javax . swing . JFrame ;
 import javax . swing . JInternalFrame ;
 import javax . swing . JPanel ;
-import javax . swing . RootPaneContainer ;
+import javax . swing . JTabbedPane ;
 import javax . swing . SwingUtilities ;
 import javax . swing . WindowConstants ;
+import javax . swing . event . InternalFrameAdapter ;
+import javax . swing . event . InternalFrameEvent ;
+import javax . swing . event . InternalFrameListener ;
 
 import neoe . ne . U . LocationHistory ;
 
@@ -60,6 +66,14 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 				return true ;
 			}
 		}
+		boolean isFile = true ;
+		File f = new File ( title ) ;
+		if ( ! f . isFile ( ) && page != null && page . workPath != null )
+		f = new File ( page . workPath , title ) ;
+		if ( ! f . isFile ( ) )
+		isFile = false ;
+		else
+		title = f . getCanonicalPath ( ) ;
 		PlainPage pp = findPage ( title ) ;
 		if ( pp != null ) {
 			if ( newWindow /* && pp . pageData . fileLoaded */ ) {
@@ -95,13 +109,9 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 			}
 			return false ; // not likely
 		}
-		File f = new File ( title ) ;
-		if ( ! f . isFile ( ) )
-		f = new File ( page . workPath , title ) ;
-		if ( ! f . isFile ( ) )
+
+		if ( ! isFile )
 		return false ;
-		else
-		title = f . getCanonicalPath ( ) ;
 
 		if ( newWindow ) {
 			openInNewWindow ( title , line ) ;
@@ -118,7 +128,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		return true ;
 	}
 
-	private PlainPage findPage ( String title ) {
+	private PlainPage findPage ( String title ) throws IOException {
 		for ( int i = 0 ; i < pageSet . size ( ) ; i ++ ) {
 			PlainPage p = pageSet . get ( i ) ;
 			if ( p . pageData . title . equals ( title ) )
@@ -137,7 +147,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	}
 
 	private boolean inRangeOfWindowMove ( MouseEvent evt ) {
-		if ( page == null || realJFrame == null )
+		if ( page == null || realJFrame ( ) == null )
 		return false ;
 		int x = evt . getX ( ) ;
 		int y = evt . getY ( ) ;
@@ -145,7 +155,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	}
 
 	private boolean inRangeOfWindowResize ( MouseEvent evt ) {
-		if ( page == null || realJFrame == null )
+		if ( page == null || realJFrame ( ) == null )
 		return false ;
 		int x = evt . getX ( ) ;
 		int y = evt . getY ( ) ;
@@ -158,31 +168,15 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	private void startWindowMove ( MouseEvent evt ) {
 		mx = evt . getXOnScreen ( ) ;
 		my = evt . getYOnScreen ( ) ;
-		loc = getLocationOnScreen ( ) ;
-		if ( frame != null ) {
-			if ( frame instanceof JFrame ) {
-				loc = ( ( JFrame ) frame ) . getLocationOnScreen ( ) ;
-			} else if ( frame instanceof JInternalFrame ) {
-				loc = ( ( JInternalFrame ) frame ) . getLocationOnScreen ( ) ;
-			}
-		} else {
-			loc = new Point ( ) ; // dummy
-		}
+		loc = frame != null ? frame . getLocationOnScreen ( )
+		: ( iframe != null ? iframe . getLocationOnScreen ( ) : getLocationOnScreen ( ) ) ;
 		inWindowMove = true ;
 	}
 
 	private void startWindowResize ( MouseEvent evt ) {
 		mx = evt . getXOnScreen ( ) ;
 		my = evt . getYOnScreen ( ) ;
-		if ( frame != null ) {
-			if ( frame instanceof JFrame ) {
-				dim = ( ( JFrame ) frame ) . getSize ( ) ;
-			} else if ( frame instanceof JInternalFrame ) {
-				dim = ( ( JInternalFrame ) frame ) . getSize ( ) ;
-			}
-		} else {
-			dim = new Dimension ( ) ; // dummy
-		}
+		dim = frame != null ? frame . getSize ( ) : ( iframe != null ? iframe . getSize ( ) : getSize ( ) ) ;
 		inWindowResize = true ;
 	}
 
@@ -197,11 +191,9 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		loc2 . x += x - mx ;
 		loc2 . y += y - my ;
 		if ( frame != null ) {
-			if ( frame instanceof JFrame ) {
-				( ( JFrame ) frame ) . setLocation ( loc2 ) ;
-			} else if ( frame instanceof JInternalFrame ) {
-				( ( JInternalFrame ) frame ) . setLocation ( loc2 ) ;
-			}
+			frame . setLocation ( loc2 ) ;
+		} else if ( iframe != null ) {
+			iframe . setLocation ( loc2 ) ;
 		}
 	}
 
@@ -216,11 +208,9 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		dim2 . width += x - mx ;
 		dim2 . height += y - my ;
 		if ( frame != null ) {
-			if ( frame instanceof JFrame ) {
-				( ( JFrame ) frame ) . setSize ( dim2 ) ;
-			} else if ( frame instanceof JInternalFrame ) {
-				( ( JInternalFrame ) frame ) . setSize ( dim2 ) ;
-			}
+			frame . setSize ( dim2 ) ;
+		} else if ( iframe != null ) {
+			iframe . setSize ( dim2 ) ;
 		}
 	}
 
@@ -279,8 +269,10 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	static final String WINDOW_NAME = "neoeedit " + Version . REV ;
 
 	// CursorHistory ptCh = new CursorHistory();
-	public RootPaneContainer frame ;
-
+	public JFrame frame ;
+	public JInternalFrame iframe ;
+	public JFrame iframesFrame ;
+	public JTabbedPane tabs ; // optional
 	PlainPage lastPage ;
 
 	LocationHistory < String > pageHis = new LocationHistory < String > ( ) ;
@@ -293,15 +285,15 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 
 	JDesktopPane desktopPane ;
 
-	JFrame realJFrame ;
+	// public JFrame realJFrame;
 	private static final EditorPanelConfig DEFAULT = new EditorPanelConfig ( ) ;
 
 	public EditorPanel ( ) throws Exception {
-		this ( DEFAULT ) ;
+		this ( null ) ;
 	}
 
-	public EditorPanel ( EditorPanelConfig config ) throws Exception {
-		this . config = config ;
+	public EditorPanel ( EditorPanelConfig parent ) throws Exception {
+		this . config = parent == null ? DEFAULT : parent ;
 		Main . doinit ( ) ;
 		Conf . loadOtherConfig ( config ) ;
 		enableEvents ( AWTEvent . KEY_EVENT_MASK | AWTEvent . INPUT_METHOD_EVENT_MASK ) ;
@@ -351,7 +343,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	}
 
 	void changeTitle ( ) {
-		if ( frame == null )
+		if ( frame == null && iframe == null )
 		return ;
 		String tag = " (" + pageSet . size ( ) + ") - " + EditorPanel . WINDOW_NAME + U . suNotice ( ) ;
 		String pre = U . TitleName ;
@@ -363,11 +355,12 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		title = pre + new File ( fn ) . getName ( ) + " " + new File ( fn ) . getParent ( ) + tag ;
 		else
 		title = pre + fn + tag ;
-		if ( title != null )
-		if ( frame instanceof JFrame )
-		( ( JFrame ) frame ) . setTitle ( title ) ;
-		else if ( frame instanceof JInternalFrame )
-		( ( JInternalFrame ) frame ) . setTitle ( title ) ;
+		if ( title != null ) {
+			if ( frame != null )
+			frame . setTitle ( title ) ;
+			else if ( iframe != null )
+			iframe . setTitle ( title ) ;
+		}
 	}
 
 	@ Override
@@ -375,7 +368,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		try {
 			page . keyPressed ( env ) ;
 		} catch ( Throwable e ) {
-			page . ui . message ( "err:" + e ) ;
+			pageUIMessage ( "err:" + e ) ;
 			e . printStackTrace ( ) ;
 		}
 	}
@@ -385,7 +378,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		try {
 			page . keyReleased ( env ) ;
 		} catch ( Throwable e ) {
-			page . ui . message ( "err:" + e ) ;
+			pageUIMessage ( "err:" + e ) ;
 			e . printStackTrace ( ) ;
 		}
 	}
@@ -397,7 +390,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 			return ;
 			page . keyTyped ( env ) ;
 		} catch ( Throwable e ) {
-			page . ui . message ( "err:" + e ) ;
+			pageUIMessage ( "err:" + e ) ;
 			e . printStackTrace ( ) ;
 		}
 	}
@@ -408,7 +401,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 			page . mouseClicked ( evt ) ;
 			grabFocus ( ) ;
 		} catch ( Throwable e ) {
-			page . ui . message ( "err:" + e ) ;
+			pageUIMessage ( "err:" + e ) ;
 			e . printStackTrace ( ) ;
 		}
 	}
@@ -426,7 +419,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 			}
 			page . mouseDragged ( env ) ;
 		} catch ( Throwable e ) {
-			page . ui . message ( "err:" + e ) ;
+			pageUIMessage ( "err:" + e ) ;
 			e . printStackTrace ( ) ;
 		}
 	}
@@ -455,7 +448,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		try {
 			page . mouseMoved ( evt ) ;
 		} catch ( Throwable e ) {
-			page . ui . message ( "err:" + e ) ;
+			pageUIMessage ( "err:" + e ) ;
 			e . printStackTrace ( ) ;
 		}
 	}
@@ -473,7 +466,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 			}
 			page . mousePressed ( evt ) ;
 		} catch ( Throwable e ) {
-			page . ui . message ( "err:" + e ) ;
+			pageUIMessage ( "err:" + e ) ;
 			e . printStackTrace ( ) ;
 		}
 	}
@@ -481,7 +474,8 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 	boolean inWindowMove ;
 	boolean inWindowResize ;
 
-	public UserFunc userfunc ;
+	// public UserFunc userfunc;
+	public FocusCallback fcb ;
 
 	@ Override
 	public void mouseReleased ( MouseEvent arg0 ) {
@@ -494,43 +488,80 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		try {
 			page . mouseWheelMoved ( env ) ;
 		} catch ( Throwable e ) {
-			page . ui . message ( "err:" + e ) ;
+			pageUIMessage ( "err:" + e ) ;
 			e . printStackTrace ( ) ;
 		}
 	}
 
+	private void pageUIMessage ( String s ) {
+		if ( page == null ) {
+			System . out . println ( "[d]pageUIMessage null , panic" ) ;
+			System . exit ( 1 ) ;
+		}
+		page . ui . message ( s ) ;
+	}
+
 	static List < EditorPanel > insts = new ArrayList < > ( ) ;
 
+	/**
+	 * in a new JFrame
+	 */
 	public void openWindow ( ) throws IOException {
 		if ( frame != null ) // ?
 		return ;
 		openedWindows ++ ;
 		insts . add ( this ) ;
 		JFrame f = new JFrame ( EditorPanel . WINDOW_NAME ) ;
-		openWindow ( U . e_png , f , f , null ) ;
+		openWindowInJFrame ( U . e_png , f ) ;
 		installWindowListener ( f ) ;
-		// not called, why? f . addFocusListener ( new FocusAdapter ( ) {
-		// @ Override
-		// public void focusGained ( FocusEvent e ) {
-		// System . out . println ( "JFrame.focusGained" ) ;
-		// EditorPanel . this . requestFocusInWindow ( ) ; }
-		// } ) ;
 		grabFocus ( ) ;
 	}
 
-	public void openWindow ( String iconname , RootPaneContainer outFrame , JFrame realJFrame , JDesktopPane desktopPane )
-	throws IOException {
-		frame = outFrame ;
-		this . desktopPane = desktopPane ;
+	public void openWindowInIFrame ( String iconname , JInternalFrame outFrame , JFrame jframe , JDesktopPane desktopPane0 ,
+		FocusCallback fcb ) throws IOException {
+		iframe = outFrame ;
+		iframesFrame = jframe ;
+		desktopPane = desktopPane0 ;
 		if ( iconname == null )
 		iconname = U . e_png ;
-		if ( frame instanceof JFrame )
-		initJFrame ( iconname , ( JFrame ) frame ) ;
-		else if ( frame instanceof JInternalFrame ) {
-			JInternalFrame ji = ( JInternalFrame ) frame ;
-			ji . add ( this ) ;
+		iframe . add ( this ) ;
+		changeTitle ( ) ;
+		if ( fcb != null ) {
+			this . fcb = fcb ;
+			System . out . println ( "[d]openWindowInIFrame, fcb:" + fcb ) ;
+			addFocusListener ( new FocusListener ( ) {
+					@ Override
+					public void focusLost ( FocusEvent e ) {
+					}
+
+					@ Override
+					public void focusGained ( FocusEvent e ) {
+						fcb . focus ( EditorPanel . this ) ;
+					}
+				} ) ;
+			fcb . focus ( this ) ;
 		}
-		this . realJFrame = realJFrame ;
+		repaint ( ) ;
+	}
+
+	public void openWindowInTab ( EditorPanel ep , String title , int i ) throws IOException {
+		tabs = ep . tabs ;
+		fcb = ep . fcb ;
+		if ( fcb != null )
+		fcb . focus ( this ) ;
+		iframe = ep . iframe ;
+		iframesFrame = ep . iframesFrame ;
+		desktopPane = ep . desktopPane ;
+		tabs . insertTab ( title , null , this , null , i ) ;
+		tabs . setSelectedIndex ( i ) ;
+		repaint ( ) ;
+	}
+
+	public void openWindowInJFrame ( String iconname , JFrame frame ) throws IOException {
+		this . frame = frame ;
+		if ( iconname == null )
+		iconname = U . e_png ;
+		initJFrame ( iconname , frame ) ;
 		changeTitle ( ) ;
 		repaint ( ) ;
 	}
@@ -600,5 +631,37 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		pageHis . add ( U . getLocString ( pp ) , U . getLocString ( lastPage ) ) ;
 		changeTitle ( ) ;
 		return pp . uiComp ;
+	}
+
+	public JFrame realJFrame ( ) {
+		return frame != null ? frame : iframesFrame ;
+	}
+
+	public EditorPanel findFocusedOne ( ) {
+		System . out . println ( "[d]findFocusedOne" ) ;
+		if ( tabs == null )
+		return this ;
+		EditorPanel v = ( EditorPanel ) tabs . getSelectedComponent ( ) ;
+		System . out . println ( "[d]findFocusedOne ret:" + v ) ;
+		return v ;
+	}
+
+	public static void addFocusForIFrame ( JInternalFrame iframe , FocusCallback fcb ) {
+		if ( fcb == null )
+		return ;
+
+		iframe . addInternalFrameListener ( new InternalFrameAdapter ( ) {
+				@ Override
+				public void internalFrameActivated ( InternalFrameEvent e ) {
+					Component comp = iframe . getContentPane ( ) . getComponent ( 0 ) ;
+					EditorPanel ep = null ;
+					if ( comp instanceof JTabbedPane tab ) {
+						ep = ( EditorPanel ) tab . getSelectedComponent ( ) ;
+					} else {
+						ep = ( EditorPanel ) comp ;
+					}
+					fcb . focus ( ep ) ;
+				}
+			} ) ;
 	}
 }

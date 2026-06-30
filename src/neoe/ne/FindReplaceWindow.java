@@ -1,12 +1,13 @@
 package neoe . ne ;
 
-import java . awt . Window ;
+import java . awt . Component ;
 import java . awt . event . ActionEvent ;
 import java . awt . event . ActionListener ;
 import java . awt . event . KeyAdapter ;
 import java . awt . event . KeyEvent ;
 import java . awt . event . KeyListener ;
 import java . io . File ;
+
 import javax . swing . JButton ;
 import javax . swing . JCheckBox ;
 import javax . swing . JComponent ;
@@ -15,6 +16,7 @@ import javax . swing . JLabel ;
 import javax . swing . JPanel ;
 import javax . swing . JRadioButton ;
 import javax . swing . JTextField ;
+
 import neoe . ne . U . SimpleLayout ;
 
 public class FindReplaceWindow implements ActionListener , KeyListener {
@@ -26,8 +28,8 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 	private final JButton jbup ;
 	// private JFrame f;
 	private JCheckBox jcb1 ;
-	//    private JCheckBox jcb2;
-	//    private JCheckBox jcb3;
+	// private JCheckBox jcb2;
+	// private JCheckBox jcb3;
 	private JCheckBox jcbword ;
 	JRadioButton jrb1 ;
 	private JRadioButton jrb2 ;
@@ -39,12 +41,12 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 	private JLabel lbfnfilter ;
 	private JLabel lbdir ;
 
-	public FindReplaceWindow ( Window f , PlainPage page ) {
+	public FindReplaceWindow ( JDialog dialog , PlainPage page , Component windowToCenter ) {
 		this . page = page ;
+		this . dialog = dialog ;
 		// this.f = f;
-		//		s.add(jcb2 = new JCheckBox("include subdir", true);
-		//		s.add(jcb3 = new JCheckBox("skip binary", true);
-		dialog = new JDialog ( f , "Find/Replace" ) ;
+		// s.add(jcb2 = new JCheckBox("include subdir", true);
+		// s.add(jcb3 = new JCheckBox("skip binary", true);
 		JPanel p = new JPanel ( ) ;
 		dialog . getContentPane ( ) . add ( p ) ;
 		SimpleLayout s = new SimpleLayout ( p ) ;
@@ -79,8 +81,7 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		s . add ( jb2 = new JButton ( "Replace" ) ) ;
 		s . add ( jb3 = new JButton ( "Replace All" ) ) ;
 		s . newline ( ) ;
-		final JComponent [ ] pack1
-		= new JComponent [ ] { jtadir , jtFnFilter , lbdir , lbfnfilter , jbup } ;
+		final JComponent [ ] pack1 = new JComponent [ ] { jtadir , jtFnFilter , lbdir , lbfnfilter , jbup } ;
 
 		jcb1 . addActionListener ( new ActionListener ( ) {
 				@ Override
@@ -112,10 +113,10 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		jb3 . addActionListener ( this ) ;
 		jb4 . addActionListener ( this ) ;
 		jbup . addActionListener ( this ) ;
-		//        jcb2.setEnabled(false);
-		//        jcb3.setEnabled(false);
+		// jcb2.setEnabled(false);
+		// jcb3.setEnabled(false);
 		dialog . pack ( ) ;
-		dialog . setLocationRelativeTo ( f ) ;
+		dialog . setLocationRelativeTo ( windowToCenter ) ;
 		if ( page != null && page . workPath != null )
 		jtadir . setText ( page . workPath ) ;
 		jta1 . addKeyListener ( this ) ;
@@ -137,8 +138,8 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		jrb2 . addKeyListener ( closeOnEsc ) ;
 		jcb1 . addKeyListener ( closeOnEsc ) ;
 		jbup . addKeyListener ( closeOnEsc ) ;
-		//        jcb2.addKeyListener(closeOnEsc);
-		//        jcb3.addKeyListener(closeOnEsc);
+		// jcb2.addKeyListener(closeOnEsc);
+		// jcb3.addKeyListener(closeOnEsc);
 		{
 			int totalLines = page . pageData . lines . size ( ) ;
 			if ( totalLines > 5 && totalLines - page . cy <= 3 )
@@ -169,20 +170,16 @@ public class FindReplaceWindow implements ActionListener , KeyListener {
 		try {
 			String command = ae . getActionCommand ( ) ;
 			if ( command . equals ( "find" ) )
-			page . ptFind . doFind ( jta1 . getText ( ) , jrb1 . isSelected ( ) , jrb2 . isSelected ( ) ,
-				jcb1 . isSelected ( ) , jtadir . getText ( ) ,
-				jtFnFilter . getText ( ) , jcbDirection . isSelected ( ) ,
-				jcbword . isSelected ( ) ) ;
+			page . ptFind . doFind ( jta1 . getText ( ) , jrb1 . isSelected ( ) , jrb2 . isSelected ( ) , jcb1 . isSelected ( ) ,
+				jtadir . getText ( ) , jtFnFilter . getText ( ) , jcbDirection . isSelected ( ) , jcbword . isSelected ( ) ) ;
 			else if ( command . equals ( "findall" ) )
-			page . ptFind . doFindInPage ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) ,
-				jcbword . isSelected ( ) ) ;
+			page . ptFind . doFindInPage ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) , jcbword . isSelected ( ) ) ;
 			else if ( command . equals ( "replace" ) )
-			page . ptFind . doReplace ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) , jrb2 . isSelected ( ) ,
-				jta2 . getText ( ) , false , false , null ) ;
+			page . ptFind . doReplace ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) , jrb2 . isSelected ( ) , jta2 . getText ( ) , false ,
+				false , null ) ;
 			else if ( command . equals ( "replaceall" ) )
-			page . ptFind . doReplaceAll ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) ,
-				jrb2 . isSelected ( ) , jta2 . getText ( ) , jcb1 . isSelected ( ) ,
-				jtadir . getText ( ) , jtFnFilter . getText ( ) ) ;
+			page . ptFind . doReplaceAll ( page , jta1 . getText ( ) , jrb1 . isSelected ( ) , jrb2 . isSelected ( ) , jta2 . getText ( ) ,
+				jcb1 . isSelected ( ) , jtadir . getText ( ) , jtFnFilter . getText ( ) ) ;
 			else if ( command . equals ( "up" ) ) {
 				new Thread ( ( ) -> doDirUp ( ) ) . start ( ) ;
 				return ;
