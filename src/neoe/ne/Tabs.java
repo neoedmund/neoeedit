@@ -2,19 +2,28 @@ package neoe . ne ;
 
 import java . awt . BorderLayout ;
 import java . awt . Color ;
+import java . awt . Component ;
 import java . awt . FlowLayout ;
+import java . awt . event . KeyAdapter ;
+import java . awt . event . KeyEvent ;
+import java . awt . event . KeyListener ;
 import java . awt . event . MouseAdapter ;
 import java . awt . event . MouseEvent ;
+import java . io . IOException ;
 
 import javax . swing . Icon ;
 import javax . swing . JButton ;
 import javax . swing . JDialog ;
+import javax . swing . JInternalFrame ;
 import javax . swing . JLabel ;
+import javax . swing . JPanel ;
 import javax . swing . JTabbedPane ;
 import javax . swing . JTextField ;
 import javax . swing . SwingUtilities ;
 import javax . swing . event . ChangeEvent ;
 import javax . swing . event . ChangeListener ;
+
+import neoe . ne . U . SimpleLayout ;
 
 public class Tabs {
 	private static int tabCounter ;
@@ -42,12 +51,14 @@ public class Tabs {
 				@ Override
 				public void stateChanged ( ChangeEvent e ) {
 					EditorPanel comp = ( EditorPanel ) tabbedPane . getSelectedComponent ( ) ;
+					if ( comp == null )
+					return ;
 					if ( comp . fcb != null ) {
 						comp . fcb . focus ( comp ) ;
 					}
 				}
 			} ) ;
-		//		System . out . println ( "[d]uicomp size=" + uiComp . getSize ( ) ) ;
+		// System . out . println ( "[d]uicomp size=" + uiComp . getSize ( ) ) ;
 		return tabbedPane ;
 	}
 
@@ -62,25 +73,47 @@ public class Tabs {
 					if ( e . getClickCount ( ) == 2 && SwingUtilities . isLeftMouseButton ( e ) ) {
 						int index = tabbedPane . indexAtLocation ( e . getX ( ) , e . getY ( ) ) ;
 						if ( index != -1 ) {
-							showControlDialog ( tabbedPane , index , uiComp ) ;
+							showControlDialog ( tabbedPane , index ) ;
 						}
 					}
 				}
 			} ) ;
 	}
 
-	private static void showControlDialog ( JTabbedPane tabbedPane , int index , EditorPanel uiComp ) {
+	private static void showControlDialog ( JTabbedPane tabbedPane , int index ) {
+		EditorPanel uiComp = ( EditorPanel ) tabbedPane . getComponentAt ( index ) ;
+		if ( uiComp == null )
+		return ;
 		String currentTitle = tabbedPane . getTitleAt ( index ) ;
 		JDialog dialog ;
+
 		dialog = new JDialog ( uiComp . realJFrame ( ) , "Tab Control" , true ) ;
-		dialog . setLayout ( new FlowLayout ( FlowLayout . CENTER , 15 , 15 ) ) ;
-		dialog . setSize ( 300 , 130 ) ;
-		dialog . setLocationRelativeTo ( uiComp . realJFrame ( ) ) ;
 
 		JTextField textField = new JTextField ( currentTitle , 12 ) ;
 		JButton btnRename = new JButton ( "Rename Tab" ) ;
+		textField . addKeyListener ( new KeyAdapter ( ) {
+				@ Override
+				public void keyPressed ( KeyEvent e ) {
+					if ( e . getKeyCode ( ) == KeyEvent . VK_ENTER ) {
+						btnRename . doClick ( ) ;
+					}
+				}
+			} ) ;
+		JButton btnDetach = null ;
 		JButton btnClose = new JButton ( "Close Tab" ) ;
 		btnClose . setForeground ( Color . RED ) ;
+		boolean canDetach = uiComp . tabs != null && uiComp . tabs . getTabCount ( ) > 1 ;
+		if ( canDetach ) {
+			btnDetach = new JButton ( "Detach" ) ;
+			btnDetach . addActionListener ( e -> {
+					dialog . dispose ( ) ;
+					try {
+						detachTab ( uiComp , index ) ;
+					} catch ( Exception ex ) {
+						ex . printStackTrace ( ) ;
+					}
+				} ) ;
+		}
 		btnRename . addActionListener ( e -> {
 				String newTitle = textField . getText ( ) . trim ( ) ;
 				if ( ! newTitle . isEmpty ( ) ) {
@@ -93,11 +126,19 @@ public class Tabs {
 				dialog . dispose ( ) ;
 				closeTab ( uiComp , index ) ;
 			} ) ;
-
-		dialog . add ( new JLabel ( "新名称:" ) ) ;
-		dialog . add ( textField ) ;
-		dialog . add ( btnRename ) ;
-		dialog . add ( btnClose ) ;
+		JPanel panel = new JPanel ( ) ;
+		SimpleLayout sl = new SimpleLayout ( panel ) ;
+		sl . add ( new JLabel ( "新名称:" ) ) ;
+		sl . add ( textField ) ;
+		sl . newline ( ) ;
+		sl . add ( btnRename ) ;
+		if ( btnDetach != null )
+		sl . add ( btnDetach ) ;
+		sl . add ( btnClose ) ;
+		sl . newline ( ) ;
+		dialog . getContentPane ( ) . add ( panel ) ;
+		dialog . pack ( ) ;
+		dialog . setLocationRelativeTo ( uiComp . realJFrame ( ) ) ;
 		dialog . setVisible ( true ) ;
 	}
 
@@ -157,6 +198,7 @@ public class Tabs {
 		int index = tabs . indexOfComponent ( pp . uiComp ) ;
 		EditorPanel ep = new EditorPanel ( pp . uiComp . config ) ;
 		ep . openWindowInTab ( pp . uiComp , getTabName ( ) , index + 1 ) ;
+		ep . page . workPath = pp . workPath ;
 	}
 
 	public static void closeTab ( EditorPanel uiComp , int index ) {
@@ -168,6 +210,33 @@ public class Tabs {
 			} else if ( uiComp . iframe != null ) {
 				uiComp . iframe . dispose ( ) ;
 			}
+		}
+	}
+
+	public static void detachTab ( EditorPanel ep , int index ) throws Exception {
+		JTabbedPane tabs = ep . tabs ;
+		if ( tabs == null || tabs . getTabCount ( ) <= 1 )
+		return ;
+
+		tabs . remove ( index ) ;
+		EditorPanel uiComp = ( EditorPanel ) tabs . getComponent ( 0 ) ;
+		ep . tabs = null ;
+		if ( uiComp . desktopPane == null ) {
+			ep . frame = null ;
+			ep . openWindow ( ) ;
+		} else {
+			// U.e_png, parentUI, frame, frame, null
+			JInternalFrame iframe = new JInternalFrame ( "ne" , true , true , true , true ) ;
+			EditorPanel . addFocusForIFrame ( iframe , uiComp . fcb ) ;
+			ep . openWindowInIFrame ( null , iframe , uiComp . iframesFrame , uiComp . desktopPane , uiComp . fcb ) ;
+			uiComp . desktopPane . add ( iframe ) ;
+			iframe . setVisible ( true ) ;
+
+			JInternalFrame p1 = uiComp . iframe ;
+			iframe . setLocation ( p1 . getLocation ( ) . x + 25 , p1 . getLocation ( ) . y + 25 ) ;
+			iframe . setLayer ( p1 . getLayer ( ) ) ;
+			iframe . setSize ( p1 . getSize ( ) ) ;
+			iframe . setSelected ( true ) ;
 		}
 	}
 }

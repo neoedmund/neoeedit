@@ -26,6 +26,7 @@ class FindAndReplace {
 	private static final String [ ] binExt = { ".jar" , ".class" , ".o" , ".so" , ".out" , ".ko" , ".exe" , ".dll" , ".jpg" ,
 		".gif" , ".png" , ".mp3" , ".mp4" , ".war" , ".zip" , ".gz" , ".rar" , ".7z" , ".ttc" , ".ttf" , ".pdf" , ".xlsx" ,
 		".xls" , ".mpeg" , ".bz2" , ".bin" , ".xz" , ".bz2" , ".iso" } ;
+	private static final long GUESS_BIN_FILE_SIZE = 200 * 1000 * 1000 ;
 
 	private static boolean _endsWithAny ( String [ ] binExt , String name ) {
 		name = name . toLowerCase ( ) ;
@@ -348,7 +349,7 @@ class FindAndReplace {
 		if ( _endsWithAny ( binExt , name ) )
 		return true ;
 		long size = f . length ( ) ;
-		if ( size >= 30 * 1000 * 1000 )
+		if ( size >= GUESS_BIN_FILE_SIZE )
 		return true ;
 		return false ;
 	}

@@ -549,6 +549,7 @@ public class EditorPanel extends JPanel implements MouseMotionListener , MouseLi
 		fcb = ep . fcb ;
 		if ( fcb != null )
 		fcb . focus ( this ) ;
+		frame = ep . frame ;
 		iframe = ep . iframe ;
 		iframesFrame = ep . iframesFrame ;
 		desktopPane = ep . desktopPane ;
